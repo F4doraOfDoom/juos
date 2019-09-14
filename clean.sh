@@ -2,5 +2,5 @@
 . ./config.sh
 
 for DIR in $PROJECTS; do
-    cd $DIR && make clean
+    cd $DIR && make clean && cd ..
 done;

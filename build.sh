@@ -4,6 +4,6 @@
 . ./config.sh
 
 for DIR in $PROJECTS; do
-    echo "Bulding:      " $DIR
-    cd $DIR && make build
+    cd $DIR && make build && cd ..
 done;
+

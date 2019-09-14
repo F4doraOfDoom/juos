@@ -5,10 +5,14 @@ export TOOLS=$(./cross_tools_location.sh)
 export HOST=$(./host.sh)
 
 export CC=$TOOLS$HOST-g++
-export CFLAGS="-O2 -Wall -Wextra -O2"
-export CPPFLAGS=""
+export AS=$TOOLS$HOST-as
 
-export PROJECTS="kernel libc"
+export CFLAGS="-O2 -Wall -Wextra"
+export CPPFLAGS=""
+export LIBC=$PWD/libc
+export INCLUDE=$LIBC/include
+
+export PROJECTS="kernel" #important to build libc first
 
 echo "***CONFIG***"
 echo "Using arch:       " $ARCH
