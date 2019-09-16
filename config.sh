@@ -1,8 +1,8 @@
 #!/bin/sh
 
-export ARCH=$(./arch.sh)
-export TOOLS=$(./cross_tools_location.sh)
-export HOST=$(./host.sh)
+export ARCH=$(./scripts/arch.sh)
+export TOOLS=$(./scripts/cross_tools_location.sh)
+export HOST=$(./scripts/host.sh)
 
 
 export EMULATOR=qemu-system-$ARCH

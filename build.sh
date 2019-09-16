@@ -8,5 +8,5 @@ for DIR in $PROJECTS; do
 done;
 
 #check if build is good
-./is_multiboot.sh $PROJECT_NAME.kernel
+./scripts/is_multiboot.sh $PROJECT_NAME.kernel
 
