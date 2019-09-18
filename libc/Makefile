@@ -8,17 +8,36 @@ CFLAGS:=${CFLAGS}
 CPPFLAGS:=${CPPFLAGS}
 LIBC_HEADERS:=${INCLUDE}
 
+LIBK_FLAGS=-D__is_libk
+
 SUPPORTED=\
 string
 
 REQUIRED=$(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.c))
+LIBC_OBJ=$(REQUIRED:.c=.libc.o)
+LIBK_OBJ=$(REQUIRED:.c=.libk.o)
 
-build: 
+build: $(SUPPORTED)
+
+$(SUPPORTED): $(LIBC_OBJ) $(LIBK_OBJ)
+	mkdir lib
+	$(AR) rcs $@.libc.a $(LIBC_OBJ)
+	$(AR) rcs $@.libk.a $(LIBC_OBJ)
+	mv *.libc.a lib/
+	mv *.libk.a lib/
+
+
+%.libc.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) \
 	-I$(LIBC_HEADERS) \
-	$(REQUIRED)  
-	mv *.o obj/
+	$(REQUIRED) -o $@
+
+%.libk.o:
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) \
+	-I$(LIBC_HEADERS) \
+	$(REQUIRED) -o $@
 
 clean:
-	rm obj/*.o
+	rm $(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.o)) 
+	rm -rf lib/
 
