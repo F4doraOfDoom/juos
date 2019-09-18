@@ -12,7 +12,7 @@ LIBC:=${LIBC}
 KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
 
 KERNEL_OBJS=$(wildcard obj/*.o)
-LIBC_OBJS=$(wildcard $(LIBC)/obj/*)
+LIBC_OBJS=$(wildcard $(LIBC)/lib/*.libk.a)
 
 PROJECT_NAME:=${PROJECT_NAME}.kernel
 
@@ -28,10 +28,11 @@ build: .o .S
 	mv boot.o obj/
 
 .o: 
+	mkdir obj
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) \
-	-Iinclude -I$(INCLUDE) \
+	-Iinclude -I$(INCLUDE) -MD \
 	-c kernel/*.cpp arch/$(ARCH)/*.cpp 
 	mv *.o obj/
 	
 clean:
-	rm obj/*.o 
+	rm -rf obj/ 
