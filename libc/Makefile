@@ -22,10 +22,9 @@ build: $(SUPPORTED)
 $(SUPPORTED): $(LIBC_OBJ) $(LIBK_OBJ)
 	mkdir lib
 	$(AR) rcs $@.libc.a $(LIBC_OBJ)
-	$(AR) rcs $@.libk.a $(LIBC_OBJ)
+	$(AR) rcs $@.libk.a $(LIBK_OBJ)
 	mv *.libc.a lib/
 	mv *.libk.a lib/
-
 
 %.libc.o:
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) \
@@ -40,4 +39,3 @@ $(SUPPORTED): $(LIBC_OBJ) $(LIBK_OBJ)
 clean:
 	rm $(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.o)) 
 	rm -rf lib/
-

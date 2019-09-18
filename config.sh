@@ -13,6 +13,7 @@ export CFLAGS="-O2 -Wall -Wextra"
 export CPPFLAGS=""
 export LIBC=$PWD/libc
 export INCLUDE=$LIBC/include
+export KINCLUDE=$PWD/kernel/include
 
 export ROOT=$PWD
 export PROJECTS="libc kernel" #important to build libc first

@@ -1,3 +1,5 @@
+FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
+
 ARCH:=${ARCH}
 HOST:=${HOST}
 
@@ -7,32 +9,53 @@ AS:=${AS}
 CFLAGS:=${CFLAGS}
 CPPFLAGS:=${CPPFLAGS}
 INCLUDE:=${INCLUDE}
+KINCLUDE:=${KINCLUDE}
 LIBC:=${LIBC}
 
 KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
+KERNEL_C=$(wildcard kernel/*.c) 
+KERNEL_CPP=$(wildcard kernel/*.cpp)
+KERNEL_ASM=$(wildcard kernel/*.S)
+KERNEL_OBJS= \
+$(KERNEL_C:.c=.o) \
+$(KERNEL_CPP:.cpp=.o) \
+$(KERNEL_ASM:.S=.o)
 
-KERNEL_OBJS=$(wildcard obj/*.o)
+ARCH_DIR=arch/$(ARCH)
+ARCH_C=$(wildcard $(ARCH_DIR)/*.c) 
+ARCH_CPP=$(wildcard $(ARCH_DIR)/*.cpp)
+ARCH_ASM=$(wildcard $(ARCH_DIR)/*.S)
+ARCH_OBJS= \
+$(ARCH_C:.c=.o) \
+$(ARCH_CPP:.cpp=.o) \
+$(ARCH_ASM:.S=.o)
+
 LIBC_OBJS=$(wildcard $(LIBC)/lib/*.libk.a)
 
-PROJECT_NAME:=${PROJECT_NAME}.kernel
+PROJECT:=${PROJECT_NAME}.kernel
 
-build: .o .S
+.SUFFIXES: .o .cpp .S
+
+build: $(KERNEL_OBJS) $(ARCH_OBJS)
+	echo 1 $(KERNEL_OBJS) $(ARCH_OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) \
-	-T arch/$(ARCH)/linker.ld \
-	$(KERNEL_OBJS) $(LIBC_OBJS) \
-	-o $(PROJECT_NAME)
-	mv $(PROJECT_NAME) ${ROOT}
+	-T $(ARCH_DIR)/linker.ld \
+	$(KERNEL_OBJS) $(ARCH_OBJS) $(LIBC_OBJS) \
+	-o $(PROJECT)
+	mv $(PROJECT) ${ROOT}
 
-.S:
-	$(AS) arch/$(ARCH)/boot.S -o boot.o
-	mv boot.o obj/
+$(KERNEL_OBJS): $(KERNEL_C) $(KERNEL_CPP) $(KERNEL_ASM)
 
-.o: 
-	mkdir obj
+$(ARCH_OBJS): $(ARCH_C) $(ARCH_CPP) $(ARCH_ASM)
+
+.S.o:
+	$(AS) $< -o $@
+
+.c.o .cpp.o:  
+	echo 4
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) \
-	-Iinclude -I$(INCLUDE) -MD \
-	-c kernel/*.cpp arch/$(ARCH)/*.cpp 
-	mv *.o obj/
+	-I$(KINCLUDE) -I$(INCLUDE) \
+	-c $< -o $@
 	
 clean:
-	rm -rf obj/ 
+	rm -f */*.o */*/*.o
