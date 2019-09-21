@@ -1,0 +1,126 @@
+This is a document which describes this project's coding style.
+The purpose of this document is to act as a guide for contributors, and as a reference for internal
+style consistency.
+
+
+PHILOSOPHY:
+Your code's style should strive to be as explicit as possible. Explicit is better than implicit.
+Your code isn't measured by how short it is. Don't be afraid to go for longer solutions if they
+are more easy to read and understand. Long and easy is better than short and hard.
+Prefer namespaces functions to classes.
+
+
+INDENTATION:
+You should indent your code with tabs of size 4.
+Try to indent things to match the same indentation level, like this:
+	gdt_entries[entry].base_low     = (base & 0xFFFF);
+    gdt_entries[entry].base_middle  = (base >> 16) & 0xFF;
+    gdt_entries[entry].base_high    = (base >> 24) & 0xFF;
+When things appear on the same line, the eye doesn't have to move alot, making code easier to read.
+Place 2 new lines between each function/class
+
+
+NAMING:
+Each different construct of C++ has a different naming convention, for easy distiction.
+	Macros: 	should be written in ALL_CAPS.
+	Classes: 	should be written in CamelCase
+	Namespaces:	shpuld be written in CamelCase
+	Enums: 		should be written in Camel_Case_With_Underscores
+	Functions:	should be written in snake_case
+This way, each time you see a name, you can quickly know which concept it refers to. 
+
+
+BRACKETS:
+The brackets for each new scope should we written in different lines, for functions, classes,
+enums, loops, and conditions alike, for example:
+	void func()
+	{
+
+	}
+
+	class Object
+	{
+
+	}
+
+	for(;;)
+	{
+
+	}
+
+The exception to this rule are namespaces, where the macro NAMESPACE_BEGIN and NAMESPACE_END should be 
+used instead of naked namespace declerations.
+
+
+CLASSES VS REGULAR FUNCTIONS:
+Always prefer namespaced functions to classes with member functions, even if they are static.
+For example, this:
+	
+	namespace Tty {
+		void func()
+	}
+
+is much better than this:
+
+	class Tty {
+		static void func()
+	}
+
+
+CLASSES & STRUCTS:
+Prefer to use structs over classes. 
+Classes should be used as objects (that is, as a way to combine code and data). Dont write classes
+if you don't have to.
+Structs should be written as C-style structs, that is, without any member functions. 
+Access levels for classes should be written like this:
+	class Object
+	{
+	public:
+		void func();
+
+	protected:
+		void _foo();
+
+	private:
+		void _bar();
+	}
+Never make a member variable public, always use getters and setters! This is done for future proofing,
+as you never know if you might start encapsulating the member variables. If you start making them public
+now and private later, you'll have to manualy change all your code to use the getters and setters instead
+of naked class access. 
+When classes inherit from each other, never forget to write "override" and virtual. Remember, explicit
+is better than implicit!
+
+
+NAMESPACES:
+You should use the macros NAMESPACE_BEGIN and NAMESPACE_END, defined in kernel/kdef.h.
+You should define namespaces only in header files. In the implementation file, you will access
+the namespaces like this:
+	// gdt.h
+	NAMESPACE_BEGIN(Gdt)
+		void func()
+	NAMESPACE_END(Gdt)
+
+	//gdt.cpp
+	Gdt::func() ...
+
+
+
+ENUMS:
+Always prefer using an enum class to a regular enum.
+If you can, specify the type of the enum.
+Each value should be written in a separate line, unless the enum is defined localy inside of a
+function (which you should strive to avoid).
+
+	// Good!
+	enum class Colors : uint8_t
+	{
+		Red,
+		Green, 
+		Blue
+	}
+	...
+	Colors::Red
+
+	// BAD!
+	enum COLORS { RED, GREEN, BLUE }

@@ -5,10 +5,10 @@
 
 NAMESPACE_BEGIN(Gdt)
 
-/*
-    This function is used to initilalize the global descriptor table
-*/
-void initialize();
+    /*
+        This function is used to initilalize the global descriptor table
+    */
+    void initialize();
 
 NAMESPACE_END(Gdt)
 
