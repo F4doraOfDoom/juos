@@ -10,6 +10,7 @@ CFLAGS:=${CFLAGS}
 CPPFLAGS:=${CPPFLAGS}
 INCLUDE:=${INCLUDE}
 KINCLUDE:=${KINCLUDE}
+AINCLUDE:=${AINCLUDE}
 LIBC:=${LIBC}
 
 KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
@@ -52,10 +53,10 @@ $(ARCH_OBJS): $(ARCH_C) $(ARCH_CPP) $(ARCH_ASM)
 	$(AS) $< -o $@
 
 .c.o .cpp.o:  
-	echo 4
+	echo $(ARCH_DIR)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) \
-	-I$(KINCLUDE) -I$(INCLUDE) \
+	-I$(KINCLUDE) -I$(INCLUDE) -I$(ARCH_DIR) \
 	-c $< -o $@
 	
 clean:
-	rm -f */*.o */*/*.o
+	rm -f */*.o */*/*.o */*/*/*.o

@@ -4,8 +4,8 @@
 #include <string.h>
  
 #include <kernel/tty.h>
- 
-#include "vgh.h"
+
+#include "include/vgh.h"
 
 static void _terminal_setcolor(uint8_t color);
 static void _terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y);

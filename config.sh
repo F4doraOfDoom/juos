@@ -14,6 +14,7 @@ export CPPFLAGS=""
 export LIBC=$PWD/libc
 export INCLUDE=$LIBC/include
 export KINCLUDE=$PWD/kernel/include
+export AINCLUDE=$PWD/arch/$ARCH/include
 
 export ROOT=$PWD
 export PROJECTS="libc kernel" #important to build libc first

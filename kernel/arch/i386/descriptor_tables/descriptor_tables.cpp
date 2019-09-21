@@ -1,5 +1,5 @@
-#include "descriptor_tables_structs.h"
-#include "descriptor_tables.h"
+#include <include/descriptor_tables_structs.h>
+#include <include/descriptor_tables.h>
 
 Gdt::entry_t    gdt_entries[5]      = { 0 };
 Gdt::PtrStruct  gdt_ptr             = { 0, 0 };
@@ -46,7 +46,7 @@ static void Gdt::_config_entry(int32_t entry, uint32_t base, uint32_t limit, uin
 
 
 template <uint32_t N>
-static void Idt::_call_general_interrupt_handler()
+static void Idt::_request_isr()
 {
     const int32_t interrupt_num = N; 
     int32_t _;
@@ -55,7 +55,7 @@ static void Idt::_call_general_interrupt_handler()
         "cli\n"
         "pushl 0\n" 
         "pushl %1\n"
-        "jmp general_interrupt_handler\n"
+        "jmp isr_basic_caller\n"
         : "=r"(_)
         : "r"(interrupt_num)
     );
@@ -66,7 +66,10 @@ static void Idt::_init()
     idt_ptr.size = (sizeof(Idt::entry_t) * 256) - 1;
     idt_ptr.base = (uint32_t)&idt_entries;
 
-    Idt::_config_entry(0, reinterpret_cast<uint32_t>(_call_general_interrupt_handler<0>), 0, 0);
+    Idt::_config_entry(0, reinterpret_cast<uint32_t>(_request_isr<0>), 0x08, 0x8E);
+    Idt::_config_entry(1, reinterpret_cast<uint32_t>(_request_isr<1>), 0x08, 0x8E);
+    Idt::_config_entry(2, reinterpret_cast<uint32_t>(_request_isr<2>), 0x08, 0x8E);
+    Idt::_config_entry(3, reinterpret_cast<uint32_t>(_request_isr<3>), 0x08, 0x8E);
 
     idt_dump((uint32_t)&idt_ptr);
 }
@@ -78,11 +81,4 @@ static void Idt::_config_entry(int32_t entry, uint32_t base, uint16_t sel, uint8
 
     idt_entries[entry].sel          = sel;
     idt_entries[entry].flags        = flags;  // | 0x60
-
-}
-
-void general_interrupt_handler()
-{
-    volatile char x = 0;
-    x = 1;
 }

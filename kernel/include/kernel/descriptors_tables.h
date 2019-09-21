@@ -3,6 +3,8 @@
 
 #include <kernel/kdef.h>
 
+
+
 NAMESPACE_BEGIN(Gdt)
 
     /*
