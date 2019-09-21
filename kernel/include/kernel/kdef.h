@@ -3,7 +3,7 @@
 
 #define __NO_MANGELING          extern "C"
 
-#define GO_PANIC()              while(1) {}                   
+#define GO_PANIC()              while(1) { asm volatile (""); }                   
 #define NAMESPACE_BEGIN(name)   namespace name {
 #define NAMESPACE_END(name)     }
 

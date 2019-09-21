@@ -11,8 +11,9 @@ __NO_MANGELING void kernel_main(void) {
 	Tty::initialize();
 	Gdt::initialize();
 	Idt::initialize();
+	Interrupts::initialize();
 
-	set_interrupt_handler(0, divide_by_zero);
+	// Interrupts::set_handler(0, divide_by_zero);
 
 	Tty::writestring("Hello world!");
 	asm volatile(

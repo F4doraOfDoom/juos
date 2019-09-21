@@ -3,8 +3,20 @@
 
 #include <stdint.h>
 
-typedef void (*interrupt_handler)(void*);
+NAMESPACE_BEGIN(Interrupts)
 
-void set_interrupt_handler(uint32_t interrupt_num, interrupt_handler handler);
+    typedef void (*handler)(void*);
+    
+    struct HandlerEntry
+    {
+        bool is_set;
+        handler ihandler;
+    };
+
+    void initialize();
+ 
+    void set_handler(uint32_t interrupt_num, handler handler);
+
+NAMESPACE_END(Interrupts)
 
 #endif //KERNEL_INTERRUPTS_H_
