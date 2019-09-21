@@ -13,18 +13,18 @@ KINCLUDE:=${KINCLUDE}
 LIBC:=${LIBC}
 
 KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
-KERNEL_C=$(wildcard kernel/*.c) 
-KERNEL_CPP=$(wildcard kernel/*.cpp)
-KERNEL_ASM=$(wildcard kernel/*.S)
+KERNEL_C=$(wildcard kernel/*.c kernel/*/.c) 
+KERNEL_CPP=$(wildcard kernel/*.cpp kernel/*/.cpp)
+KERNEL_ASM=$(wildcard kernel/*.S kernel/*/.S)
 KERNEL_OBJS= \
 $(KERNEL_C:.c=.o) \
 $(KERNEL_CPP:.cpp=.o) \
 $(KERNEL_ASM:.S=.o)
 
 ARCH_DIR=arch/$(ARCH)
-ARCH_C=$(wildcard $(ARCH_DIR)/*.c) 
-ARCH_CPP=$(wildcard $(ARCH_DIR)/*.cpp)
-ARCH_ASM=$(wildcard $(ARCH_DIR)/*.S)
+ARCH_C=$(wildcard $(ARCH_DIR)/*.c $(ARCH_DIR)/*/*.c) 
+ARCH_CPP=$(wildcard $(ARCH_DIR)/*.cpp $(ARCH_DIR)/*/*.cpp)
+ARCH_ASM=$(wildcard $(ARCH_DIR)/*.S $(ARCH_DIR)/*/*.S)
 ARCH_OBJS= \
 $(ARCH_C:.c=.o) \
 $(ARCH_CPP:.cpp=.o) \
