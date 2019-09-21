@@ -9,7 +9,7 @@ export EMULATOR=qemu-system-$ARCH
 export CC=$TOOLS$HOST-g++
 export AS=$TOOLS$HOST-as
 
-export CFLAGS="-O2 -Wall -Wextra"
+export CFLAGS="-O2 -Wall -Wextra -g"
 export CPPFLAGS=""
 export LIBC=$PWD/libc
 export INCLUDE=$LIBC/include

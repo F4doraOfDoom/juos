@@ -1,43 +1,18 @@
-#ifndef KERNEL_DESCRIPTOR_STRUCTS
-#define KERNEL_DESCRIPTOR_STRUCTS
+#ifndef KERNEL_DESCRIPTOR_TABLES_I386
+#define KERNEL_DESCRIPTOR_TABLES_I386
 
-#include <kernel/descriptors.h>
-#include <kernel/kdef.h>
 #include <stdint.h>
+#include <kernel/kdef.h>
+#include <kernel/tty.h>
+#include <kernel/descriptors_tables.h>
 
 NAMESPACE_BEGIN(Gdt)
 
-    enum class Segment_Access_Type : uint8_t
-    {
-        Kernel_Code  = 0x9A,
-        Kernel_Data  = 0x92,
-        User_Code    = 0xFA,
-        User_Data    = 0XF2
-    };
-
-    struct entry_struct
-    {
-        uint16_t    limit_low; //lower 16 bits of base
-        uint16_t    base_low; //The base address of the segment 
-        uint8_t     base_middle; //middle 8 bits of base
-        uint8_t     access; // access flags specifiying protection level
-        uint8_t     granularity;
-        uint8_t     base_high;
-    } __PACKED;
-
-    struct ptr_struct
-    {
-        uint16_t    size; 
-        uint32_t    base;
-    } __PACKED;
-
-    typedef entry_struct entry_t;
-    typedef Segment_Access_Type Gsat;
 
     /*
         This function initializes the GDT table and writes it to the CPU
     */
-    static void init();
+    static void _init();
 
     /*
         This function configures the GDT
@@ -48,9 +23,31 @@ NAMESPACE_BEGIN(Gdt)
             Gsat        access  - Entry access flags
             uint8_t     gran    - granuary byte
     */
-    static void config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
+    static void _config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
 
 NAMESPACE_END(Gdt)
+
+NAMESPACE_BEGIN(Idt)
+
+    /*
+        This function initializes the IDT table and writes it to the CPU
+    */
+    static void _init();
+
+
+    /*
+        This function configures an IDT entry by index
+            int32_t entry - index of the IDT entry
+            uint32_5 base - the base addr of the interrupt handler
+            uint16_t sel - segment selector
+            uint8_t flags - IDT flags
+    */
+    static void _config_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
+
+    template <uint32_t N>
+    static inline void _call_general_interrupt_handler();
+
+NAMESPACE_END(Idt)
 
 /*
     Written in a different assembly file.
@@ -58,4 +55,16 @@ NAMESPACE_END(Gdt)
 */
 __NO_MANGELING void gdt_dump(uint32_t table);
 
-#endif //KERNEL_DESCRIPTOR_STRUCTS
+/*
+    Written in a different assembly file
+    Writes a given IDT into the CPU
+*/
+__NO_MANGELING void idt_dump(uint32_t table);
+
+
+/*
+    This function handles interrupts, and dispatches them to the correct handler
+*/
+__NO_MANGELING void general_interrupt_handler();
+
+#endif //KERNEL_DESCRIPTOR_TABLES_I386

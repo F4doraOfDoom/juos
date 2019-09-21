@@ -2,7 +2,7 @@
 
 #include <kernel/tty.h>
 #include <kernel/kdef.h>
-#include <kernel/descriptors.h>
+#include <kernel/descriptors_tables.h>
 
 __NO_MANGELING void kernel_main(void) {
 	Tty::initialize();
