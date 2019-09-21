@@ -6,12 +6,6 @@
 NAMESPACE_BEGIN(Interrupts)
 
     typedef void (*handler)(void*);
-    
-    struct HandlerEntry
-    {
-        bool is_set;
-        handler ihandler;
-    };
 
     void initialize();
  
