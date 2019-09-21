@@ -5,9 +5,9 @@
 #include <kernel/descriptors.h>
 
 __NO_MANGELING void kernel_main(void) {
-	terminal_initialize();
-	initialize_gdt();
+	Tty::initialize();
+	Gdt::initialize();
 
-	terminal_writestring("hello world");
+	Tty::writestring("hello world");
     //printf("Hello, kernel World!\n");
 }

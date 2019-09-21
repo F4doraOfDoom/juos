@@ -2,10 +2,15 @@
 #define KERNEL_TTY_H
  
 #include <stddef.h>
+#include <kernel/kdef.h> 
+
+NAMESPACE_BEGIN(Tty)
+
+void initialize(void);
+void putchar(char c);
+void write(const char* data, size_t size);
+void writestring(const char* data);
  
-void terminal_initialize(void);
-void terminal_putchar(char c);
-void terminal_write(const char* data, size_t size);
-void terminal_writestring(const char* data);
- 
+NAMESPACE_END(Tty)
+
 #endif

@@ -5,7 +5,9 @@
 #include <kernel/kdef.h>
 #include <stdint.h>
 
-enum class Gdt_Segment_Access_Type : uint8_t
+NAMESPACE_BEGIN(Gdt)
+
+enum class Segment_Access_Type : uint8_t
 {
     Kernel_Code  = 0x9A,
     Kernel_Data  = 0x92,
@@ -13,7 +15,7 @@ enum class Gdt_Segment_Access_Type : uint8_t
     User_Data    = 0XF2
 };
 
-struct gdt_entry_struct
+struct entry_struct
 {
     uint16_t    limit_low; //lower 16 bits of base
     uint16_t    base_low; //The base address of the segment 
@@ -23,25 +25,19 @@ struct gdt_entry_struct
     uint8_t     base_high;
 } __PACKED;
 
-struct gdt_ptr_struct
+struct ptr_struct
 {
     uint16_t    size; 
     uint32_t    base;
 } __PACKED;
 
-typedef gdt_entry_struct gdt_entry_t;
-typedef Gdt_Segment_Access_Type Gsat;
-
-/*
-    Written in a different assembly file.
-    Writes a given GDT into the CPU.
-*/
-__NO_MANGELING void gdt_dump(uint32_t table);
+typedef entry_struct entry_t;
+typedef Segment_Access_Type Gsat;
 
 /*
     This function initializes the GDT table and writes it to the CPU
 */
-static void init_gdt();
+static void init();
 
 /*
     This function configures the GDT
@@ -52,6 +48,14 @@ static void init_gdt();
         Gsat        access  - Entry access flags
         uint8_t     gran    - granuary byte
 */
-static void set_gdt_stats(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
+static void config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
+
+NAMESPACE_END(Gdt)
+
+/*
+    Written in a different assembly file.
+    Writes a given GDT into the CPU.
+*/
+__NO_MANGELING void gdt_dump(uint32_t table);
 
 #endif //KERNEL_DESCRIPTOR_STRUCTS

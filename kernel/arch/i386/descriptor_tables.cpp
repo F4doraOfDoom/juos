@@ -1,31 +1,29 @@
 #include "descriptor_tables.h"
 #include <kernel/tty.h>
 
-gdt_entry_t     gdt_entries[5];
-gdt_ptr_struct  gdt_ptr;
+Gdt::entry_t     gdt_entries[5];
+Gdt::ptr_struct  gdt_ptr;
 
-void initialize_gdt()
+void Gdt::initialize()
 {
-    init_gdt();
+    Gdt::init();
 }
 
-static void init_gdt()
+static void Gdt::init()
 {
-    gdt_ptr.size = (5 * sizeof(gdt_entry_t)) - 1;
+    gdt_ptr.size = (5 * sizeof(Gdt::entry_t)) - 1;
     gdt_ptr.base = (uint32_t)(&gdt_entries);
 
-    terminal_writestring("Got here");
-    set_gdt_stats(0, 0, 0, 0, 0);
-    set_gdt_stats(1, 0, 0xFFFFFFFF, (uint8_t)Gdt_Segment_Access_Type::Kernel_Code, 0xCF);
-    set_gdt_stats(2, 0, 0xFFFFFFFF, (uint8_t)Gdt_Segment_Access_Type::Kernel_Data, 0xCF);
-    set_gdt_stats(3, 0, 0xFFFFFFFF, (uint8_t)Gdt_Segment_Access_Type::User_Code, 0xCF);
-    set_gdt_stats(4, 0, 0xFFFFFFFF, (uint8_t)Gdt_Segment_Access_Type::User_Data, 0xCF);
+    config_entry(0, 0, 0, 0, 0);
+    config_entry(1, 0, 0xFFFFFFFF, (uint8_t)Gdt::Segment_Access_Type::Kernel_Code, 0xCF);
+    config_entry(2, 0, 0xFFFFFFFF, (uint8_t)Gdt::Segment_Access_Type::Kernel_Data, 0xCF);
+    config_entry(3, 0, 0xFFFFFFFF, (uint8_t)Gdt::Segment_Access_Type::User_Code, 0xCF);
+    config_entry(4, 0, 0xFFFFFFFF, (uint8_t)Gdt::Segment_Access_Type::User_Data, 0xCF);
 
-    terminal_writestring("Also here");
     gdt_dump((uint32_t)&gdt_ptr);
 }
 
-static void set_gdt_stats(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
+static void Gdt::config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
 {
     gdt_entries[entry].base_low     = (base & 0xFFFF);
     gdt_entries[entry].base_middle  = (base >> 16) & 0xFF;
