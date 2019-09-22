@@ -5,6 +5,8 @@
 #include <kernel/descriptors_tables.h>
 #include <kernel/interrupts.h>
 
+#include <stdio.h>
+
 void divide_by_zero(void*);
 
 __NO_MANGELING void kernel_main(void) {
@@ -26,6 +28,6 @@ __NO_MANGELING void kernel_main(void) {
 
 void divide_by_zero(void*)
 {
-	tty::writestring("STOP! YOU VIOLATED THE LAW!");
-
+	//tty::writestring("STOP! YOU VIOLATED THE LAW!");
+	putchar(65);
 }
