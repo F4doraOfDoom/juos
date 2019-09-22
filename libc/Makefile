@@ -7,19 +7,19 @@ AS:=${AS}
 CFLAGS:=${CFLAGS}
 CPPFLAGS:=${CPPFLAGS}
 LIBC_HEADERS:=${INCLUDE}
+KINCLUDE:=${KINCLUDE}
 
-LIBK_FLAGS=-D__is_libk
+LIBK_FLAGS=-D__is_libk -I$(KINCLUDE)
 
-SUPPORTED=\
-string
+SUPPORTED=string stdio
 
-REQUIRED=$(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.c))
+REQUIRED=$(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.cpp))
 
-LIBC_OBJ=$(REQUIRED:.c=.libc.o)
-LIBK_OBJ=$(REQUIRED:.c=.libk.o)
+LIBC_OBJ=$(REQUIRED:.cpp=.libc.o)
+LIBK_OBJ=$(REQUIRED:.cpp=.libk.o)
 
 
-.SUFFIXES: .libc.o libk.o .c
+.SUFFIXES: .libc.o libk.o .cpp
 
 build: $(SUPPORTED)
 
@@ -34,12 +34,12 @@ $(LIBC_OBJ): $(REQUIRED_LIBC)
 
 $(LIBK_OBJ): $(REQUIRED_LIBK)
 
-%.libc.o: %.c 
+%.libc.o: %.cpp
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) \
 	-I$(LIBC_HEADERS) \
 	$< -o $@
 
-%.libk.o: %.c 
+%.libk.o: %.cpp
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) \
 	-I$(LIBC_HEADERS) \
 	$< -o $@
