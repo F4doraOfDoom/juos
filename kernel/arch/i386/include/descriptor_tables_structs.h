@@ -5,7 +5,7 @@
 #include <kernel/kdef.h>
 #include <stdint.h>
 
-NAMESPACE_BEGIN(Gdt)
+NAMESPACE_BEGIN(gdt)
 
     enum class Segment_Access_Type : uint8_t
     {
@@ -34,10 +34,10 @@ NAMESPACE_BEGIN(Gdt)
     typedef EntryStruct entry_t;
     typedef Segment_Access_Type Gsat;
 
-NAMESPACE_END(Gdt)
+NAMESPACE_END(gdt)
 
 
-NAMESPACE_BEGIN(Idt)
+NAMESPACE_BEGIN(idt)
 
     struct EntryStruct
     {
@@ -65,6 +65,6 @@ NAMESPACE_BEGIN(Idt)
     typedef EntryStruct entry_t;
     typedef RegistersStruct registers_t;
 
-NAMESPACE_END(Idt)
+NAMESPACE_END(idt)
 
 #endif //KERNEL_DESCRIPTOR_STRUCTS

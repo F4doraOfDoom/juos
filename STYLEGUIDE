@@ -23,8 +23,8 @@ Place 2 new lines between each function/class
 NAMING:
 Each different construct of C++ has a different naming convention, for easy distiction.
 	Macros: 	should be written in ALL_CAPS.
-	Classes: 	should be written in CamelCase
-	Namespaces:	shpuld be written in CamelCase
+	Classes: 	should be written in PascalCase
+	Namespaces:	shpuld be written in camelCase
 	Enums: 		should be written in Camel_Case_With_Underscores
 	Functions:	should be written in snake_case
 This way, each time you see a name, you can quickly know which concept it refers to.
@@ -59,13 +59,13 @@ CLASSES VS REGULAR FUNCTIONS:
 Always prefer namespaced functions to classes with member functions, even if they are static.
 For example, this:
 	
-	namespace Tty {
+	namespace tty {
 		void func()
 	}
 
 is much better than this:
 
-	class Tty {
+	class tty {
 		static void func()
 	}
 
@@ -100,12 +100,12 @@ You should use the macros NAMESPACE_BEGIN and NAMESPACE_END, defined in kernel/k
 You should define namespaces only in header files. In the implementation file, you will access
 the namespaces like this:
 	// gdt.h
-	NAMESPACE_BEGIN(Gdt)
+	NAMESPACE_BEGIN(gdt)
 		void func()
-	NAMESPACE_END(Gdt)
+	NAMESPACE_END(gdt)
 
 	//gdt.cpp
-	Gdt::func() ...
+	gdt::func() ...
 
 
 

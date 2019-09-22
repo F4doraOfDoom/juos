@@ -5,22 +5,22 @@
 
 
 
-NAMESPACE_BEGIN(Gdt)
+NAMESPACE_BEGIN(gdt)
 
     /*
         This function is used to initilalize the global descriptor table
     */
     void initialize();
 
-NAMESPACE_END(Gdt)
+NAMESPACE_END(gdt)
 
-NAMESPACE_BEGIN(Idt)
+NAMESPACE_BEGIN(idt)
 
     /*
         This fucntion is used to initialize the interrupt descriptor table
     */
     void initialize();
 
-NAMESPACE_END(Idt)
+NAMESPACE_END(idt)
 
 #endif //KERNEL_DESCRIPTORS_H

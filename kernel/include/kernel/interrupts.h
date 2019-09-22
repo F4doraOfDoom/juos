@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-NAMESPACE_BEGIN(Interrupts)
+NAMESPACE_BEGIN(interrupts)
 
     typedef void (*handler)(void*);
 
@@ -11,6 +11,6 @@ NAMESPACE_BEGIN(Interrupts)
  
     void set_handler(uint32_t interrupt_num, handler handler);
 
-NAMESPACE_END(Interrupts)
+NAMESPACE_END(interrupts)
 
 #endif //KERNEL_INTERRUPTS_H_

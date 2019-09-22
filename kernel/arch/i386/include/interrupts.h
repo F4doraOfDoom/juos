@@ -3,6 +3,6 @@
 
 #include "descriptor_tables_structs.h"
 
-__NO_MANGELING void isr_handler(Idt::registers_t);
+__NO_MANGELING void isr_handler(idt::registers_t);
 
 #endif //KERNEL_ISR_I386

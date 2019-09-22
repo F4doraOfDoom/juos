@@ -19,7 +19,7 @@ static size_t terminal_column;
 static uint8_t terminal_color;
 static uint16_t* terminal_buffer;
  
-void Tty::initialize(void) 
+void tty::initialize(void) 
 {
 	terminal_row = 0;
 	terminal_column = 0;
@@ -35,7 +35,7 @@ void Tty::initialize(void)
 	}
 } 
  
-void Tty::putchar(char c) 
+void tty::putchar(char c) 
 {
 	unsigned char uc = c;
 	_terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
@@ -49,13 +49,13 @@ void Tty::putchar(char c)
 	}
 }
 
-void Tty::write(const char* data, size_t size) 
+void tty::write(const char* data, size_t size) 
 {
 	for (size_t i = 0; i < size; i++)
 		putchar(data[i]);
 }
  
-void Tty::writestring(const char* data) 
+void tty::writestring(const char* data) 
 {
 	write(data, strlen(data));
 }

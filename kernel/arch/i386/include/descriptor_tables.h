@@ -7,7 +7,7 @@
 #include <kernel/interrupts.h>
 #include <kernel/descriptors_tables.h>
 
-NAMESPACE_BEGIN(Gdt)
+NAMESPACE_BEGIN(gdt)
 
 
     /*
@@ -26,9 +26,9 @@ NAMESPACE_BEGIN(Gdt)
     */
     static void _config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
 
-NAMESPACE_END(Gdt)
+NAMESPACE_END(gdt)
 
-NAMESPACE_BEGIN(Idt)
+NAMESPACE_BEGIN(idt)
 
     /*
         This function initializes the IDT table and writes it to the CPU
@@ -48,7 +48,7 @@ NAMESPACE_BEGIN(Idt)
     template <uint32_t N>
     static inline void _request_isr();
 
-NAMESPACE_END(Idt)
+NAMESPACE_END(idt)
 
 /*
     Written in a different assembly file.

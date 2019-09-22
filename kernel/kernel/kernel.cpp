@@ -8,14 +8,14 @@
 void divide_by_zero(void*);
 
 __NO_MANGELING void kernel_main(void) {
-	Tty::initialize();
-	Gdt::initialize();
-	Idt::initialize();
-	Interrupts::initialize();
+	tty::initialize();
+	gdt::initialize();
+	idt::initialize();
+	interrupts::initialize();
 
-	// Interrupts::set_handler(0, divide_by_zero);
+	interrupts::set_handler(0, divide_by_zero);
 
-	Tty::writestring("Hello world!");
+	tty::writestring("Hello world!");
 	asm volatile(
 		"movl $1, %eax;"
 		"movl $0, %ebx;"
@@ -26,5 +26,6 @@ __NO_MANGELING void kernel_main(void) {
 
 void divide_by_zero(void*)
 {
-	Tty::writestring("STOP! YOU VIOLATED THE LAW!");
+	tty::writestring("STOP! YOU VIOLATED THE LAW!");
+
 }
