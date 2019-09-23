@@ -11,7 +11,10 @@
     Compiler specific
 */
 #ifdef __GNUC__
-    #define __PACKED __attribute__((packed))
+    #define __PACKED    __attribute__((packed))
+    #define __IS_USED   __attribute__((used))
+#else
+    // add flags from different compilers
 #endif
 
 #endif

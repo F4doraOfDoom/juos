@@ -1,19 +1,10 @@
 #ifndef _STRING_H
 #define _STRING_H 1
 
-#include <cdefs.h>
-
 #include <stddef.h>
+#include <sys/cdefs.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void* memset(void*, int, size_t);
-size_t strlen(const char*);
-
-#ifdef __cplusplus
-}
-#endif
+__NO_MANGELING void* memset(void*, int, size_t);
+__NO_MANGELING size_t strlen(const char*);
 
 #endif

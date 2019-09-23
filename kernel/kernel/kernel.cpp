@@ -29,5 +29,9 @@ __NO_MANGELING void kernel_main(void) {
 void divide_by_zero(void*)
 {
 	//tty::writestring("STOP! YOU VIOLATED THE LAW!");
-	putchar(65);
+	const char* name = "yoni";
+	const char age = 56;
+	uint32_t a = printf("my name is %s and my age is %c", name, age);
+	printf("i printed %c things", a + 56);
+	GO_PANIC();
 }
