@@ -18,12 +18,11 @@ REQUIRED=$(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.cpp))
 LIBC_OBJ=$(REQUIRED:.cpp=.libc.o)
 LIBK_OBJ=$(REQUIRED:.cpp=.libk.o)
 
+TO_BUILD=$(LIBK_OBJ) $(LIBC_OBJ)
 
 .SUFFIXES: .libc.o libk.o .cpp
 
-build: $(SUPPORTED)
-
-$(SUPPORTED): $(LIBK_OBJ) $(LIBC_OBJ) 
+build: $(TO_BUILD) 
 	mkdir lib
 	$(AR) rcs $@.libc.a $(LIBC_OBJ)
 	$(AR) rcs $@.libk.a $(LIBK_OBJ)
@@ -40,6 +39,7 @@ $(LIBK_OBJ): $(REQUIRED_LIBK)
 	$< -o $@
 
 %.libk.o: %.cpp
+	echo $(LIBC_HEADERS)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) \
 	-I$(LIBC_HEADERS) \
 	$< -o $@

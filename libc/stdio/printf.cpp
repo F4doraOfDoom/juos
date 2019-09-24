@@ -10,6 +10,22 @@ static void print_s(const char* s, size_t len)
     }
 } 
 
+// template <typename N>
+// static void print_numeric(const N n)
+// {
+
+//     constexpr size_t s_len = sizeof(N); 
+//     char s_rep[s_len] = { 0 };
+//     N n_copy = n;
+//     size_t i = 0, cur = 0;
+
+//     for (; i < s_len; i++, cur=cur*10)
+//     {
+//         s_rep[i] = static_cast<int>((n_copy % cur) / cur);
+//         putchar(s);
+//     }
+// }
+
 int printf(const char* __restrict format, ...)
 {
     va_list args;
@@ -26,20 +42,25 @@ int printf(const char* __restrict format, ...)
             {
                 break; 
             }
-            else if (format[1] == 'c') 
+
+            switch (format[1])
             {
-                putchar(va_arg(args, int));
-            }
-            else if (format[1] == 's')
-            {
-                const char* s = va_arg(args, const char*);
-                print_s(s, strlen(s));
-            }
-            else
-            {
-                putchar('%');
-                putchar((format[1]));
-                printed_special = false;
+                case 'c':
+                    putchar(va_arg(args, int));
+                break;
+
+                case 's':
+                {
+                    const char* s = va_arg(args, const char*);
+                    print_s(s, strlen(s));
+                }
+                break;
+
+                default:
+                    putchar('%');
+                    putchar((format[1]));
+                    printed_special = false;
+                break;
             }
             
             format++;

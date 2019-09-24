@@ -2,7 +2,7 @@
 
 #include <kernel/tty.h>
 #include <kernel/kdef.h>
-#include <kernel/descriptors_tables.h>
+#include <kernel/dtables.h>
 #include <kernel/interrupts.h>
 
 #include <stdio.h>
@@ -17,7 +17,7 @@ __NO_MANGELING void kernel_main(void) {
 
 	interrupts::set_handler(0, divide_by_zero);
 
-	tty::writestring("Hello world!");
+	printf("Hello world!");
 	asm volatile(
 		"movl $1, %eax;"
 		"movl $0, %ebx;"
