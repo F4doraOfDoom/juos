@@ -6,6 +6,12 @@
 #include <kernel/tty.h>
 #include <kernel/interrupts.h>
 #include <kernel/dtables.h>
+#include <kernel/kcommon.h>
+
+#include "interrupts.h"
+
+static void _pic_remap(uint8_t offset1, uint8_t offset2);
+static void _set_all_interrupts();
 
 NAMESPACE_BEGIN(gdt)
 
@@ -24,6 +30,7 @@ NAMESPACE_BEGIN(gdt)
             uint8_t     gran    - granuary byte
     */
     static void _config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
+
 
 NAMESPACE_END(gdt)
 

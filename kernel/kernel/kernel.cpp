@@ -11,25 +11,39 @@
 #define TIMER_PORT 32
 
 void divide_by_zero(void*);
+void timerr(void*);
 
 __NO_MANGELING void kernel_main(void) {
 	tty::initialize();
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
-	timer::initialize(100);
-
-	interrupts::set_handler(TIMER_PORT, [](void*) {
-		printf("hello!");
-	});
-	interrupts::set_handler(0, divide_by_zero);
 
 	printf("Hello world!");
+
+	interrupts::set_handler(TIMER_PORT, timerr);
+	timer::initialize(50);
+	interrupts::set_handler(0, divide_by_zero);
+
 	// asm volatile(
 	// 	"movl $1, %eax;"
 	// 	"movl $0, %ebx;"
 	// 	"divl %ebx;"
 	// );
+
+	for (;;)
+	{
+		asm volatile (
+			"hlt;"
+		);
+	}
+}
+
+void timerr(void*)
+{
+	static uint32_t ticks = 48;
+	printf("Tick: %c", ticks);
+	ticks++;
 }
 
 void divide_by_zero(void* r)

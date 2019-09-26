@@ -44,22 +44,6 @@ static void gdt::_config_entry(int32_t entry, uint32_t base, uint32_t limit, uin
 }
 
 
-template <uint32_t N>
-static void idt::_request_isr()
-{
-    const int32_t interrupt_num = N; 
-    int32_t _;
-
-    asm volatile(
-        "cli\n"
-        "pushl 0\n" 
-        "pushl %1\n"
-        "jmp isr_basic_caller\n"
-        : "=r"(_)
-        : "r"(interrupt_num)
-    );
-}
-
 /*
     This template function will build 255 different functions, each bulding a function that handles
     an interrupt.
@@ -70,14 +54,47 @@ static void idt::_init()
     idt_ptr.size = (sizeof(idt::entry_t) * 256) - 1;
     idt_ptr.base = (uint32_t)&idt_entries;
 
-    // The CPU has 256 different interrupts;
-    uint32_t p = (uint32_t)isr_0;
-    const auto dif = ((uint32_t)isr_1) - ((uint32_t)isr_0);
-    for (int i = 0; i < 32; ++i) {
-        idt::_config_entry(i, p, 0x08, 0x8E);
-        p += dif;
-    }
+    _pic_remap(0x20, 0x28);
+    
+    _set_all_interrupts();
 
+    idt_dump((uint32_t)&idt_ptr);
+}
+
+
+static void idt::_config_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags)
+{
+    idt_entries[entry].base_low     = base & 0xFFFF;
+    idt_entries[entry].base_high    = (base >> 16) & 0xFFFF;
+
+    idt_entries[entry].sel          = sel;
+    idt_entries[entry].flags        = flags;  // | 0x60
+}
+
+static void _pic_remap(uint8_t offset1, uint8_t offset2)
+{
+    unsigned char a1, a2;
+
+    a1 = inb(PIC1_DATA);
+    a2 = inb(PIC2_DATA);
+
+    outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);  // starts the initialization sequence (in cascade mode)
+	outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
+	outb(PIC1_DATA, offset1);                 // ICW2: Master PIC vector offset
+	outb(PIC2_DATA, offset2);                 // ICW2: Slave PIC vector offset
+	outb(PIC1_DATA, 4);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	outb(PIC2_DATA, 2);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
+ 
+	outb(PIC1_DATA, ICW4_8086);
+	outb(PIC2_DATA, ICW4_8086);
+ 
+	outb(PIC1_DATA, a1);   // restore saved masks.
+	outb(PIC2_DATA, a2);
+}
+
+static void _set_all_interrupts()
+{
+// 32 base CPU interrupts
     idt::_config_entry(0, reinterpret_cast<uint32_t>(isr_0), 0x08, 0x8E);
     idt::_config_entry(1, reinterpret_cast<uint32_t>(isr_1), 0x08, 0x8E);
     idt::_config_entry(2, reinterpret_cast<uint32_t>(isr_2), 0x08, 0x8E);
@@ -111,7 +128,7 @@ static void idt::_init()
     idt::_config_entry(30, reinterpret_cast<uint32_t>(isr_30), 0x08, 0x8E);
     idt::_config_entry(31, reinterpret_cast<uint32_t>(isr_31), 0x08, 0x8E);
     
-    // PIC 
+    // 16 PIC interrupts
     idt::_config_entry(32, reinterpret_cast<uint32_t>(irq_0), 0x08, 0x8E);
     idt::_config_entry(33, reinterpret_cast<uint32_t>(irq_1), 0x08, 0x8E);
     idt::_config_entry(34, reinterpret_cast<uint32_t>(irq_2), 0x08, 0x8E);
@@ -128,16 +145,4 @@ static void idt::_init()
     idt::_config_entry(45, reinterpret_cast<uint32_t>(irq_13), 0x08, 0x8E);
     idt::_config_entry(46, reinterpret_cast<uint32_t>(irq_14), 0x08, 0x8E);
     idt::_config_entry(47, reinterpret_cast<uint32_t>(irq_15), 0x08, 0x8E);
-
-
-    idt_dump((uint32_t)&idt_ptr);
-}
-
-static void idt::_config_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags)
-{
-    idt_entries[entry].base_low     = base & 0xFFFF;
-    idt_entries[entry].base_high    = (base >> 16) & 0xFFFF;
-
-    idt_entries[entry].sel          = sel;
-    idt_entries[entry].flags        = flags;  // | 0x60
 }
