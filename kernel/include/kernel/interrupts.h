@@ -2,6 +2,7 @@
 #define KERNEL_INTERRUPTS_H_
 
 #include <stdint.h>
+#include "kstructs.h"
 
 NAMESPACE_BEGIN(interrupts)
 

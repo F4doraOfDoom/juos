@@ -3,6 +3,7 @@
 
 #include <kernel/dtables.h>
 #include <kernel/kdef.h>
+#include <kernel/kstructs.h>
 #include <stdint.h>
 
 NAMESPACE_BEGIN(gdt)
@@ -54,16 +55,7 @@ NAMESPACE_BEGIN(idt)
         uint32_t base;
     } __PACKED;
 
-    struct RegistersStruct
-    {
-        uint32_t ds; // Data segment
-        uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax; // all the registers at time of interrupt
-        uint32_t int_no, err_code; // Interrupt number and error code
-        uint32_t eip, cs, eflags, useresp, ss; // pushed by processor
-    } __PACKED;
-
     typedef EntryStruct entry_t;
-    typedef RegistersStruct registers_t;
 
 NAMESPACE_END(idt)
 

@@ -4,12 +4,11 @@ export ARCH=$(./scripts/arch.sh)
 export TOOLS=$(./scripts/cross_tools_location.sh)
 export HOST=$(./scripts/host.sh)
 
-
 export EMULATOR=qemu-system-$ARCH
 export CC=$TOOLS$HOST-g++
 export AS=$TOOLS$HOST-as
 
-export CFLAGS="-O2 -Wall -Wextra -g"
+export CFLAGS="-O2 -Wall -Wextra -g -D__arch_$ARCH"
 export CPPFLAGS=""
 export LIBC=$PWD/libc
 export INCLUDE=$LIBC/include

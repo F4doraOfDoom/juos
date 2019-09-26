@@ -34,7 +34,6 @@ NAMESPACE_BEGIN(idt)
     */
     static void _init();
 
-
     /*
         This function configures an IDT entry by index
             int32_t entry - index of the IDT entry
@@ -96,5 +95,22 @@ __NO_MANGELING void isr_28();
 __NO_MANGELING void isr_29();
 __NO_MANGELING void isr_30();
 __NO_MANGELING void isr_31();
+
+__NO_MANGELING void irq_0();
+__NO_MANGELING void irq_1();
+__NO_MANGELING void irq_2();
+__NO_MANGELING void irq_3();
+__NO_MANGELING void irq_4();
+__NO_MANGELING void irq_5();
+__NO_MANGELING void irq_6();
+__NO_MANGELING void irq_7();
+__NO_MANGELING void irq_8();
+__NO_MANGELING void irq_9();
+__NO_MANGELING void irq_10();
+__NO_MANGELING void irq_11();
+__NO_MANGELING void irq_12();
+__NO_MANGELING void irq_13();
+__NO_MANGELING void irq_14();
+__NO_MANGELING void irq_15();
 
 #endif //KERNEL_DESCRIPTOR_TABLES_I386

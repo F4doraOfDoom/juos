@@ -1,36 +1,37 @@
-#include <kernel/tty.h>
-#include <kernel/kdef.h>
-#include <kernel/interrupts.h>
-
 #include <include/interrupts.h>
-#include <string.h>
 
-#define I386_INTERRUPTS 256
-
-interrupts::handler handlers[I386_INTERRUPTS] = { 0 };
+interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 
 void interrupts::initialize()
 {
     for(int i = 0; i < I386_INTERRUPTS; i++)
     {
-        handlers[i] = interrupts::handler{nullptr};
+        interrupt_handlers[i] = interrupts::handler{nullptr};
     }
 }
 
 void interrupts::set_handler(uint32_t interrupt_num, interrupts::handler handler)
 {
-    handlers[interrupt_num]= handler;
+    interrupt_handlers[interrupt_num]= handler;
 }
 
-void isr_handler(idt::registers_t registers)
+void irq_handler(registers32_t registers)
 {
-    if (handlers[registers.int_no] != nullptr)
+    printf("Got to IRQ handler with code %c", registers.int_no + 45);
+
+    // if the interrupt came from a slave PIC, reset it
+    if (PIC_IS_SLAVE(registers.int_no))
     {
-        handlers[registers.int_no]((void*)&registers);
+        outb(PIC_SLAVE, PIC_RESET);
     }
-    else
-    {
-        tty::writestring("PANIC! Got interrupt with no handler!");
-        GO_PANIC();
-    } 
+
+    // reset the master PIC
+    outb(PIC_MASTER, PIC_RESET);
+
+    GO_TO_INTERRUPT(registers.int_no);
+}
+
+void isr_handler(registers32_t registers)
+{
+    GO_TO_INTERRUPT(registers.int_no);
 }

@@ -4,10 +4,10 @@ style consistency.
 
 
 PHILOSOPHY:
-Your code's style should strive to be as explicit as possible. Explicit is better than implicit.
-Your code isn't measured by how short it is. Don't be afraid to go for longer solutions if they
+1. Your code's style should strive to be as explicit as possible. Explicit is better than implicit.
+2. Your code isn't measured by how short it is. Don't be afraid to go for longer solutions if they
 are more easy to read and understand. Long and easy is better than short and hard.
-Prefer namespaces functions to classes.
+3. Prefer namespaces functions to classes.
 
 
 INDENTATION:

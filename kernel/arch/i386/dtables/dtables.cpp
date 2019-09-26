@@ -71,6 +71,13 @@ static void idt::_init()
     idt_ptr.base = (uint32_t)&idt_entries;
 
     // The CPU has 256 different interrupts;
+    uint32_t p = (uint32_t)isr_0;
+    const auto dif = ((uint32_t)isr_1) - ((uint32_t)isr_0);
+    for (int i = 0; i < 32; ++i) {
+        idt::_config_entry(i, p, 0x08, 0x8E);
+        p += dif;
+    }
+
     idt::_config_entry(0, reinterpret_cast<uint32_t>(isr_0), 0x08, 0x8E);
     idt::_config_entry(1, reinterpret_cast<uint32_t>(isr_1), 0x08, 0x8E);
     idt::_config_entry(2, reinterpret_cast<uint32_t>(isr_2), 0x08, 0x8E);
@@ -104,6 +111,25 @@ static void idt::_init()
     idt::_config_entry(30, reinterpret_cast<uint32_t>(isr_30), 0x08, 0x8E);
     idt::_config_entry(31, reinterpret_cast<uint32_t>(isr_31), 0x08, 0x8E);
     
+    // PIC 
+    idt::_config_entry(32, reinterpret_cast<uint32_t>(irq_0), 0x08, 0x8E);
+    idt::_config_entry(33, reinterpret_cast<uint32_t>(irq_1), 0x08, 0x8E);
+    idt::_config_entry(34, reinterpret_cast<uint32_t>(irq_2), 0x08, 0x8E);
+    idt::_config_entry(35, reinterpret_cast<uint32_t>(irq_3), 0x08, 0x8E);
+    idt::_config_entry(36, reinterpret_cast<uint32_t>(irq_4), 0x08, 0x8E);
+    idt::_config_entry(37, reinterpret_cast<uint32_t>(irq_5), 0x08, 0x8E);
+    idt::_config_entry(38, reinterpret_cast<uint32_t>(irq_6), 0x08, 0x8E);
+    idt::_config_entry(39, reinterpret_cast<uint32_t>(irq_7), 0x08, 0x8E);
+    idt::_config_entry(40, reinterpret_cast<uint32_t>(irq_8), 0x08, 0x8E);
+    idt::_config_entry(41, reinterpret_cast<uint32_t>(irq_9), 0x08, 0x8E);
+    idt::_config_entry(42, reinterpret_cast<uint32_t>(irq_10), 0x08, 0x8E);
+    idt::_config_entry(43, reinterpret_cast<uint32_t>(irq_11), 0x08, 0x8E);
+    idt::_config_entry(44, reinterpret_cast<uint32_t>(irq_12), 0x08, 0x8E);
+    idt::_config_entry(45, reinterpret_cast<uint32_t>(irq_13), 0x08, 0x8E);
+    idt::_config_entry(46, reinterpret_cast<uint32_t>(irq_14), 0x08, 0x8E);
+    idt::_config_entry(47, reinterpret_cast<uint32_t>(irq_15), 0x08, 0x8E);
+
+
     idt_dump((uint32_t)&idt_ptr);
 }
 

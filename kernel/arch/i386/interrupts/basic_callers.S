@@ -49,7 +49,29 @@ isr_basic_caller:
 .global irq_basic_caller
 .type irq_basic_caller, @function
 irq_basic_caller:
-    ret
+    pusha 
+    
+    mov ax, ds
+    push eax
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    call irq_handler
+
+    pop ebx
+    mov ds, bx
+    mov es, bx
+    mov fs, bx
+    mov gs, bx
+
+    popa
+    add esp, 8
+    sti
+    iret
 
 # cpu has 32 different basic interrupts
 isr_noerr 0
