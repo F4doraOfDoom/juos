@@ -49,7 +49,7 @@ NAMESPACE_BEGIN(gdt)
             Gsat        access  - Entry access flags
             uint8_t     gran    - granuary byte
     */
-    static void _config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
+    static void edit_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
 
 
 NAMESPACE_END(gdt)

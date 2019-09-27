@@ -4,14 +4,16 @@ interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 
 void interrupts::initialize()
 {
-    outb(0x21,0xfc);
-    outb(0xa1,0xff);
-    asm volatile ("sti;");
 
     for(int i = 0; i < I386_INTERRUPTS; i++)
     {
         interrupt_handlers[i] = interrupts::handler{nullptr};
     }
+}
+
+void interrupts::add_to_idt(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags)
+{
+    idt::edit_entry(entry, base, sel, flags);
 }
 
 void interrupts::set_handler(uint32_t interrupt_num, interrupts::handler handler)

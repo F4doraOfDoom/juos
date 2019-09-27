@@ -8,7 +8,7 @@
 #include <kernel/dtables.h>
 #include <kernel/kcommon.h>
 
-#include "interrupts.h"
+#include "pic.h"
 
 static void _pic_remap(uint8_t offset1, uint8_t offset2);
 static void _set_all_interrupts();
@@ -45,7 +45,7 @@ NAMESPACE_BEGIN(idt)
             uint16_t sel - segment selector
             uint8_t flags - IDT flags
     */
-    static void _config_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
+    void edit_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
 
     template <uint32_t N>
     static inline void _request_isr();
@@ -93,22 +93,5 @@ __NO_MANGELING void isr_28();
 __NO_MANGELING void isr_29();
 __NO_MANGELING void isr_30();
 __NO_MANGELING void isr_31();
-
-__NO_MANGELING void irq_0();
-__NO_MANGELING void irq_1();
-__NO_MANGELING void irq_2();
-__NO_MANGELING void irq_3();
-__NO_MANGELING void irq_4();
-__NO_MANGELING void irq_5();
-__NO_MANGELING void irq_6();
-__NO_MANGELING void irq_7();
-__NO_MANGELING void irq_8();
-__NO_MANGELING void irq_9();
-__NO_MANGELING void irq_10();
-__NO_MANGELING void irq_11();
-__NO_MANGELING void irq_12();
-__NO_MANGELING void irq_13();
-__NO_MANGELING void irq_14();
-__NO_MANGELING void irq_15();
 
 #endif //KERNEL_DESCRIPTOR_TABLES_I386

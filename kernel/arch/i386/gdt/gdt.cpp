@@ -13,16 +13,16 @@ static void gdt::_init()
     gdt_ptr.size = (5 * sizeof(gdt::entry_t)) - 1;
     gdt_ptr.base = (uint32_t)(&gdt_entries);
 
-    gdt::_config_entry(0, 0, 0, 0, 0);
-    gdt::_config_entry(1, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::Kernel_Code, 0xCF);
-    gdt::_config_entry(2, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::Kernel_Data, 0xCF);
-    gdt::_config_entry(3, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::User_Code, 0xCF);
-    gdt::_config_entry(4, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::User_Data, 0xCF);
+    gdt::edit_entry(0, 0, 0, 0, 0);
+    gdt::edit_entry(1, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::Kernel_Code, 0xCF);
+    gdt::edit_entry(2, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::Kernel_Data, 0xCF);
+    gdt::edit_entry(3, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::User_Code, 0xCF);
+    gdt::edit_entry(4, 0, 0xFFFFFFFF, (uint8_t)gdt::Segment_Access_Type::User_Data, 0xCF);
 
     gdt_dump((uint32_t)&gdt_ptr);
 }
 
-static void gdt::_config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
+static void gdt::edit_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
 {
     gdt_entries[entry].base_low     = (base & 0xFFFF);
     gdt_entries[entry].base_middle  = (base >> 16) & 0xFF;
