@@ -9,8 +9,6 @@
 #include <kernel/kcommon.h>
 #include <kernel/interrupts.h>
 
-#include "dtables.h"
-#include "dtables_structs.h"
 
 #define IRQ_0 32
 #define IRQ_1 33

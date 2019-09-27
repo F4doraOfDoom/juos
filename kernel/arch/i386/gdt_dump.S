@@ -15,10 +15,3 @@ gdt_dump:
     jmp 0x08:.end
 .end:
     ret
-
-.global idt_dump
-.type idt_dump, @function
-idt_dump:
-    mov eax, [esp + 4]
-    lidt [eax]
-    ret

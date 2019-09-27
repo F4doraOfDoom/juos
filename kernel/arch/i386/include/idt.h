@@ -13,28 +13,25 @@
 static void _pic_remap(uint8_t offset1, uint8_t offset2);
 static void _set_all_interrupts();
 
-NAMESPACE_BEGIN(gdt)
-
-    /*
-        This function initializes the GDT table and writes it to the CPU
-    */
-    static void _init();
-
-    /*
-        This function configures the GDT
-        Input:
-            int32_t     entry   - The index of the GDT entry
-            uint32_t    base    - The base address of the GDT entry
-            uint32_t    limit   - The upper limit of the GDT entry
-            Gsat        access  - Entry access flags
-            uint8_t     gran    - granuary byte
-    */
-    static void _config_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
-
-
-NAMESPACE_END(gdt)
-
 NAMESPACE_BEGIN(idt)
+
+     struct EntryStruct
+    {
+        uint16_t base_low; // lower 16 bits of base addr
+        uint16_t sel; // segment selector
+        uint8_t zero; // should always be zero
+        uint8_t flags; // entry flags
+        uint16_t base_high; // higher 16 bits of base addr
+    } __PACKED;
+
+    struct PtrStruct
+    {
+        uint16_t size;
+        uint32_t base;
+    } __PACKED;
+
+    typedef EntryStruct entry_t;
+
 
     /*
         This function initializes the IDT table and writes it to the CPU
@@ -54,12 +51,6 @@ NAMESPACE_BEGIN(idt)
     static inline void _request_isr();
 
 NAMESPACE_END(idt)
-
-/*
-    Written in a different assembly file.
-    Writes a given GDT into the CPU.
-*/
-__NO_MANGELING void gdt_dump(uint32_t table);
 
 /*
     Written in a different assembly file

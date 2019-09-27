@@ -22,6 +22,7 @@ __NO_MANGELING void kernel_main(void) {
 	printf("Hello world!");
 
 	interrupts::set_handler(TIMER_PORT, timerr);
+	interrupts::set_handler(TIMER_PORT+1, timerr);
 	timer::initialize(50);
 	interrupts::set_handler(0, divide_by_zero);
 
