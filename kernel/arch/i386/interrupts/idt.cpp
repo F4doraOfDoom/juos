@@ -72,5 +72,4 @@ static void _set_all_interrupts()
     idt::edit_entry(29, reinterpret_cast<uint32_t>(isr_29), 0x08, 0x8E);
     idt::edit_entry(30, reinterpret_cast<uint32_t>(isr_30), 0x08, 0x8E);
     idt::edit_entry(31, reinterpret_cast<uint32_t>(isr_31), 0x08, 0x8E);
-    
 }

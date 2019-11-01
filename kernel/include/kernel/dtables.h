@@ -12,6 +12,7 @@ NAMESPACE_BEGIN(gdt)
 
 NAMESPACE_END(gdt)
 
+
 NAMESPACE_BEGIN(idt)
 
     /*

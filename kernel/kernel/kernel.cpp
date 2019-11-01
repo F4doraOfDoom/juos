@@ -4,14 +4,12 @@
 #include <kernel/dtables.h>
 #include <kernel/interrupts.h>
 #include <kernel/timer.h>
+#include <kernel/kconstants.h>
 #include <include/dtables_structs.h>
 
 #include <stdio.h>
 
-#define TIMER_PORT 32
-
 void divide_by_zero(void*);
-void timerr(void*);
 
 __NO_MANGELING void kernel_main(void) {
 	tty::initialize();
@@ -21,9 +19,7 @@ __NO_MANGELING void kernel_main(void) {
 
 	printf("Hello world!");
 
-	interrupts::set_handler(TIMER_PORT, timerr);
-	interrupts::set_handler(TIMER_PORT+1, timerr);
-	timer::initialize(50);
+	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 	interrupts::set_handler(0, divide_by_zero);
 
 	// asm volatile(
@@ -38,13 +34,6 @@ __NO_MANGELING void kernel_main(void) {
 			"hlt;"
 		);
 	}
-}
-
-void timerr(void*)
-{
-	static uint32_t ticks = 48;
-	printf("Tick: %c", ticks);
-	ticks++;
 }
 
 void divide_by_zero(void* r)
