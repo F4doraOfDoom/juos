@@ -18,7 +18,7 @@ static size_t terminal_row;
 static size_t terminal_column;
 static uint8_t terminal_color;
 static uint16_t* terminal_buffer;
- 
+
 void tty::initialize(void) 
 {
 	terminal_row = 0;
@@ -38,14 +38,31 @@ void tty::initialize(void)
 void tty::putchar(char c) 
 {
 	unsigned char uc = c;
-	_terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) 
+
+	switch (uc)
+	{
+		case '\n':
+			terminal_column = 0;
+			terminal_row++;
+		break;
+
+		default:
+			_terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
+			// move the cursor to new position
+			terminal_column++;
+		break;
+	}
+
+	// check if cursor reached end
+	if (terminal_column == VGA_WIDTH) 
 	{
 		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT)
-		{
-			terminal_row = 0;
-		}
+		terminal_row++;
+	}
+	if (terminal_row == VGA_HEIGHT)
+	{
+		tty::clean();
+		terminal_row = 0;
 	}
 }
 
@@ -58,6 +75,17 @@ void tty::write(const char* data, size_t size)
 void tty::writestring(const char* data) 
 {
 	write(data, strlen(data));
+}
+
+void tty::clean()
+{
+	for (int i = 0; i < VGA_WIDTH; i++)
+	{
+		for (int j = 0; j < VGA_HEIGHT; j++)
+		{
+			terminal_buffer[i + j * VGA_WIDTH] = 0;
+		}
+	}
 }
 
 void _terminal_setcolor(uint8_t color) 

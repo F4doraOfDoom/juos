@@ -20,14 +20,9 @@ __NO_MANGELING void kernel_main(void) {
 	printf("Hello world!");
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+
 	interrupts::set_handler(0, divide_by_zero);
-
-	// asm volatile(
-	// 	"movl $1, %eax;"
-	// 	"movl $0, %ebx;"
-	// 	"divl %ebx;"
-	// );
-
+	
 	for (;;)
 	{
 		asm volatile (
