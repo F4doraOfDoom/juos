@@ -1,3 +1,15 @@
+/**
+ * @file tty.h
+ * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
+ * @brief Header file containing functions and structs related to output
+ * to the tty
+ * @version 0.1
+ * @date 01-11-2019
+ * 
+ * @copyright Copyright Jonathan Uklisty (c) 2019 (MIT License)
+ * 
+ */
+
 #ifndef KERNEL_TTY_H
 #define KERNEL_TTY_H
  

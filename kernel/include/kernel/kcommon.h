@@ -1,3 +1,14 @@
+/**
+ * @file kcommon.h
+ * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
+ * @brief Header file containing common functions for the kernel
+ * @version 0.1
+ * @date 01-11-2019
+ * 
+ * @copyright Copyright Jonathan Uklisty (c) 2019 (MIT License)
+ * 
+ */
+
 #ifndef KERNEL_COMMON_H_
 #define KERNEL_COMMON_H_
 

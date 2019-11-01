@@ -5,7 +5,10 @@
 #include <kernel/interrupts.h>
 #include <kernel/timer.h>
 #include <kernel/kconstants.h>
+#include <kernel/kheap.h>
+
 #include <include/dtables_structs.h>
+
 
 #include <stdio.h>
 
@@ -22,7 +25,7 @@ __NO_MANGELING void kernel_main(void) {
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	interrupts::set_handler(0, divide_by_zero);
-	
+
 	for (;;)
 	{
 		asm volatile (

@@ -1,3 +1,15 @@
+/**
+ * @file timer.h
+ * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
+ * @brief Header file containing all time related functions and structs
+ * in the kernel 
+ * @version 0.1
+ * @date 01-11-2019
+ * 
+ * @copyright Copyright Jonathan Uklisty (c) 2019 (MIT License)
+ * 
+ */
+
 #ifndef KERNEL_TIMER_H_
 #define KERNEL_TIMER_H_
 

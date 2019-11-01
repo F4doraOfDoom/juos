@@ -1,3 +1,16 @@
+/**
+ * @file kstructs.h
+ * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
+ * @brief Header file for general kernel structs, that don't have a specific place
+ * to be at. If you're looking for a certain struct, you're likely to find it in a header
+ * file thats more closely related to the subject of the struct.
+ * @version 0.1
+ * @date 01-11-2019
+ * 
+ * @copyright Copyright Jonathan Uklisty (c) 2019 (MIT License)
+ * 
+ */
+
 #ifndef KERNEL_STRUCTS_H_
 #define KERNEL_STRUCTS_H_
 
