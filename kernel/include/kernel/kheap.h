@@ -36,7 +36,6 @@ NAMESPACE_BEGIN(kernel)
          */
         uint32_t allocate(size_t n, bool alligned = true);
 
-
         /**
          * @brief allocate _n_ bytes on the heap
          * 

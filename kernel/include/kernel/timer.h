@@ -45,7 +45,7 @@ NAMESPACE_BEGIN(timer)
      * internal tick count
      * 
      */
-    static void __tick_handler(void*);
+    void __tick_handler(void*);
 
     // internal tick counter 
     static uint64_t __tick_counter = 0;

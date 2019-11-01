@@ -5,11 +5,14 @@ uint32_t __kernel_heap = (uint32_t)&end; // this will be the beginning of the ke
 
 uint32_t kernel::memory::allocate_p(size_t n, uint32_t* phys, bool alligned)
 {
-    if (alligned & IS_ALIGNED(__kernel_heap))
+    if (alligned)
     {
-        __kernel_heap &= HEAP_ALIGNMENT;
-        __kernel_heap += PAGE_SIZE;
-    }
+        if (IS_ALIGNED(__kernel_heap))
+        {
+            __kernel_heap &= HEAP_ALIGNMENT;
+            __kernel_heap += PAGE_SIZE;
+        }
+    } 
 
     if (phys != nullptr)
     {

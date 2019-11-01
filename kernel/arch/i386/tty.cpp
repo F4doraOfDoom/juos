@@ -79,9 +79,9 @@ void tty::writestring(const char* data)
 
 void tty::clean()
 {
-	for (int i = 0; i < VGA_WIDTH; i++)
+	for (size_t i = 0; i < VGA_WIDTH; i++)
 	{
-		for (int j = 0; j < VGA_HEIGHT; j++)
+		for (size_t j = 0; j < VGA_HEIGHT; j++)
 		{
 			terminal_buffer[i + j * VGA_WIDTH] = 0;
 		}

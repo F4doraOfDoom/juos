@@ -9,8 +9,10 @@
 
 #include <include/dtables_structs.h>
 
-
 #include <stdio.h>
+#include <string.h>
+
+using namespace kernel;
 
 void divide_by_zero(void*);
 
@@ -20,7 +22,11 @@ __NO_MANGELING void kernel_main(void) {
 	idt::initialize();
 	interrupts::initialize();
 
-	printf("Hello world!");
+	uint32_t* str = (uint32_t*)memory::allocate(16);
+
+	memcpy(str, "Hello world!\0", 13);
+
+	printf("%s\n", str);
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
