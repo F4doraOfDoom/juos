@@ -8,6 +8,38 @@ extern uint32_t __kernel_heap;
 uint32_t* frames;
 uint32_t nframes;
 
+void frame::alloc(page_t* page, bool is_user, bool is_writeable)
+{
+    if (page->frame_addr != 0)
+    {
+        // frame is already allocated
+        return;
+    }
+
+    uint32_t idx = frame::find_first();
+    if (idx == FRAME_NOT_FOUND)
+    {
+        GO_PANIC("NO FREE FRAMES!", "");
+    }
+
+    frame::set(idx * FRAME_SIZE);
+    page->is_present = true;
+    page->rw = is_writeable;
+    page->is_user = is_user;
+    page->frame_addr = idx;
+}
+
+void frame::dealloc(page_t* page)
+{
+    if (page->frame_addr == 0)
+    {
+        return; // the page doesnt have a frame
+    }
+
+    frame::clear(page->frame_addr);
+    page->frame_addr = 0;
+}
+
 struct frame::_FrameInfo frame::get_info(uint32_t frame_addr)
 {
     uint32_t frame = (frame_addr / PAGE_SIZE);

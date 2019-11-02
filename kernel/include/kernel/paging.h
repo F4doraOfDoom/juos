@@ -8,6 +8,7 @@
 
 #define PAGE_SIZE_FACTOR            11 // Order of magnitude dictating the page size (2 << PAGE_SIZE_FACTOR)
 #define PAGE_SIZE                   (2 << PAGE_SIZE_FACTOR) // The size of a page and frame
+#define FRAME_SIZE                  PAGE_SIZE // frame and page must be of the same size
 #define PAGE_TABLE_SIZE             1024
 #define PAGE_DIRECTORY_SIZE         1024
 
@@ -134,7 +135,12 @@ NAMESPACE_BEGIN(kernel)
                 uint32_t offset;
             };
 
+            // TODO: Document this bitch, I'm too tired
             struct _FrameInfo get_info(uint32_t frame_addr);
+
+            void alloc(page_t* page, bool is_user, bool is_writeable);
+
+            void dealloc(page_t* page);
 
             void set(uint32_t frame_addr);
 
@@ -142,7 +148,7 @@ NAMESPACE_BEGIN(kernel)
 
             bool test(uint32_t frame_addr);
 
-            uint32_t frame::find_first();
+            uint32_t find_first();
 
         NAMESPACE_END(frame)
 
