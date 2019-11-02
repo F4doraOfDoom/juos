@@ -24,7 +24,7 @@
 
 NAMESPACE_BEGIN(kernel)
 
-    NAMESPACE_BEGIN(memory)
+    NAMESPACE_BEGIN(heap)
 
         /**
          * @brief allocate _n_ bytes on the heap
@@ -47,7 +47,7 @@ NAMESPACE_BEGIN(kernel)
          */
         uint32_t allocate_p(size_t n, uint32_t* phys, bool alligned = true);
 
-    NAMESPACE_END(memory)
+    NAMESPACE_END(heap)
 
 NAMESPACE_END(kernel)
 

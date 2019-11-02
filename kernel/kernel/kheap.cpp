@@ -3,7 +3,7 @@
 extern uint32_t end; // defined by linker
 uint32_t __kernel_heap = (uint32_t)&end; // this will be the beginning of the kernel's heap
 
-uint32_t kernel::memory::allocate_p(size_t n, uint32_t* phys, bool alligned)
+uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
 {
     if (alligned)
     {
@@ -25,7 +25,7 @@ uint32_t kernel::memory::allocate_p(size_t n, uint32_t* phys, bool alligned)
     return __kernel_heap - n;
 }
 
-uint32_t kernel::memory::allocate(size_t n, bool alligned)
+uint32_t kernel::heap::allocate(size_t n, bool alligned)
 {
     
     return allocate_p(n, nullptr, alligned);

@@ -22,7 +22,7 @@ __NO_MANGELING void kernel_main(void) {
 	idt::initialize();
 	interrupts::initialize();
 
-	uint32_t* str = (uint32_t*)memory::allocate(16);
+	uint32_t* str = (uint32_t*)heap::allocate(16);
 
 	memcpy(str, "Hello world!\0", 13);
 

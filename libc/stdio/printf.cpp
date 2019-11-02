@@ -2,6 +2,42 @@
 #include <stdarg.h>
 #include <string.h>
 
+
+/**
+ * @brief Converts _value_ of type _ValT_ to string with
+ * numerical representation of _base_
+ * 
+ * @tparam ValT - type of the value. Should be unsigned, whole type 
+ * @tparam MaxStrSize - largest possible digits in number
+ * @param base - nueric base of convertion. Should not be bigger than 16!
+ * @param value - value to be converted 
+ * @return const char* 
+ */
+template <typename ValT, size_t MaxStrSize = 64>
+static const char* _convert_to_base(ValT value, unsigned const int base = 10)
+{
+    static const char representation[] = "0123456789abcdef";
+    static char buf[MaxStrSize];
+
+    memset(buf, '\0', MaxStrSize);
+
+    char* end = &buf[MaxStrSize - 1];
+    
+    do
+    {
+        *--end = representation[value%base];
+        value /= base;
+    } while (value != 0);
+    
+    return end;
+}
+
+/**
+ * @brief print _len_ chars of string _s_
+ * 
+ * @param s - string to print
+ * @param len - number of chars to print 
+ */
 static void print_s(const char* s, size_t len)
 {
     for (size_t i = 0; i < len; i++)
@@ -10,21 +46,19 @@ static void print_s(const char* s, size_t len)
     }
 } 
 
-// template <typename N>
-// static void print_numeric(const N n)
-// {
-
-//     constexpr size_t s_len = sizeof(N); 
-//     char s_rep[s_len] = { 0 };
-//     N n_copy = n;
-//     size_t i = 0, cur = 0;
-
-//     for (; i < s_len; i++, cur=cur*10)
-//     {
-//         s_rep[i] = static_cast<int>((n_copy % cur) / cur);
-//         putchar(s);
-//     }
-// }
+/**
+ * @brief print a whole, unsigned numeric value
+ * 
+ * @tparam ValT - type of numeric value
+ * @param n - numeric value to print
+ * @param base - base of the number (between 2 and 16)
+ */
+template <typename ValT>
+static inline void print_n(ValT n, unsigned const int base)
+{
+    const char* rep = _convert_to_base(n, base); 
+    print_s(rep, strlen(rep));
+}
 
 int printf(const char* __restrict format, ...)
 {
@@ -45,15 +79,38 @@ int printf(const char* __restrict format, ...)
 
             switch (format[1])
             {
+                // signle character
                 case 'c':
                     putchar(va_arg(args, int));
                 break;
 
+                // null terminated string
                 case 's':
                 {
                     const char* s = va_arg(args, const char*);
                     print_s(s, strlen(s));
                 }
+                break;
+
+                // print at base 10
+                case 'd':
+                    print_n(va_arg(args, int), 10);
+                break;
+
+                // print at base 16
+                case 'x':
+                    print_n(va_arg(args, int), 16);
+                break;
+
+                // print at base 8
+                case 'o':
+                    print_n(va_arg(args, int), 8);
+                break;
+
+                // print pointer at base 16
+                case 'p':
+                    print_s(PTR_PREFIX, strlen(PTR_PREFIX));
+                    print_n(va_arg(args, int), 16);
                 break;
 
                 default:

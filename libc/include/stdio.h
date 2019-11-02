@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#define PTR_PREFIX "0x"
+
 __NO_MANGELING int printf(const char* __restrict, ...);
 __NO_MANGELING int putchar(int);
 __NO_MANGELING int puts(const char*);
