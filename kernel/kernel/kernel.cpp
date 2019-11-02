@@ -42,6 +42,5 @@ __NO_MANGELING void kernel_main(void) {
 
 void divide_by_zero(void* r)
 {
-	//tty::writestring("STOP! YOU VIOLATED THE LAW!");
-	printf("Divide by zero! %c", ((registers32_t*)r)->eax);
+	printf("Divide by zero! %d", ((registers32_t*)r)->eax);
 }

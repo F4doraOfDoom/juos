@@ -67,7 +67,7 @@ extern interrupts::handler interrupt_handlers[I386_INTERRUPTS];
         interrupt_handlers[registers.int_no]((void*)&registers); \
     } \
     else { \
-        GO_PANIC("Interrupt %c without any handler!\n", num + 45); \
+        GO_PANIC("Interrupt %d without any handler!\n", num); \
     }
 
 typedef void (*isr_t)(registers32_t);

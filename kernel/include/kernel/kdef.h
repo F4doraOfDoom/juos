@@ -20,7 +20,7 @@
 #define GO_PANIC(message, ...)                  \
         printf(message, __VA_ARGS__);                       \
         printf("File: " __FILE__ "\n");                       \
-        printf("Line: %c\n", __LINE__ + 45);                       \
+        printf("Line: %d\n", __LINE__ + 45);                       \
         while(1) { asm volatile (""); }         \  
 
 #define NAMESPACE_BEGIN(name)   namespace name {
