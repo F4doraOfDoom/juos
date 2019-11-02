@@ -22,6 +22,7 @@ __NO_MANGELING void kernel_main(void) {
 	idt::initialize();
 	interrupts::initialize();
 
+	// see our simple heap allocation in action
 	uint32_t* str = (uint32_t*)heap::allocate(16);
 
 	memcpy(str, "Hello world!\0", 13);
@@ -32,6 +33,7 @@ __NO_MANGELING void kernel_main(void) {
 
 	interrupts::set_handler(0, divide_by_zero);
 
+	// enter infinite loop
 	for (;;)
 	{
 		asm volatile (
