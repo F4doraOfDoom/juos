@@ -14,5 +14,5 @@ void timer::start(uint32_t clock_freq)
 void timer::__tick_handler(void*)
 {
     timer::__tick_counter++;
-    printf("Tick! %d\n", timer::__tick_counter, timer::__tick_counter, timer::__tick_counter, timer::__tick_counter);
+    //printf("Tick! %d\n", timer::__tick_counter, timer::__tick_counter, timer::__tick_counter, timer::__tick_counter);
 }

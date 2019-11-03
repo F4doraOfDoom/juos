@@ -8,7 +8,8 @@ export EMULATOR=qemu-system-$ARCH
 export CC=$TOOLS$HOST-g++
 export AS=$TOOLS$HOST-as
 
-export CFLAGS="-O2 -Wall -Wextra -g -D__arch_$ARCH -std=c++1z"
+#TODO add -O2 when not debugging
+export CFLAGS="-Wall -Wextra -g -D__arch_$ARCH -std=c++1z"
 export CPPFLAGS=""
 export LIBC=$PWD/libc
 export INCLUDE=$LIBC/include

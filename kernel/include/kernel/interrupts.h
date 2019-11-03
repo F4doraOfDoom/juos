@@ -16,6 +16,11 @@
 #include <stdint.h>
 #include "kstructs.h"
 
+enum class InterruptList : uint32_t
+{
+    PageFault = 14
+};
+
 NAMESPACE_BEGIN(interrupts)
 
     typedef void (*handler)(void*);

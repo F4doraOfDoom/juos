@@ -24,8 +24,8 @@ void frame::alloc(page_t* page, bool is_user, bool is_writeable)
 
     frame::set(idx * FRAME_SIZE);
     page->is_present = true;
-    page->rw = is_writeable;
-    page->is_user = is_user;
+    page->rw = is_writeable ? 1 : 0;
+    page->is_user = is_user ? 0 : 1;
     page->frame_addr = idx;
 }
 
@@ -46,35 +46,35 @@ struct frame::_FrameInfo frame::get_info(uint32_t frame_addr)
     uint32_t idx =  INDEX_FROM_BIT(frame);
     uint32_t off =  OFFSET_FROM_BIT(frame);
 
-    return {(uint32_t*)frame, idx, off};
+    return {idx, off};
 }
 
 void frame::set(uint32_t frame_addr)
 {
-    auto [frame, idx, off] = frame::get_info(frame_addr);
+    auto [idx, off] = frame::get_info(frame_addr);
 
-    BIT_SET(frame, idx, off);
+    BIT_SET(frames, idx, off);
 }
 
 void frame::clear(uint32_t frame_addr)
 {
-    auto [frame, idx, off] = frame::get_info(frame_addr);
+    auto [idx, off] = frame::get_info(frame_addr);
 
-    BIT_CLEAR(frame, idx, off);
+    BIT_CLEAR(frames, idx, off);
 }
 
 bool frame::test(uint32_t frame_addr)
 {
-    auto [frame, idx, off] = frame::get_info(frame_addr);
+    auto [idx, off] = frame::get_info(frame_addr);
 
-    return BIT_TEST(frame, idx, off);
+    return BIT_TEST(frames, idx, off);
 }
 
 uint32_t frame::find_first()
 {
     for (uint32_t i = 0; i < INDEX_FROM_BIT(nframes); i++)
     {
-        if (frames[i] == 0xFFFFFFFF)
+        if (frames[i] != 0xFFFFFFFF)
         {
             for (uint32_t j = 0; j < BIT_FIELD_SIZE; j++)
             {
@@ -87,5 +87,5 @@ uint32_t frame::find_first()
         }
     }
 
-    return FRAME_NOT_FOUND;
+    //return FRAME_NOT_FOUND;
 }

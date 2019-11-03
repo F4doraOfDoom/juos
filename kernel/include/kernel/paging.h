@@ -2,7 +2,11 @@
 #define KERNEL_PAGING_H_
 
 #include <stdint.h>
+#include <string.h>
 
+#include "interrupts.h"
+#include "kconstants.h"
+#include "kheap.h"
 #include "kuseful.h"
 #include "kdef.h"
 
@@ -81,12 +85,16 @@ NAMESPACE_BEGIN(kernel)
         typedef struct PageTable        page_table_t;
         typedef struct PageDirectory    page_directory_t;
 
+        void enable();
+
         /**
-         * @brief Initates paging in the hardware.
+         * @brief Initates paging in the hardware,
+         * sets _dir_ as the page directory.
          * Implemented by arch
          * 
+         * 
          */
-        void initiate();
+        void set_directory(page_directory_t* dir);
 
         /**
          * @brief Initates paging in the kernel, setting up all the 
@@ -94,14 +102,6 @@ NAMESPACE_BEGIN(kernel)
          * 
          */
         void start();
-
-        /**
-         * @brief Change the current page directory to _new_dir_
-         * 
-         * @param dir - new page directory
-         */
-        void switch_page_dir(page_directory_t* new_dir);
-
 
         /**
          * @brief Get the page object
@@ -130,7 +130,6 @@ NAMESPACE_BEGIN(kernel)
 
             struct _FrameInfo
             {
-                uint32_t* frame;
                 uint32_t idx;
                 uint32_t offset;
             };
@@ -155,5 +154,10 @@ NAMESPACE_BEGIN(kernel)
     NAMESPACE_END(paging)
 
 NAMESPACE_END(kernel)
+
+
+// implemented by arch
+__NO_MANGELING void _load_page_directory(unsigned int*);
+__NO_MANGELING void _enable_paging();
 
 #endif //KERNEL_PAGING_H_

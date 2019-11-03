@@ -5,6 +5,7 @@
 #include <kernel/interrupts.h>
 #include <kernel/timer.h>
 #include <kernel/kconstants.h>
+#include <kernel/paging.h>
 #include <kernel/kheap.h>
 
 #include <include/dtables_structs.h>
@@ -21,7 +22,6 @@ __NO_MANGELING void kernel_main(void) {
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
-
 	// see our simple heap allocation in action
 	uint32_t* str = (uint32_t*)heap::allocate(16);
 
@@ -32,7 +32,12 @@ __NO_MANGELING void kernel_main(void) {
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	interrupts::set_handler(0, divide_by_zero);
+	interrupts::set_handler(8, [](void*){
+		GO_PANIC("got double fault!", "");
+	});
 
+	paging::start();
+	
 	// enter infinite loop
 	for (;;)
 	{

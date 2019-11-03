@@ -10,3 +10,5 @@ done;
 #check if build is good
 ./scripts/is_multiboot.sh $PROJECT_NAME.kernel
 
+objcopy --only-keep-debug juos.kernel juos.sym
+

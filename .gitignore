@@ -31,6 +31,8 @@
 *.out
 *.app
 
-.idea/
-.vscode/
-*.gdb_history
+.idea/*
+.vscode/*
+.gdb_history
+juos.sym
+peda*

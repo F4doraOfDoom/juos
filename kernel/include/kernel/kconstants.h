@@ -18,8 +18,8 @@
 #define K_INTERNAL_CLOCK_TICK_RATE 100 
 
 // 4kb of memory
-#define K_PAGE_SIZE 0x1000 
+#define K_PAGE_SIZE             0x1000 
 // we assume 16mb of memory
-#define K_MEM_SIZE  0x1000000
+#define K_PHYSICAL_MEM_SIZE     0x1000000
 
 #endif //KERNEL_CONSTANTS_H_
