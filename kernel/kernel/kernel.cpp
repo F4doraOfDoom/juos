@@ -7,6 +7,7 @@
 #include <kernel/kconstants.h>
 #include <kernel/paging.h>
 #include <kernel/kheap.h>
+#include <kernel/klog.h>
 
 #include <include/dtables_structs.h>
 
@@ -24,7 +25,7 @@ __NO_MANGELING void kernel_main(void) {
 	interrupts::initialize();
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	printf("Hello paging world!\n");
+	LOG("Hello paging world!\n");
 
 	interrupts::set_handler(0, divide_by_zero);
 	interrupts::set_handler(8, [](void*){
@@ -46,5 +47,5 @@ __NO_MANGELING void kernel_main(void) {
 
 void divide_by_zero(void* r)
 {
-	printf("Divide by zero! %d", ((registers32_t*)r)->eax);
+	LOG_A("Divide by zero! %d", ((registers32_t*)r)->eax);
 }

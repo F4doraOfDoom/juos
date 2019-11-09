@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <kernel/klog.h>
 
 #include "interrupts.h"
 #include "kconstants.h"

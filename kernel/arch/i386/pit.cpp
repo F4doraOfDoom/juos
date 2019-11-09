@@ -1,7 +1,9 @@
 #include <include/pit.h>
+#include <kernel/klog.h>
 
 void timer::initialize(uint32_t clock_freq)
 {
+    LOG_A("TIMER: Initializing... Frequency: %d\n", clock_freq);
     pit::_init(clock_freq);
 }
 

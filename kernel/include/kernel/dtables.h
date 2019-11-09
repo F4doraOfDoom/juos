@@ -14,6 +14,7 @@
 #define KERNEL_DESCRIPTOR_TABLES_H
 
 #include <kernel/kdef.h>
+#include <kernel/klog.h>
 
 NAMESPACE_BEGIN(gdt)
 

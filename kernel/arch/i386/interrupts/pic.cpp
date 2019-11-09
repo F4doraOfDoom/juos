@@ -2,6 +2,7 @@
 
 void pic::initialize(uint32_t base)
 {
+    LOG_A("PIC: Initializing... Base: %d\n", base);
     pic::_pic_remap(base, base + 8);
 
     pic::_enable_devices(0xfc, 0xff);

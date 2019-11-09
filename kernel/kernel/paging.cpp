@@ -49,13 +49,15 @@ static page_t* get_page(uint32_t addr, page_directory_t* dir, bool make_page)
 void kernel::paging::initialize()
 {
     auto number_of_frames = K_PHYSICAL_MEM_SIZE;
+    uint32_t page_idx = 0;
 
     page_directory_t* kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
     memset((char*)kernel_directory, '\0', sizeof(page_directory_t));
 
     frame_table = FrameTable(number_of_frames);    
 
-    for(uint32_t page_idx = 0, top = 0; top < __kernel_heap; page_idx++, top += PAGE_SIZE)
+    LOG("PAGING: Creating Pages\n");
+    for(uint32_t top = 0; top < __kernel_heap; page_idx++, top += PAGE_SIZE)
     {
         auto res = frame_table.find_first();
         auto page = get_page(top, kernel_directory, true);
@@ -71,8 +73,9 @@ void kernel::paging::initialize()
         page->frame_addr = res.idx;        
 
         frame_table.set_at_addr(top);
-        //printf("%d %d %d\n", res.idx, top, sizeof(page_table_t));
     }
+
+    LOG_A("PAGING: %d pages created\n", page_idx);
 
     current_directory = kernel_directory;
 

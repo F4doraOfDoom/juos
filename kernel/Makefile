@@ -12,7 +12,9 @@ INCLUDE:=${INCLUDE}
 KINCLUDE:=${KINCLUDE}
 AINCLUDE:=${AINCLUDE}
 LIBC:=${LIBC}
+KERNEL_BUILD_ARGS:=${KERNEL_BUILD_ARGS}
 
+KERNEL_BUILD_ARGS:=$(patsubst %, -D %, $(KERNEL_BUILD_ARGS))
 KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
 KERNEL_C=$(wildcard kernel/*.c kernel/*/.c) 
 KERNEL_CPP=$(wildcard kernel/*.cpp kernel/*/.cpp)
@@ -54,7 +56,7 @@ $(ARCH_OBJS): $(ARCH_C) $(ARCH_CPP) $(ARCH_ASM)
 
 .c.o .cpp.o:  
 	echo $(ARCH_DIR)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) \
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) $(KERNEL_BUILD_ARGS) \
 	-I$(KINCLUDE) -I$(INCLUDE) -I$(ARCH_DIR) \
 	-c $< -o $@
 	

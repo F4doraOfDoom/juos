@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <kernel/klog.h>
  
 #include <kernel/tty.h>
 
@@ -25,6 +26,8 @@ void tty::initialize(void)
 	terminal_column = 0;
 	terminal_color = _vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 	terminal_buffer = VGA_MEMORY;
+
+	LOG_A("TTY: Initializing. Width: %d Height: %d\n", VGA_WIDTH, VGA_HEIGHT);
 	for (size_t y = 0; y < VGA_HEIGHT; y++) 
 	{
 		for (size_t x = 0; x < VGA_WIDTH; x++) 
