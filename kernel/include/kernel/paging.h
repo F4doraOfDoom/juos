@@ -53,103 +53,75 @@ NAMESPACE_BEGIN(kernel)
             BIT_FIELD_TYPE reserved       : 4;
             BIT_FIELD_TYPE flags          : 3;
             BIT_FIELD_TYPE frame_addr     : 20;
-        } __PACKED;
+        };
 
-
-        /**
-         * @brief A table containing pages
-         * 
-         * pages - the pages of the table
-         */
         struct PageTable
         {
-            Page pages[PAGE_TABLE_SIZE];
+            void set_page_idx(
+                uint32_t    idx,
+                bool        is_present,
+                bool        rw,
+                bool        is_user,
+                bool        was_accessed,
+                bool        was_written,
+                uint32_t    frame_addr
+            );
+
+            Page enteries[PAGE_TABLE_SIZE];
         };
 
-        /**
-         * @brief A directory of pages, containing page tables
-         * 
-         * tables - an array of pointers to tables
-         * tables_physical - an array of pointers to the physical address of each
-         * corresponding table
-         * tables_physical_addr - address of _tables_physical_
-         */
         struct PageDirectory
         {
-            PageTable*  tables[PAGE_DIRECTORY_SIZE];
-            uint32_t    tables_physical[PAGE_DIRECTORY_SIZE];
-            uint32_t    tables_physical_addr;
+            PageTable*  tables[PAGE_TABLE_SIZE];
+            uint32_t    table_addresses[PAGE_TABLE_SIZE];
         };
 
-        typedef struct Page             page_t;
-        typedef struct PageTable        page_table_t;
-        typedef struct PageDirectory    page_directory_t;
-
-        void enable();
-
-        /**
-         * @brief Initates paging in the hardware,
-         * sets _dir_ as the page directory.
-         * Implemented by arch
-         * 
-         * 
-         */
-        void set_directory(page_directory_t* dir);
+        struct Frame
+        {
+            bool is_taken = false;
+        };
 
         /**
-         * @brief Initates paging in the kernel, setting up all the 
-         * nessecary things 
+         * @brief Struct representing a table of frames
          * 
+         * frames - pointer to an array of frames
+         * length - length of the array
          */
-        void start();
-
-        /**
-         * @brief Get the page object
-         * 
-         * @param address - address of the page to get 
-         * @param page_dir - pointer to the page directory of the required page
-         * @param create - if true, new page will be created if 
-         * @return page_t* - if page is found or create is true, pointer to the
-         * required page. 
-         * If page is not found while _create_ is false, PAGE_NOT_FOUND 
-         * is returned.
-         * If page is not found while _create_ is true, and the function 
-         * could not create a new page, PAGE_CREATION_FAILED is returned.
-         */
-        page_t* get_page(uint32_t address, page_directory_t* page_dir, bool create = false);
-
-
-        /**
-         * @brief Handles a page fault exception raised by the CPU.
-         * 
-         * @param reg - current state of registers.
-         */
-        void __page_fault_handler(void* reg);
-
-        NAMESPACE_BEGIN(frame)
-
-            struct _FrameInfo
+        struct FrameTable
+        {
+            struct FrameTableResult
             {
-                uint32_t idx;
-                uint32_t offset;
+                uint32_t idx    = 0;
+                bool    error   = false;
             };
 
-            // TODO: Document this bitch, I'm too tired
-            struct _FrameInfo get_info(uint32_t frame_addr);
+            typedef FrameTableResult frame_table_result_t;
 
-            void alloc(page_t* page, bool is_user, bool is_writeable);
+            FrameTable(uint32_t length);
 
-            void dealloc(page_t* page);
+            // Dont use this constructor
+            FrameTable() {};
 
-            void set(uint32_t frame_addr);
+            frame_table_result_t find_first();
+            void set_at_addr(uint32_t addr);
 
-            void clear(uint32_t frame_addr);
+            Frame*      frames = nullptr;
+            uint32_t    length = 0;
+        };
 
-            bool test(uint32_t frame_addr);
+        typedef Page            page_t;
+        typedef PageTable       page_table_t;
+        typedef PageDirectory   page_directory_t;
+        typedef Frame           frame_t; 
+        typedef FrameTable      frame_table_t;
 
-            uint32_t find_first();
+        /**
+         * @brief Initialize paging in the kernel
+         * 
+         */
+        void initialize();
 
-        NAMESPACE_END(frame)
+        void page_fault_handler(void*);
 
     NAMESPACE_END(paging)
 
@@ -157,7 +129,7 @@ NAMESPACE_END(kernel)
 
 
 // implemented by arch
-__NO_MANGELING void _load_page_directory(unsigned int*);
+__NO_MANGELING void _load_page_directory(uint32_t*);
 __NO_MANGELING void _enable_paging();
 
 #endif //KERNEL_PAGING_H_

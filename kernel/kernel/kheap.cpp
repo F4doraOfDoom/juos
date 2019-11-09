@@ -19,10 +19,11 @@ uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
         *phys = __kernel_heap;
     }
 
+    uint32_t tmp = __kernel_heap;
     __kernel_heap += n;
 
     // substract _n_ to return beginning
-    return __kernel_heap - n;
+    return tmp;
 }
 
 uint32_t kernel::heap::allocate(size_t n, bool alligned)

@@ -16,4 +16,5 @@ fi
 
 $EMULATOR -cdrom juos.iso $DEBUG_ARGS &
 #echo $RUN_DEBUGGER
+sleep 0.2
 eval $RUN_DEBUGGER

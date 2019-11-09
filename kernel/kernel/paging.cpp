@@ -1,93 +1,145 @@
 #include <kernel/paging.h>
 
 using namespace kernel::paging;
-using namespace kernel;
 
-page_directory_t* kernel_directory  = nullptr;
-page_directory_t* current_directory = nullptr;
+extern uint32_t __kernel_heap; // defined in kheap.cpp
 
-// defined in page_frames.cpp
-extern uint32_t* frames;
-// defined in page_frames.cpp
-extern uint32_t nframes; 
-// defined in kheap.cpp
-extern uint32_t __kernel_heap;
+FrameTable          frame_table;
+page_directory_t*   current_directory   = nullptr;
+uint32_t*           physical_pages      = nullptr;
 
-void kernel::paging::enable()
+void PageTable::set_page_idx(uint32_t    idx,
+                bool        is_present,
+                bool        rw,
+                bool        is_user,
+                bool        was_accessed,
+                bool        was_written,
+                uint32_t    frame_addr)
 {
+    enteries[idx].is_present    = is_present;
+    enteries[idx].rw            = rw;
+    enteries[idx].is_user       = is_user;
+    enteries[idx].was_accessed  = was_accessed;
+    enteries[idx].was_written   = was_written;
+    enteries[idx].frame_addr    = frame_addr;
+}
+
+FrameTable::frame_table_result_t kernel::paging::FrameTable::find_first()
+{
+    FrameTable::frame_table_result_t result;
+
+    for(uint32_t i = 0; i < this->length; i++)
+    {
+        if (!this->frames[i].is_taken)
+        {
+            result.idx = i;
+            return result;
+        }
+    }
+
+    result.error = true;
+    return result;
+}
+
+void FrameTable::set_at_addr(uint32_t addr)
+{
+    this->frames[addr / PAGE_SIZE].is_taken = true;
+} 
+
+kernel::paging::frame_table_t::FrameTable(uint32_t length)
+{
+    this->length = length;
+    this->frames = (frame_t*)heap::allocate(length);
+    
+    for (uint32_t i = 0; i < length; i++)
+    {
+        this->frames[i] = Frame();
+    }
+}
+
+static page_t* get_page(uint32_t addr, page_directory_t* dir, bool make_page)
+{
+    auto page_idx = addr / PAGE_SIZE;
+    auto table_idx = page_idx / PAGE_TABLE_SIZE;
+
+    if (dir->tables[table_idx])
+    {
+        return &dir->tables[table_idx]->enteries[page_idx % PAGE_TABLE_SIZE];
+    }
+    else if (make_page)
+    {
+        uint32_t page_addr = 0;
+        dir->tables[table_idx] = (page_table_t*)kernel::heap::allocate_p(sizeof(page_table_t), &page_addr);
+        memset(dir->tables[table_idx], 0, PAGE_SIZE);
+        dir->table_addresses[table_idx] = page_addr | 0x7;
+        
+        return &dir->tables[table_idx]->enteries[page_addr%PAGE_TABLE_SIZE];
+    }
+
+    return nullptr;
+} 
+
+void kernel::paging::initialize()
+{
+    auto number_of_frames = K_PHYSICAL_MEM_SIZE;
+
+    page_directory_t* kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
+    memset((char*)kernel_directory, '\0', sizeof(page_directory_t));
+
+    frame_table = FrameTable(number_of_frames);    
+
+    for(uint32_t page_idx = 0, top = 0; top < __kernel_heap; page_idx++, top += PAGE_SIZE)
+    {
+        auto res = frame_table.find_first();
+        auto page = get_page(top, kernel_directory, true);
+        
+        if (res.error)
+        {
+            GO_PANIC("NO FUCKING FRAMES WTF", "");
+        }
+
+        page->is_present = true;
+        page->is_user = false;
+        page->rw = false;
+        page->frame_addr = res.idx;        
+
+        frame_table.set_at_addr(top);
+        //printf("%d %d %d\n", res.idx, top, sizeof(page_table_t));
+    }
+
+    current_directory = kernel_directory;
+
+    interrupts::set_handler(14, page_fault_handler);
+
+    _load_page_directory((uint32_t*)&kernel_directory->table_addresses);
     _enable_paging();
 }
 
-void kernel::paging::start()
+
+void kernel::paging::page_fault_handler(void* regs_void)
 {
-    // allocate array of frame indexes
-    nframes = (K_PHYSICAL_MEM_SIZE / K_PAGE_SIZE);
-    frames = (uint32_t*)heap::allocate(INDEX_FROM_BIT(nframes), false);
-    memset(frames, 0, INDEX_FROM_BIT(nframes));
+    registers32_t* regs = (registers32_t*)regs_void;
+    uint32_t faulting_address = 0;
+
+    // faulting address gets stored in cr2
+    asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
+
+    bool present    = !(regs->err_code & 0x1);
+    bool rw         = regs->err_code & 0x2;
+    bool us         = regs->err_code & 0x4;
+    bool reserved   = regs->err_code & 0x8;
+    bool ifetch     = regs->err_code & 0x10;
 
 
-    // TODO: When I implement new, change this to calling the constrcutor of page_directory_t
-    kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
-    memset(kernel_directory, 0, sizeof(page_directory_t));
-
-    // we are currently using this directory
-    current_directory = kernel_directory;
-
-    uint32_t i = 0;
-    while(i < __kernel_heap)
-    {
-        frame::alloc(get_page(
-                i,
-                kernel_directory,
-                true
-                ), // we want to create all pages in directory
-            false, // this directory is the kernel's
-            false // kernel directory is1 not writeable from user space
-        );
-        i += PAGE_SIZE;
-    }
-
-    interrupts::set_handler((uint32_t)InterruptList::PageFault, __page_fault_handler);
-
-    // this will enable paging
-    set_directory(kernel_directory);
-    paging::enable();
-}
-
-void kernel::paging::set_directory(page_directory_t* dir)
-{
-    _load_page_directory((unsigned int*)dir);
-}
-
-page_t* kernel::paging::get_page(uint32_t address, page_directory_t* dir, bool create)
-{
-    address /= PAGE_SIZE;
-
-    uint32_t table_idx = address / 1024;
-
-    // if we find an existing table, return it
-    if (dir->tables[table_idx] != nullptr)
-    {
-        return &dir->tables[table_idx]->pages[address%1024];
-    }
-
-    // if no, create one and return it
-    if (create)
-    {
-        uint32_t table_ptr = 0;
-        dir->tables[table_idx] = (page_table_t*)heap::allocate_p(
-            sizeof(page_directory_t), 
-            &table_ptr // save the physical address 
-        );
-        memset(dir->tables[table_idx], 0, PAGE_SIZE);
-        dir->tables_physical[table_idx] = table_ptr | 0x7; // PRESENT, RW, US
-        return &dir->tables[table_idx]->pages[address%1024];
-    }
-
-    return (page_t*)PAGE_NOT_FOUND;
-}
-
-void kernel::paging::__page_fault_handler(void*)
-{
-    GO_PANIC("PAGE FAULT!", "");
+    GO_PANIC("PAGE FAULT!\n" 
+    "Page isnt present: %d\n"
+    "Invalid write operation: %d\n"
+    "Access from user-mode: %d\n"
+    "Overwritten CPU reserved bits: %d\n"
+    "Caused by instruction fetch: %d\n",
+    present,
+    rw,
+    us,
+    reserved,
+    ifetch);
 }

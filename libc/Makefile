@@ -3,6 +3,7 @@ HOST:=${HOST}
 
 CC:=${CC}
 AS:=${AS}
+ROOT:=${ROOT}
 
 CFLAGS:=${CFLAGS}
 CPPFLAGS:=${CPPFLAGS}
@@ -23,7 +24,7 @@ TO_BUILD=$(LIBK_OBJ) $(LIBC_OBJ)
 .SUFFIXES: .libc.o libk.o .cpp
 
 build: $(TO_BUILD) 
-	mkdir lib
+	$(ROOT)/scripts/mkdir.sh lib
 	$(AR) rcs $@.libc.a $(LIBC_OBJ)
 	$(AR) rcs $@.libk.a $(LIBK_OBJ)
 	mv *.libc.a lib/

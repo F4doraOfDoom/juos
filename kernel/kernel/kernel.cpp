@@ -22,23 +22,20 @@ __NO_MANGELING void kernel_main(void) {
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
-	// see our simple heap allocation in action
-	uint32_t* str = (uint32_t*)heap::allocate(16);
-
-	memcpy(str, "Hello world!\0", 13);
-
-	printf("%s\n", str);
-
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+
+	printf("Hello paging world!\n");
 
 	interrupts::set_handler(0, divide_by_zero);
 	interrupts::set_handler(8, [](void*){
 		GO_PANIC("got double fault!", "");
 	});
 
-	paging::start();
-	
+	paging::initialize();
 	// enter infinite loop
+	uint32_t *ptr = (uint32_t*)0xA0000000;
+   	uint32_t do_page_fault = *ptr;
+
 	for (;;)
 	{
 		asm volatile (

@@ -35,8 +35,9 @@
     Compiler specific
 */
 #ifdef __GNUC__
-    #define __PACKED    __attribute__((packed))
-    #define __IS_USED   __attribute__((used))
+    #define __PACKED        __attribute__((packed))
+    #define __IS_USED       __attribute__((used))
+    #define __ALIGNED(x)    __attribute__((aligned(x)))
 #else
     // add flags from different compilers
 #endif
