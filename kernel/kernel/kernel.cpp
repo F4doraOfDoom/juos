@@ -25,7 +25,8 @@ __NO_MANGELING void kernel_main(void) {
 	interrupts::initialize();
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	LOG("Hello paging world!\n");
+	LOG_S("KERNEL: ", "Hello paging world!\n");
+	//LOG("Hello paging world!\n");
 
 	interrupts::set_handler(0, divide_by_zero);
 	interrupts::set_handler(8, [](void*){

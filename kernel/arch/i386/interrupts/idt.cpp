@@ -5,7 +5,7 @@ idt::PtrStruct  idt_ptr             = { 0, 0 };
 
 void idt::initialize()
 {
-    LOG("IDT: Initializing...\n");
+    LOG_S("IDT: ", "Initializing...\n");
     idt::_init();
 }
 

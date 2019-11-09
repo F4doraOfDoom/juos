@@ -52,6 +52,15 @@ void writestring(const char* data);
  */
 void clean(); 
 
+
+/**
+ * @brief Set the printing color scheme
+ * 
+ * @param fg - fore ground color
+ * @param bg - back ground color
+ */
+void set_color(unsigned int fg, unsigned int bg);
+
 NAMESPACE_END(tty)
 
 #endif

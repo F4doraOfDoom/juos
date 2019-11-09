@@ -3,7 +3,7 @@
 
 void timer::initialize(uint32_t clock_freq)
 {
-    LOG_A("TIMER: Initializing... Frequency: %d\n", clock_freq);
+    LOG_SA("TIMER: ", "Initializing... Frequency: %d\n", clock_freq);
     pit::_init(clock_freq);
 }
 

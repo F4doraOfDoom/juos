@@ -4,7 +4,7 @@ interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 
 void interrupts::initialize()
 {
-    LOG("INTERRUPTS: Initializing...\n");
+    LOG_S("INTERRUPTS: ", "Initializing...\n");
     for(int i = 0; i < I386_INTERRUPTS; i++)
     {
         interrupt_handlers[i] = interrupts::handler{nullptr};

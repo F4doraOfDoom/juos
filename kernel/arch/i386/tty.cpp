@@ -24,10 +24,10 @@ void tty::initialize(void)
 {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = _vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	terminal_color = _vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 	terminal_buffer = VGA_MEMORY;
 
-	LOG_A("TTY: Initializing. Width: %d Height: %d\n", VGA_WIDTH, VGA_HEIGHT);
+	LOG_SA("TTY: ", "Initializing. Width: %d Height: %d\n", VGA_WIDTH, VGA_HEIGHT);
 	for (size_t y = 0; y < VGA_HEIGHT; y++) 
 	{
 		for (size_t x = 0; x < VGA_WIDTH; x++) 
@@ -37,6 +37,12 @@ void tty::initialize(void)
 		}
 	}
 } 
+
+void tty::set_color(unsigned int fg, unsigned int bg)
+{
+	//LOG_A("TTY: setting terminal colors: %d, %d\n", fg, bg);
+	terminal_color = _vga_entry_color((vga_color)fg, (vga_color)bg);
+}
  
 void tty::putchar(char c) 
 {

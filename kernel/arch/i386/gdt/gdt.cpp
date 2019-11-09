@@ -5,7 +5,7 @@ gdt::PtrStruct  gdt_ptr             = { 0, 0 };
 
 void gdt::initialize()
 {
-    LOG("GDT: Initializing...\n");
+    LOG_S("GDT: ", "Initializing...\n");
     gdt::_init();
 }
 

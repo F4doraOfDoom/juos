@@ -3,6 +3,14 @@
 #include <string.h>
 
 
+#ifdef __is_libk
+    #include <kernel/tty.h>
+    #include <kernel/klog.h>
+    extern void tty::set_color(unsigned int fg, unsigned int bg);
+#else
+    // do sys calls?
+#endif
+
 /**
  * @brief Converts _value_ of type _ValT_ to string with
  * numerical representation of _base_
@@ -70,6 +78,7 @@ int printf(const char* __restrict format, ...)
     {
         bool printed_special = true;
 
+        // normal argument
         if (*format == '%')
         {   
             if (format[1] == '\0') 
@@ -122,6 +131,35 @@ int printf(const char* __restrict format, ...)
             
             format++;
         }
+        #ifdef __is_libk
+        // kernel specific special escaping
+        else if (*format == '$')
+        {
+            switch (format[1])
+            {
+                // color escaping
+                // there is not error checking, make sure you don't do anythin stupid
+                // supports colors from 0x0 - 0xF
+                // pretty shitty, but good enough for the kernel currently
+                case '&':
+                {
+                    unsigned int fg = format[2];
+                    unsigned int bg = format[3];
+
+                    tty::set_color(fg, bg);
+
+                    format += 3;
+                }
+                break;
+
+                default:
+                    putchar('?');
+                    putchar((format[1]));
+                break;
+            }
+
+        }
+        #endif
         else
         {
             putchar(*format);

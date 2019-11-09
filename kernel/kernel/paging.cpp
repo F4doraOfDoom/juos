@@ -56,7 +56,7 @@ void kernel::paging::initialize()
 
     frame_table = FrameTable(number_of_frames);    
 
-    LOG("PAGING: Creating Pages\n");
+    LOG_S("PAGING: ", "Creating Pages\n");
     for(uint32_t top = 0; top < __kernel_heap; page_idx++, top += PAGE_SIZE)
     {
         auto res = frame_table.find_first();
@@ -75,7 +75,7 @@ void kernel::paging::initialize()
         frame_table.set_at_addr(top);
     }
 
-    LOG_A("PAGING: %d pages created\n", page_idx);
+    LOG_SA("PAGING: ","%d pages created\n", page_idx);
 
     current_directory = kernel_directory;
 
