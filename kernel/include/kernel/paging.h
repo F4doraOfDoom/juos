@@ -57,15 +57,15 @@ NAMESPACE_BEGIN(kernel)
 
         struct PageTable
         {
-            void set_page_idx(
-                uint32_t    idx,
-                bool        is_present,
-                bool        rw,
-                bool        is_user,
-                bool        was_accessed,
-                bool        was_written,
-                uint32_t    frame_addr
-            );
+            // void set_page_idx(
+            //     uint32_t    idx,
+            //     bool        is_present,
+            //     bool        rw,
+            //     bool        is_user,
+            //     bool        was_accessed,
+            //     bool        was_written,
+            //     uint32_t    frame_addr
+            // );
 
             Page enteries[PAGE_TABLE_SIZE];
         };

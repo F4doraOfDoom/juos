@@ -8,54 +8,21 @@ FrameTable          frame_table;
 page_directory_t*   current_directory   = nullptr;
 uint32_t*           physical_pages      = nullptr;
 
-void PageTable::set_page_idx(uint32_t    idx,
-                bool        is_present,
-                bool        rw,
-                bool        is_user,
-                bool        was_accessed,
-                bool        was_written,
-                uint32_t    frame_addr)
-{
-    enteries[idx].is_present    = is_present;
-    enteries[idx].rw            = rw;
-    enteries[idx].is_user       = is_user;
-    enteries[idx].was_accessed  = was_accessed;
-    enteries[idx].was_written   = was_written;
-    enteries[idx].frame_addr    = frame_addr;
-}
-
-FrameTable::frame_table_result_t kernel::paging::FrameTable::find_first()
-{
-    FrameTable::frame_table_result_t result;
-
-    for(uint32_t i = 0; i < this->length; i++)
-    {
-        if (!this->frames[i].is_taken)
-        {
-            result.idx = i;
-            return result;
-        }
-    }
-
-    result.error = true;
-    return result;
-}
-
-void FrameTable::set_at_addr(uint32_t addr)
-{
-    this->frames[addr / PAGE_SIZE].is_taken = true;
-} 
-
-kernel::paging::frame_table_t::FrameTable(uint32_t length)
-{
-    this->length = length;
-    this->frames = (frame_t*)heap::allocate(length);
-    
-    for (uint32_t i = 0; i < length; i++)
-    {
-        this->frames[i] = Frame();
-    }
-}
+// void PageTable::set_page_idx(uint32_t    idx,
+//                 bool        is_present,
+//                 bool        rw,
+//                 bool        is_user,
+//                 bool        was_accessed,
+//                 bool        was_written,
+//                 uint32_t    frame_addr)
+// {
+//     enteries[idx].is_present    = is_present;
+//     enteries[idx].rw            = rw;
+//     enteries[idx].is_user       = is_user;
+//     enteries[idx].was_accessed  = was_accessed;
+//     enteries[idx].was_written   = was_written;
+//     enteries[idx].frame_addr    = frame_addr;
+// }
 
 static page_t* get_page(uint32_t addr, page_directory_t* dir, bool make_page)
 {
