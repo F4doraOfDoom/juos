@@ -8,6 +8,7 @@
 #include <kernel/paging.h>
 #include <kernel/kheap.h>
 #include <kernel/klog.h>
+#include <list.hpp>
 
 #include <include/dtables_structs.h>
 
@@ -18,26 +19,36 @@ using namespace kernel;
 
 void divide_by_zero(void*);
 
+class Allocator
+{
+
+};
+
 __NO_MANGELING void kernel_main(void) {
+	/**
+	 * The initialization order is important 
+	 * 1. tty
+	 * 2. (gdt/ idt)
+	 * 3. interrupts
+	 * 4. paging
+	 * everything else... 
+	 *
+	 */
 	tty::initialize();
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	LOG_S("KERNEL: ", "Hello paging world!\n");
-	//LOG("Hello paging world!\n");
-
-	interrupts::set_handler(0, divide_by_zero);
-	interrupts::set_handler(8, [](void*){
-		GO_PANIC("got double fault!", "");
-	});
+	std::linked_list<int, Allocator> list;
+	list.foo(1);
 
 	paging::initialize();
-	uint32_t *ptr = (uint32_t*)0xA0000000;
-   	uint32_t do_page_fault = *ptr;
+	printf("Hello paing world!\n");
+	//uint32_t *ptr = (uint32_t*)0xA0000000;
+   	//uint32_t do_page_fault = *ptr;
 
-	// enter infinite loop
+	
 	for (;;)
 	{
 		asm volatile (

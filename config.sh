@@ -12,12 +12,15 @@ export AS=$TOOLS$HOST-as
 export CFLAGS="-Wall -Wextra -g -D__arch_$ARCH -std=c++1z"
 export CPPFLAGS=""
 export LIBC=$PWD/libc
+export LIBCXX=$PWD/libstdcxx
+
 export INCLUDE=$LIBC/include
+export CXXINCLUDE=$LIBCXX
 export KINCLUDE=$PWD/kernel/include
 export AINCLUDE=$PWD/arch/$ARCH/include
 
 export ROOT=$PWD
-export PROJECTS="libc kernel" #important to build libc first
+export PROJECTS="libc kernel libcxx" #important to build libc first
 
 export PROJECT_NAME="juos"
 

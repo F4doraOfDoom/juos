@@ -24,7 +24,7 @@ uint32_t*           physical_pages      = nullptr;
 //     enteries[idx].frame_addr    = frame_addr;
 // }
 
-static page_t* get_page(uint32_t addr, page_directory_t* dir, bool make_page)
+static page_t* _get_page(uint32_t addr, page_directory_t* dir, bool make_page)
 {
     auto page_idx = addr / PAGE_SIZE;
     auto table_idx = page_idx / PAGE_TABLE_SIZE;
@@ -48,7 +48,9 @@ static page_t* get_page(uint32_t addr, page_directory_t* dir, bool make_page)
 
 void kernel::paging::initialize()
 {
-    auto number_of_frames = K_PHYSICAL_MEM_SIZE;
+    LOG_S("PAGING: ", "Initializing...\n");
+
+    auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE;
     uint32_t page_idx = 0;
 
     page_directory_t* kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
@@ -56,11 +58,11 @@ void kernel::paging::initialize()
 
     frame_table = FrameTable(number_of_frames);    
 
-    LOG_S("PAGING: ", "Creating Pages\n");
+    LOG_SA("PAGING: ", "Creating %d pages...\n", number_of_frames);
     for(uint32_t top = 0; top < __kernel_heap; page_idx++, top += PAGE_SIZE)
     {
         auto res = frame_table.find_first();
-        auto page = get_page(top, kernel_directory, true);
+        auto page = _get_page(top, kernel_directory, true);
         
         if (res.error)
         {
@@ -75,7 +77,7 @@ void kernel::paging::initialize()
         frame_table.set_at_addr(top);
     }
 
-    LOG_SA("PAGING: ","%d pages created\n", page_idx);
+    LOG_SA("PAGING: ","%d frames created, %d pages created\n", frame_table.length, page_idx);
 
     current_directory = kernel_directory;
 
@@ -102,11 +104,13 @@ void kernel::paging::page_fault_handler(void* regs_void)
 
 
     GO_PANIC("PAGE FAULT!\n" 
+    "Faulting address: %x\n"
     "Page isnt present: %d\n"
     "Invalid write operation: %d\n"
     "Access from user-mode: %d\n"
     "Overwritten CPU reserved bits: %d\n"
     "Caused by instruction fetch: %d\n",
+    faulting_address,
     present,
     rw,
     us,

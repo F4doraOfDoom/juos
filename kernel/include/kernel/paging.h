@@ -100,7 +100,10 @@ NAMESPACE_BEGIN(kernel)
 
             FrameTable(uint32_t length);
 
-            // Dont use this constructor
+            /**
+             * @brief Dont use this constructor
+             * 
+             */
             FrameTable() {};
 
             frame_table_result_t find_first();

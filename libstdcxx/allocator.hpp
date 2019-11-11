@@ -1,0 +1,4 @@
+#ifndef _CXX_ALLOCATOR_H
+#define _CXX_ALLOCATOR_H
+
+#endif // _CXX_ALLOCATOR_H

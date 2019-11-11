@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "klog.h"
 #include "interrupts.h"
 #include "kdef.h"
 

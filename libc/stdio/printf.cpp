@@ -131,7 +131,7 @@ int printf(const char* __restrict format, ...)
             
             format++;
         }
-        #ifdef __is_libk
+#ifdef __is_libk
         // kernel specific special escaping
         else if (*format == '$')
         {
@@ -153,13 +153,14 @@ int printf(const char* __restrict format, ...)
                 break;
 
                 default:
-                    putchar('?');
+                    putchar('$');
                     putchar((format[1]));
+                    format++;
                 break;
             }
 
         }
-        #endif
+#endif
         else
         {
             putchar(*format);

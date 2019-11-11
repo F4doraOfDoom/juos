@@ -9,9 +9,11 @@ AS:=${AS}
 CFLAGS:=${CFLAGS}
 CPPFLAGS:=${CPPFLAGS}
 INCLUDE:=${INCLUDE}
+CXXINCLUDE:=${CXXINCLUDE}
 KINCLUDE:=${KINCLUDE}
 AINCLUDE:=${AINCLUDE}
 LIBC:=${LIBC}
+LIBCXX:=${LIBCXX}
 KERNEL_BUILD_ARGS:=${KERNEL_BUILD_ARGS}
 
 KERNEL_BUILD_ARGS:=$(patsubst %, -D %, $(KERNEL_BUILD_ARGS))
@@ -34,16 +36,16 @@ $(ARCH_CPP:.cpp=.o) \
 $(ARCH_ASM:.S=.o)
 
 LIBC_OBJS=$(wildcard $(LIBC)/lib/*.libk.a)
+LIBCXX_OBJS=$(wildcard $(LIBC)/lib/*.libk.a)
 
 PROJECT:=${PROJECT_NAME}.kernel
 
 .SUFFIXES: .o .cpp .S
 
 build: $(KERNEL_OBJS) $(ARCH_OBJS)
-	echo 1 $(KERNEL_OBJS) $(ARCH_OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) \
 	-T $(ARCH_DIR)/linker.ld \
-	$(KERNEL_OBJS) $(ARCH_OBJS) $(LIBC_OBJS) \
+	$(KERNEL_OBJS) $(ARCH_OBJS) $(LIBC_OBJS) $(LIBCXX_OBJS) \
 	-o $(PROJECT)
 	mv $(PROJECT) ${ROOT}
 
@@ -55,9 +57,9 @@ $(ARCH_OBJS): $(ARCH_C) $(ARCH_CPP) $(ARCH_ASM)
 	$(AS) $< -o $@
 
 .c.o .cpp.o:  
-	echo $(ARCH_DIR)
+	echo $(CXXINCLUDE)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) $(KERNEL_BUILD_ARGS) \
-	-I$(KINCLUDE) -I$(INCLUDE) -I$(ARCH_DIR) \
+	-I$(KINCLUDE) -I$(INCLUDE) -I$(CXXINCLUDE) -I$(ARCH_DIR) \
 	-c $< -o $@
 	
 clean:

@@ -6,6 +6,12 @@
 
 #define EOF (-1)
 
+#ifdef __is_libk
+    #define __PRINTF_SPECIAL_ESCAPE         "$"  
+    #define __PRINTF_SPECIAL_ESCAPE_COLOR   "&"
+    #define __PRINTF_COLOR_SEQUENCE         __PRINTF_SPECIAL_ESCAPE __PRINTF_SPECIAL_ESCAPE_COLOR
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
