@@ -18,10 +18,14 @@
 #define __NO_MANGELING          extern "C"
 
 #define GO_PANIC(message, ...)                  \
+        printf("KERNEL PANIC!\n"); \
         printf(message, __VA_ARGS__);                       \
         printf("File: " __FILE__ "\n");                       \
         printf("Line: %d\n", __LINE__);                       \
         while(1) { asm volatile (""); }         \  
+
+#define ASSERT(condition)   \
+    if (!(condition)) {GO_PANIC("Failed Assertion: " #condition "\n", "")}
 
 #define NAMESPACE_BEGIN(name)   namespace name {
 #define NAMESPACE_END(name)     }

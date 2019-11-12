@@ -28,7 +28,7 @@ __NO_MANGELING void kernel_main(void) {
 	 * 1. tty
 	 * 2. (gdt/ idt)
 	 * 3. interrupts
-	 * 4. paging
+	 * 4. memory managment
 	 * everything else... 
 	 *
 	 */
@@ -36,24 +36,34 @@ __NO_MANGELING void kernel_main(void) {
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
+
+	memory_manager::initialize(
+		K_HEAP_START, // beginning address
+		K_HEAP_START + K_HEAP_INITIAL_SIZE, // end address
+		0xCFFFF000, // max address
+		false, // running in supervisor mode
+		true // is read-write
+	);
+
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	// test allocator
-	std::list<int, Less<int>, memory::PrimitiveAllocator> l;
-	l.push_back(5);
-	l.push_back(6);
-	l.push_back(7);
+	// std::list<int, Less<int>, memory_manager::PrimitiveAllocator> l;
+	// l.push_back(5);
+	// l.push_back(6);
+	// l.push_back(7);
 
-	for(const auto i : l)
-	{
-		printf("%d\n", i);
-	}
+	// for(const auto i : l)
+	// {
+	// 	printf("%d\n", i);
+	// }
 
-	paging::initialize();
 	printf("Hello paing world!\n");
 	//uint32_t *ptr = (uint32_t*)0xA0000000;
    	//uint32_t do_page_fault = *ptr;
 
+	void* p = memory_manager::malloc(16);
+	printf("allocated %p\n", p);
 	
 	for (;;)
 	{

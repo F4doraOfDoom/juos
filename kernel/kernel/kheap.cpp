@@ -7,7 +7,7 @@ uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
 {
     if (alligned)
     {
-        if (IS_ALIGNED(__kernel_heap))
+        if (!IS_ALIGNED(__kernel_heap))
         {
             __kernel_heap &= HEAP_ALIGNMENT;
             __kernel_heap += PAGE_SIZE;

@@ -10,22 +10,25 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include <allocator.hpp>
 
+#include "klog.h"
 #include "kdef.h"
 #include "kheap.h"
+#include "paging.h"
 
-#define KHEAP_START         0xC0000000
-#define KHEAP_INITIAL_SIZE  0x100000
-#define KHEAP_INDEX_SIZE    0x20000
-#define KHEAP_MAGIC         0x12345678
-#define KHEAP_MIN_SIZE      0x70000
+#define K_HEAP_START         0xC0000000
+#define K_HEAP_INITIAL_SIZE  0x100000
+#define K_HEAP_INDEX_SIZE    0x20000
+#define K_HEAP_MAGIC         0x12345678
+#define K_HEAP_MIN_SIZE      0x70000
 
 //TODO: Implement better heap after I get this to work
 
 NAMESPACE_BEGIN(kernel)
 
-    NAMESPACE_BEGIN(memory)
+    NAMESPACE_BEGIN(memory_manager)
 
         /**
          * @brief Documentation inside of IAllocator (libstdcxx/allocator.hpp)
@@ -61,17 +64,36 @@ NAMESPACE_BEGIN(kernel)
 
         struct ChunkHeader
         {
-            uint32_t    magic;
-            uint8_t     is_hole;
-            uint32_t    size;
+            bool is_present;
         };
 
         struct Chunk
         {
-            uint32_t        magic;
-            ChunkHeader*    header;
+            ChunkHeader     header;
+            Chunk*          prev;
+            uint32_t        size;
         };
 
-    NAMESPACE_END(memory)
+        struct Heap
+        {
+            Chunk*          head;
+            uint32_t        start_address; // The start of our allocated space.
+            uint32_t        end_address;   // The end of our allocated space. May be expanded up to max_address.
+            uint32_t        max_address;   // The maximum address the heap can be expanded to.
+            bool            is_kernel;     // Should extra pages requested by us be mapped as supervisor-only?
+            bool            rw;       // Should extra pages requested by us be mapped as read-only?
+        };
+
+        typedef ChunkHeader chunk_header_t;
+        typedef Chunk       chunk_t;
+        typedef Heap        heap_t;
+
+        void initialize(uint32_t start, uint32_t end, uint32_t size, bool is_kernel, bool rw);
+
+        void* malloc(uint32_t size);
+
+        void free(void* p);
+
+    NAMESPACE_END(memory_manager)
 
 NAMESPACE_END(kernel)

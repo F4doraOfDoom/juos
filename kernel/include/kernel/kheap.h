@@ -20,7 +20,7 @@
 #define HEAP_ALIGNMENT 0xFFFFF000
 #define PAGE_SIZE 0x1000
 
-#define IS_ALIGNED(addr) (addr & HEAP_ALIGNMENT)
+#define IS_ALIGNED(addr) ((addr & ~HEAP_ALIGNMENT) == 0)
 
 NAMESPACE_BEGIN(kernel)
 

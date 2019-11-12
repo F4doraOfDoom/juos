@@ -32,6 +32,12 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(paging)
 
+        struct _HeapMappingSettings
+        {
+            uint32_t begin;
+            uint32_t end;
+        };
+
         /**
          * @brief Structure representing a Page
          * 
@@ -123,7 +129,7 @@ NAMESPACE_BEGIN(kernel)
          * @brief Initialize paging in the kernel
          * 
          */
-        void initialize();
+        void initialize(_HeapMappingSettings* _heap_mapping);
 
         void page_fault_handler(void*);
 
