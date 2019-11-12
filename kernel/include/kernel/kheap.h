@@ -1,8 +1,7 @@
 /**
  * @file kheap.h
  * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
- * @brief Header file containing all heap memory allocating functions
- * and structs of the kernel 
+ * @brief Internal implementation of the heap
  * @version 0.1
  * @date 01-11-2019
  * 
@@ -15,6 +14,7 @@
 
 #include "kdef.h"
 
+#include <allocator.hpp>
 #include <stdint.h>
 
 #define HEAP_ALIGNMENT 0xFFFFF000

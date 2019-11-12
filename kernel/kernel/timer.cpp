@@ -17,7 +17,7 @@ void timer::__tick_handler(void*)
 //#ifdef K_LOG
 //     if (timer::__tick_counter & 1000 == 0)
 //     {
-      LOG_SA("TIMER: ", "Reached tick: %d\n", timer::__tick_counter);
+//      LOG_SA("TIMER: ", "Reached tick: %d\n", timer::__tick_counter);
 //     }
 // //#endif
     //printf("Tick! %d\n", timer::__tick_counter, timer::__tick_counter, timer::__tick_counter, timer::__tick_counter);

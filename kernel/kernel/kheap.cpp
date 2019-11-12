@@ -28,6 +28,5 @@ uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
 
 uint32_t kernel::heap::allocate(size_t n, bool alligned)
 {
-    
     return allocate_p(n, nullptr, alligned);
 }

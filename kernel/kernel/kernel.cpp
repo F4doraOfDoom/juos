@@ -8,6 +8,9 @@
 #include <kernel/paging.h>
 #include <kernel/kheap.h>
 #include <kernel/klog.h>
+#include <kernel/kmm.h>
+
+#include <kernel/kstdcxx.hpp>
 #include <list.hpp>
 
 #include <include/dtables_structs.h>
@@ -18,11 +21,6 @@
 using namespace kernel;
 
 void divide_by_zero(void*);
-
-class Allocator
-{
-
-};
 
 __NO_MANGELING void kernel_main(void) {
 	/**
@@ -40,8 +38,16 @@ __NO_MANGELING void kernel_main(void) {
 	interrupts::initialize();
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	std::linked_list<int, Allocator> list;
-	list.foo(1);
+	// test allocator
+	std::list<int, Less<int>, memory::PrimitiveAllocator> l;
+	l.push_back(5);
+	l.push_back(6);
+	l.push_back(7);
+
+	for(const auto i : l)
+	{
+		printf("%d\n", i);
+	}
 
 	paging::initialize();
 	printf("Hello paing world!\n");
