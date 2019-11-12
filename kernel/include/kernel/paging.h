@@ -1,3 +1,15 @@
+/**
+ * @file paging.h
+ * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
+ * @brief Header file containing declerations and definitions
+ * of the paging interface
+ * @version 0.1
+ * @date 12-11-2019
+ * 
+ * @copyright Copyright Jonathan Uklisty (c) 2019 (MIT License)
+ * 
+ */
+
 #ifndef KERNEL_PAGING_H_
 #define KERNEL_PAGING_H_
 
@@ -32,6 +44,13 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(paging)
 
+        /**
+         * @brief This struct is passed into paging::initialize
+         * in order to specify which regions to map for the heap
+         * 
+         * begin    - beginning address of heap
+         * end      - end address of heap 
+         */
         struct _HeapMappingSettings
         {
             uint32_t begin;
@@ -128,6 +147,8 @@ NAMESPACE_BEGIN(kernel)
         /**
          * @brief Initialize paging in the kernel
          * 
+         * _heap_mapping - if not null, map the heap according
+         * to _heap_mapping. If null, do not map the heap.
          */
         void initialize(_HeapMappingSettings* _heap_mapping);
 

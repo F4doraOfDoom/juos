@@ -1,3 +1,14 @@
+/**
+ * @file klog.h
+ * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
+ * @brief Header file that contains logging functions
+ * @version 0.1
+ * @date 12-11-2019
+ * 
+ * @copyright Copyright Jonathan Uklisty (c) 2019 (MIT License)
+ * 
+ */
+
 #ifndef KERNEL_LOGGING_H_
 #define KERNEL_LOGGING_H_
 
