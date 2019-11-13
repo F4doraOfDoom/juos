@@ -12,17 +12,29 @@
 #include <stdint.h>
 #include <string.h>
 #include <allocator.hpp>
+#include <static_stack.hpp>
 
 #include "klog.h"
 #include "kdef.h"
 #include "kheap.h"
 #include "paging.h"
+#include "kbitset.h"
+#include "kuseful.h"
+
 
 #define K_HEAP_START         0xC0000000
-#define K_HEAP_INITIAL_SIZE  0x100000
+#define K_HEAP_INITIAL_SIZE  0x1000000
 #define K_HEAP_INDEX_SIZE    0x20000
-#define K_HEAP_MAGIC         0x12345678
 #define K_HEAP_MIN_SIZE      0x70000
+
+// Malloc requests below this size will be fast bins
+#define FASTBIN_THRESHOLD       0x40
+// Number of fast bins available 
+#define FASTBIN_MAX_SIZE        0x64
+
+// we can rely on the chunks being page aligned
+// we have a few bits in the value of prev to use to our needs
+#define IS_PRESENT_BIT           0x1
 
 //TODO: Implement better heap after I get this to work
 
@@ -62,30 +74,30 @@ NAMESPACE_BEGIN(kernel)
 
         };
 
-        struct ChunkHeader
+        struct FastChunk
         {
-            bool is_present;
+            uint32_t* ptr_to_heap;
         };
 
-        struct Chunk
+        struct BigChunk
         {
-            ChunkHeader     header;
-            Chunk*          prev;
-            uint32_t        size;
+            BigChunk*       prev;
+            BigChunk*       next;
         };
 
         struct Heap
         {
-            Chunk*          head;
+            FastChunk*      fast_bins;
+            BigChunk*       slow_bins;
             uint32_t        start_address; // The start of our allocated space.
             uint32_t        end_address;   // The end of our allocated space. May be expanded up to max_address.
             uint32_t        max_address;   // The maximum address the heap can be expanded to.
             bool            is_kernel;     // Should extra pages requested by us be mapped as supervisor-only?
-            bool            rw;       // Should extra pages requested by us be mapped as read-only?
+            bool            rw;             // Should extra pages requested by us be mapped as read-only?
         };
 
-        typedef ChunkHeader chunk_header_t;
-        typedef Chunk       chunk_t;
+        typedef FastChunk   fast_chunk_t;
+        typedef BigChunk    big_chunk_t;
         typedef Heap        heap_t;
 
         void initialize(uint32_t start, uint32_t end, uint32_t size, bool is_kernel, bool rw);

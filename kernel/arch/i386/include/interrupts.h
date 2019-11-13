@@ -8,6 +8,7 @@
 #include <kernel/kuseful.h>
 #include <kernel/kcommon.h>
 #include <kernel/interrupts.h>
+#include <kernel/klog.h>
 
 #include "idt.h"
 
@@ -61,14 +62,6 @@
 #define I386_INTERRUPTS 256
 
 extern interrupts::handler interrupt_handlers[I386_INTERRUPTS];
-
-#define GO_TO_INTERRUPT(num) \
-    if (interrupt_handlers[registers.int_no] != nullptr) { \
-        interrupt_handlers[registers.int_no]((void*)&registers); \
-    } \
-    else { \
-        GO_PANIC("Interrupt %d without any handler!\n", num); \
-    }
 
 typedef void (*isr_t)(registers32_t);
 

@@ -62,8 +62,10 @@ __NO_MANGELING void kernel_main(void) {
 	//uint32_t *ptr = (uint32_t*)0xA0000000;
    	//uint32_t do_page_fault = *ptr;
 
-	void* p = memory_manager::malloc(16);
-	printf("allocated %p\n", p);
+	void* a = memory_manager::malloc(16);
+	void* b = memory_manager::malloc(32);
+	printf("allocated %p\n", a);
+	printf("allocated %p\n", b);
 	
 	for (;;)
 	{

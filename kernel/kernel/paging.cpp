@@ -90,7 +90,7 @@ void kernel::paging::initialize(_HeapMappingSettings* _heap_mapping)
 
     if (_heap_mapping)
     {
-        // identity map the heap
+        // map the heap
         uint32_t heap_end = K_HEAP_START + K_HEAP_INITIAL_SIZE;
         pages_created += _map_virt_to_phys(K_HEAP_START, heap_end, kernel_directory);
     }

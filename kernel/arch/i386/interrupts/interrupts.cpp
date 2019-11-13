@@ -2,6 +2,22 @@
 
 interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 
+static void _go_to_interrupt(const registers32_t& registers)
+{
+    const uint16_t num = registers.int_no;
+
+    if (interrupt_handlers[num] != nullptr) { 
+        interrupt_handlers[num]((void*)&registers); 
+    } 
+    else { 
+#ifdef K_PANIC_NO_HANDLER
+        GO_PANIC("Interrupt %d without any handler!\n", num); 
+#else
+        LOG_SA("INTERRUPTS:", "Interrupt %d without any handler!\n", num);
+#endif
+    }
+}
+
 void interrupts::initialize()
 {
     LOG_S("INTERRUPTS: ", "Initializing...\n");
@@ -35,10 +51,10 @@ void irq_handler(registers32_t registers)
         PIC_ACK_MASTER();    
     }
     
-    GO_TO_INTERRUPT(registers.int_no);
+    _go_to_interrupt(registers);
 }
 
 void isr_handler(registers32_t registers)
 {
-    GO_TO_INTERRUPT(registers.int_no);
+    _go_to_interrupt(registers);
 }
