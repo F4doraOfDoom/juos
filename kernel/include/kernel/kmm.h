@@ -32,9 +32,7 @@
 // Number of fast bins available 
 #define FASTBIN_MAX_SIZE        0x64
 
-// we can rely on the chunks being page aligned
-// we have a few bits in the value of prev to use to our needs
-#define IS_PRESENT_BIT           0x1
+#define IS_FASTBIN_BIT          1 << 1
 
 //TODO: Implement better heap after I get this to work
 
@@ -79,6 +77,15 @@ NAMESPACE_BEGIN(kernel)
             uint32_t* ptr_to_heap;
         };
 
+        struct FastBin
+        {
+            FastChunk*  chunks;
+            uint32_t    chunk_size;
+            uint32_t    bin_size; 
+            uint32_t    start_addr;
+            uint32_t    end_addr;
+        };
+
         struct BigChunk
         {
             BigChunk*       prev;
@@ -87,7 +94,7 @@ NAMESPACE_BEGIN(kernel)
 
         struct Heap
         {
-            FastChunk*      fast_bins;
+            FastBin*        fast_bins;
             BigChunk*       slow_bins;
             uint32_t        start_address; // The start of our allocated space.
             uint32_t        end_address;   // The end of our allocated space. May be expanded up to max_address.
@@ -97,6 +104,7 @@ NAMESPACE_BEGIN(kernel)
         };
 
         typedef FastChunk   fast_chunk_t;
+        typedef FastBin     fast_bin_t;
         typedef BigChunk    big_chunk_t;
         typedef Heap        heap_t;
 

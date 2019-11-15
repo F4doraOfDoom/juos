@@ -13,6 +13,7 @@
 #define KERNEL_HEAP_H_
 
 #include "kdef.h"
+#include "klog.h"
 
 #include <allocator.hpp>
 #include <stdint.h>

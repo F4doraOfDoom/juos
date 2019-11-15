@@ -152,6 +152,8 @@ NAMESPACE_BEGIN(kernel)
          */
         void initialize(_HeapMappingSettings* _heap_mapping);
 
+        uint32_t map_region(uint32_t start, uint32_t end, page_directory_t* dir = nullptr);
+
         void page_fault_handler(void*);
 
     NAMESPACE_END(paging)
@@ -162,5 +164,6 @@ NAMESPACE_END(kernel)
 // implemented by arch
 __NO_MANGELING void _load_page_directory(uint32_t*);
 __NO_MANGELING void _enable_paging();
+//__NO_MANGELING void _disable_paging();
 
 #endif //KERNEL_PAGING_H_

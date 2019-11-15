@@ -21,3 +21,15 @@ _enable_paging:
     mov %ebp, %esp
     pop %ebp
     ret
+
+; .section .text
+; .global _disable_paging
+; _disable_paging:
+;     push %ebp
+;     mov %esp, %ebp
+;     mov %cr0, %eax
+;     xor $0x80000000, %eax
+;     mov %eax, %cr0
+;     mov %ebp, %esp
+;     pop %ebp
+;     ret

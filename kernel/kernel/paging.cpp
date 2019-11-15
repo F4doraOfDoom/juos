@@ -3,7 +3,7 @@
 
 using namespace kernel::paging;
 
-extern uint32_t __kernel_heap; // defined in kheap.cpp
+extern uint32_t __primitive_heap; // defined in kheap.cpp
 
 FrameTable          frame_table;
 page_directory_t*   current_directory   = nullptr;
@@ -73,7 +73,18 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
     return pages_created;
 }
 
-void kernel::paging::initialize(_HeapMappingSettings* _heap_mapping)
+uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, page_directory_t* dir)
+{
+    if (!dir)
+    {
+        dir = current_directory;
+    }
+
+    uint32_t pages_created = _map_virt_to_phys(start, end, dir);
+    return pages_created;
+}
+
+void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 {
     LOG_S("PAGING: ", "Initializing...\n");
 
@@ -86,13 +97,13 @@ void kernel::paging::initialize(_HeapMappingSettings* _heap_mapping)
     frame_table = FrameTable(number_of_frames);    
 
     // identity map the kernel
-    auto pages_created = _map_virt_to_phys(0, __kernel_heap, kernel_directory);
+    auto pages_created = map_region(0, __primitive_heap, kernel_directory);
 
-    if (_heap_mapping)
+    if (heap_mapping)
     {
         // map the heap
         uint32_t heap_end = K_HEAP_START + K_HEAP_INITIAL_SIZE;
-        pages_created += _map_virt_to_phys(K_HEAP_START, heap_end, kernel_directory);
+        pages_created += map_region(K_HEAP_START, heap_end, kernel_directory);
     }
 
     LOG_SA("PAGING: ", "Created %d pages.\n", pages_created);

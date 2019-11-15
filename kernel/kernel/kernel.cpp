@@ -64,8 +64,11 @@ __NO_MANGELING void kernel_main(void) {
 
 	void* a = memory_manager::malloc(16);
 	void* b = memory_manager::malloc(32);
+	void* c = memory_manager::malloc(32);
+
 	printf("allocated %p\n", a);
 	printf("allocated %p\n", b);
+	printf("allocated %p\n", c);
 	
 	for (;;)
 	{
