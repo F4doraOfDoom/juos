@@ -32,7 +32,7 @@
 // Number of fast bins available 
 #define FASTBIN_MAX_SIZE        0x64
 
-#define IS_FASTBIN_BIT          1 << 1
+#define IS_FASTBIN_BIT          1 << 0
 
 //TODO: Implement better heap after I get this to work
 
@@ -94,8 +94,8 @@ NAMESPACE_BEGIN(kernel)
 
         struct Heap
         {
-            FastBin*        fast_bins;
-            BigChunk*       slow_bins;
+            uint32_t*       fast_bins;
+            uint32_t*       slow_bins;
             uint32_t        start_address; // The start of our allocated space.
             uint32_t        end_address;   // The end of our allocated space. May be expanded up to max_address.
             uint32_t        max_address;   // The maximum address the heap can be expanded to.

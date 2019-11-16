@@ -11,13 +11,15 @@
 
 // #define CHUNK_IS_PRESENT(chunk) bitset::test((uint32_t*)chunk->prev, IS_PRESENT_BIT)
 
-#define MARK_FASTBIN(ptr)   (uint32_t*)((uintptr_t)ptr | (uintptr_t)IS_FASTBIN_BIT)    
-#define IS_FASTBIN(ptr)     (uint32_t*)((uintptr_t)ptr & (uintptr_t)IS_FASTBIN_BIT)
+#define SET_FASTBIN(ptr)    (uint32_t*)((uintptr_t)ptr | (uintptr_t)IS_FASTBIN_BIT)    
+#define CHK_FASTBIN(ptr)    (uint32_t*)((uintptr_t)ptr & (uintptr_t)IS_FASTBIN_BIT)
+#define MSK_FASTBIN(ptr)    (uint32_t*)((uintptr_t)ptr ^ (uintptr_t)IS_FASTBIN_BIT)
 
 using namespace kernel::memory_manager;
 
 extern uint32_t __primitive_heap;
 
+// TODO: Add support for multiple fast bins of different sizes!
 //static std::static_stack<fast_chunk_t, FASTBIN_MAX_SIZE> __fastbin_stack;
 static fast_bin_t*      __fast_bin          = nullptr;
 static uint32_t         _fastbin_area_end   = 0;
@@ -56,8 +58,8 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
 
     ASSERT(IS_ALIGNED(start) && IS_ALIGNED(end));
 
-    __mapped_heap->fast_bins        = (fast_bin_t*)start;
-    __mapped_heap->slow_bins        = (big_chunk_t*)_fastbin_area_end;
+    __mapped_heap->fast_bins        = (uint32_t*)start;
+    __mapped_heap->slow_bins        = (uint32_t*)_fastbin_area_end;
     __mapped_heap->start_address    = start;
     __mapped_heap->end_address      = end;
     __mapped_heap->max_address      = max;
@@ -82,7 +84,7 @@ static void* __malloc_fastbin()
                                     (i * __fast_bin->chunk_size / 4));  // need to divide by 4 because we're casting 
                                                                         // to a uint32_t pointer, where the rules of 
                                                                         // arithmetic are WEIRD, man!
-
+            //heap_addr = SET_FASTBIN(heap_addr);    // so we'll be able to tell if its a fast bin or not
             __fast_bin->chunks[i].ptr_to_heap = (uint32_t*)heap_addr;
             addr = (uint32_t*)heap_addr;
 
@@ -93,7 +95,7 @@ static void* __malloc_fastbin()
 #ifdef K_LOG_MALLOC
     if (addr)
     {
-            LOG_SA("MALLOC - FASTBIN: ", "Allocated chunk at %d (%x)\n", addr, addr);
+        LOG_SA("MALLOC - FASTBIN: ", "Allocated chunk at %d (%x)\n", addr, addr);
     }
     else
     {
@@ -104,13 +106,25 @@ static void* __malloc_fastbin()
     return addr;
 }
 
-static void __free_fastbin(uint32_t* ptr)
+static void __free_fastbin(void* ptr)
 {
+    const uint32_t chunk_idx = (uint32_t)(
+        ((uint32_t*)ptr - ((uint32_t*)__mapped_heap->fast_bins))
+        / (FASTBIN_THRESHOLD / 4)
+    );
 
+#ifdef K_LOG_MALLOC
+    LOG_SA("FREE - FASTBIN: ", "Freeing chunk at addr %p (index %d)\n", ptr, chunk_idx);
+#endif
+
+    __fast_bin->chunks[chunk_idx].ptr_to_heap = nullptr;
 }
 
 void* kernel::memory_manager::malloc(size_t size)
 {
+    // treat negative requests as zero
+    if (size <= 0) return nullptr;
+
     if (size <= FASTBIN_THRESHOLD)
     {
         return __malloc_fastbin();
@@ -119,8 +133,9 @@ void* kernel::memory_manager::malloc(size_t size)
 
 void kernel::memory_manager::free(void* ptr)
 {
-    if (IS_FASTBIN(ptr))
+    // we know a chunk is a fast bin if it is in the fastbin region
+    if (IN_RANGE_C(ptr, __mapped_heap->fast_bins, __mapped_heap->slow_bins))
     {
-
+        __free_fastbin(ptr);
     }
 }

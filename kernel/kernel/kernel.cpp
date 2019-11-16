@@ -69,7 +69,18 @@ __NO_MANGELING void kernel_main(void) {
 	printf("allocated %p\n", a);
 	printf("allocated %p\n", b);
 	printf("allocated %p\n", c);
-	
+
+	memory_manager::free(a);
+	memory_manager::free(b);
+	memory_manager::free(c);
+
+	a = memory_manager::malloc(16);
+	b = memory_manager::malloc(16);
+	c = memory_manager::malloc(16);
+	printf("allocated %p\n", a);
+	printf("allocated %p\n", b);
+	printf("allocated %p\n", c);
+
 	for (;;)
 	{
 		asm volatile (
