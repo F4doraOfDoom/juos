@@ -33,7 +33,7 @@ struct IAllocator
      * @param n - number of objects to allocate
      * @return pointer - pointer to the first object allocated
      */
-    pointer allocate(size_t n);
+    static pointer allocate(size_t n);
 
     /**
      * @brief Deallocated _n_ objects of Type T without calling their destructors.
@@ -41,7 +41,7 @@ struct IAllocator
      * @param p - pointer to the first object
      * @param n - number of objects to deallocate
      */
-    void deallocate(pointer p, size_t n);
+    static void deallocate(pointer p, size_t n);
 
     /**
      * @brief Construct an object of type T, instantiate it with _val_
@@ -49,14 +49,14 @@ struct IAllocator
      * @param p - pointer to object
      * @param val - value to instantiate
      */
-    void construct(pointer p, const_reference val); 
+    static void construct(pointer p, const_reference val); 
 
     /**
      * @brief Destroy an object of type T
      * 
      * @param p - pointer to the object
      */
-    void destroy(pointer p);
+    static void destroy(pointer p);
 
     // /**
     //  * @brief Prevents this class from being instantiated

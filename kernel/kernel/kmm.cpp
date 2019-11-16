@@ -70,10 +70,19 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
     kernel::paging::initialize(&heap_mapping);    
 }
 
+/**
+ * @brief Allocate a small chunk (defined by FASTBIN_THRESHOLD)
+ * The chunk will be taken from a premade pool of chunks (called a bin)
+ * allowing for a fast allocation at runtime when requesting a small 
+ * chunk
+ * 
+ * @return void* - pointer to area on the heap
+ */
 static void* __malloc_fastbin()
 {
     uint32_t* addr = nullptr;
 
+    // lets go over each chunk in the pool (bin) and see if its free
     for (uint32_t i = 0; i < __fast_bin->bin_size; i++)
     {
         // find the first free chunk
@@ -106,8 +115,23 @@ static void* __malloc_fastbin()
     return addr;
 }
 
+static void* __malloc_big()
+{
+    uint32_t* curr = __mapped_heap->slow_bins;
+    
+     
+}
+
+/**
+ * @brief Free a chunk allocated by __malloc_fastbin,
+ * allowing for future allocations to take the place of 
+ * the allocated chunk
+ * 
+ * @param ptr - pointer to chunk to deallocate
+ */
 static void __free_fastbin(void* ptr)
 {
+    // we calculate the index of the chunk, so we'll know where to free
     const uint32_t chunk_idx = (uint32_t)(
         ((uint32_t*)ptr - ((uint32_t*)__mapped_heap->fast_bins))
         / (FASTBIN_THRESHOLD / 4)
@@ -120,6 +144,18 @@ static void __free_fastbin(void* ptr)
     __fast_bin->chunks[chunk_idx].ptr_to_heap = nullptr;
 }
 
+/**
+ * @brief Free a chunk allocated by __malloc_big,
+ * allowing for future allocations to take the place of 
+ * the allocated chunk
+ * 
+ * @param ptr - pointer to chunk to deallocate
+ */
+static void __free_big(void* ptr)
+{
+
+}
+
 void* kernel::memory_manager::malloc(size_t size)
 {
     // treat negative requests as zero
@@ -129,6 +165,10 @@ void* kernel::memory_manager::malloc(size_t size)
     {
         return __malloc_fastbin();
     }
+    else
+    {
+        return __malloc_big();
+    }
 }
 
 void kernel::memory_manager::free(void* ptr)
@@ -137,5 +177,9 @@ void kernel::memory_manager::free(void* ptr)
     if (IN_RANGE_C(ptr, __mapped_heap->fast_bins, __mapped_heap->slow_bins))
     {
         __free_fastbin(ptr);
+    }
+    else
+    {
+        __free_big(ptr);
     }
 }

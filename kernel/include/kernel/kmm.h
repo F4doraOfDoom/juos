@@ -1,3 +1,6 @@
+#ifndef KERNEL_MEMORY_MANAGER_H
+#define KERNEL_MEMORY_MANAGER_H
+
 /**
  * @file kmm.h
  * @author Jonathan Uklisty (F4doraOfDoom) (yoniu7@gmail.com)
@@ -23,7 +26,7 @@
 
 
 #define K_HEAP_START         0xC0000000
-#define K_HEAP_INITIAL_SIZE  0x1000000
+#define K_HEAP_INITIAL_SIZE  0x100000
 #define K_HEAP_INDEX_SIZE    0x20000
 #define K_HEAP_MIN_SIZE      0x70000
 
@@ -39,38 +42,6 @@
 NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(memory_manager)
-
-        /**
-         * @brief Documentation inside of IAllocator (libstdcxx/allocator.hpp)
-         * 
-         * @tparam Type - Allocator will alocate this type 
-         */
-        template <typename Type>
-        struct PrimitiveAllocator
-        {
-            static constexpr uint32_t     object_size = sizeof(Type);     
-
-            typedef Type                value_type;
-            typedef Type&               reference;
-            typedef const Type&         const_reference;
-            typedef Type*               pointer; 
-
-            pointer allocate(uint32_t n)
-            {
-                return (pointer)kernel::heap::allocate(n * object_size);
-            }
-
-            void construct(pointer p, const_reference v)
-            {
-                *p = Type(v);
-            }
-
-            void destroy(pointer p)
-            {
-                p->~Type();
-            }
-
-        };
 
         struct FastChunk
         {
@@ -117,3 +88,5 @@ NAMESPACE_BEGIN(kernel)
     NAMESPACE_END(memory_manager)
 
 NAMESPACE_END(kernel)
+
+#endif // KERNEL_MEMORY_MANAGER_H

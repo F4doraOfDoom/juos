@@ -27,11 +27,15 @@ Each different construct of C++ has a different naming convention, for easy dist
 	Namespaces:	shpuld be written in camelCase
 	Enums: 		should be written in Camel_Case_With_Underscores
 	Functions:	should be written in snake_case
+	Type defs: 	should be written in snake_case_with_t (if type def is for struct)
 This way, each time you see a name, you can quickly know which concept it refers to.
 
-In classes, private and protected members whould be prefixed with '_', to indicated they are private.
-Static functions should be prefixed with '_', to indicate they are private to the file.
+In classes, private and protected members whould be prefixed with 'm_', to indicated they are private.
+Static global variables should be prefixed with '_', to indicate they are private to the file.
+Static functions should be prefixed with '__', to indicate they are private to the file.
 
+Regular header files, without any definitions (only declerations), should be postfixed with ".h"
+Header files that contain some sort of definition should be postfixed with ".hpp"
 
 BRACKETS:
 The brackets for each new scope should we written in different lines, for functions, classes,

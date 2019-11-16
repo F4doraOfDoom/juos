@@ -6,7 +6,9 @@ uint32_t __primitive_heap = (uint32_t)&end;
 
 uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
 {
+#ifdef K_LOG_MALLOC
     LOG_SA("PRIMITIVE HEAP: ", "Allocating %d bytes\n", n);
+#endif
 
     if (alligned)
     {

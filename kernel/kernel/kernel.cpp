@@ -9,6 +9,7 @@
 #include <kernel/kheap.h>
 #include <kernel/klog.h>
 #include <kernel/kmm.h>
+#include <kernel/knew.hpp>
 
 #include <kernel/kstdcxx.hpp>
 #include <list.hpp>
@@ -21,6 +22,16 @@
 using namespace kernel;
 
 void divide_by_zero(void*);
+
+struct Something
+{
+	Something()
+	{
+		memcpy(arr, "Hello new world!\n", 16);
+	}
+
+	char arr[16] = { 0 };
+};
 
 __NO_MANGELING void kernel_main(void) {
 	/**
@@ -37,6 +48,7 @@ __NO_MANGELING void kernel_main(void) {
 	idt::initialize();
 	interrupts::initialize();
 
+	// after this initialization, operators new and delete can be used
 	memory_manager::initialize(
 		K_HEAP_START, // beginning address
 		K_HEAP_START + K_HEAP_INITIAL_SIZE, // end address
@@ -47,39 +59,29 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	// test allocator
-	// std::list<int, Less<int>, memory_manager::PrimitiveAllocator> l;
-	// l.push_back(5);
-	// l.push_back(6);
-	// l.push_back(7);
+	//printf("Hello paing world!\n");
 
-	// for(const auto i : l)
-	// {
-	// 	printf("%d\n", i);
-	// }
+	Something* hello_world = new Something();
+	printf(hello_world->arr);
 
-	printf("Hello paing world!\n");
-	//uint32_t *ptr = (uint32_t*)0xA0000000;
-   	//uint32_t do_page_fault = *ptr;
+	// void* a = memory_manager::malloc(16);
+	// void* b = memory_manager::malloc(32);
+	// void* c = memory_manager::malloc(32);
 
-	void* a = memory_manager::malloc(16);
-	void* b = memory_manager::malloc(32);
-	void* c = memory_manager::malloc(32);
+	// printf("allocated %p\n", a);
+	// printf("allocated %p\n", b);
+	// printf("allocated %p\n", c);
 
-	printf("allocated %p\n", a);
-	printf("allocated %p\n", b);
-	printf("allocated %p\n", c);
+	// memory_manager::free(a);
+	// memory_manager::free(b);
+	// memory_manager::free(c);
 
-	memory_manager::free(a);
-	memory_manager::free(b);
-	memory_manager::free(c);
-
-	a = memory_manager::malloc(16);
-	b = memory_manager::malloc(16);
-	c = memory_manager::malloc(16);
-	printf("allocated %p\n", a);
-	printf("allocated %p\n", b);
-	printf("allocated %p\n", c);
+	// a = memory_manager::malloc(16);
+	// b = memory_manager::malloc(16);
+	// c = memory_manager::malloc(16);
+	// printf("allocated %p\n", a);
+	// printf("allocated %p\n", b);
+	// printf("allocated %p\n", c);
 
 	for (;;)
 	{
