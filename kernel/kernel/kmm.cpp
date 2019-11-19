@@ -11,11 +11,20 @@
 
 // #define CHUNK_IS_PRESENT(chunk) bitset::test((uint32_t*)chunk->prev, IS_PRESENT_BIT)
 
-#define SET_FASTBIN(ptr)    (uint32_t*)((uintptr_t)ptr | (uintptr_t)IS_FASTBIN_BIT)    
-#define CHK_FASTBIN(ptr)    (uint32_t*)((uintptr_t)ptr & (uintptr_t)IS_FASTBIN_BIT)
-#define MSK_FASTBIN(ptr)    (uint32_t*)((uintptr_t)ptr ^ (uintptr_t)IS_FASTBIN_BIT)
-
 using namespace kernel::memory_manager;
+
+#define BIGCHUNK_MIN_SPACE  (sizeof(big_chunk_t) + FASTBIN_THRESHOLD + 1)
+
+inline void* BIGCHUNK_DATA_BEGIN(const big_chunk_t* chunk)
+{
+    return (void*)(chunk + 1);
+}
+
+inline void* BIGCHUNK_DATA_BEGIN(const void* chunk)
+{
+    return (void*)((uint8_t*)chunk + sizeof(big_chunk_t));
+}
+
 
 extern uint32_t __primitive_heap;
 
@@ -41,6 +50,7 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
     // to do that we grow the primitive heap, so it will be identity mapped when 
     // paging is initiated 
     const uint32_t reserve_memory_for_fastbins = __fast_bin->end_addr - __fast_bin->start_addr;
+    _fastbin_area_end = start + reserve_memory_for_fastbins;
     //__primitive_heap += reserve_memory_for_fastbins;
 
     __fast_bin->chunks = (fast_chunk_t*)heap::allocate(reserve_memory_for_fastbins);
@@ -51,20 +61,26 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
         __fast_bin->chunks[i].ptr_to_heap = nullptr;
     }
 
+#if CHECK_LOG_LEVEL(K_LOG_GENERAL, 1)
+   LOG_SA("MEMORY MANAGER: ", "Initializing heap... start: %p, end: %p\n", start, end);
+#endif
 
-    LOG_SA("MEMORY MANAGER: ", "Initializing heap... start: %p, end: %p\n", start, end);
     __mapped_heap = (heap_t*)heap::allocate(sizeof(memory_manager::heap_t)); 
     memset(__mapped_heap, 0, sizeof(heap_t));
 
     ASSERT(IS_ALIGNED(start) && IS_ALIGNED(end));
 
     __mapped_heap->fast_bins        = (uint32_t*)start;
-    __mapped_heap->slow_bins        = (uint32_t*)_fastbin_area_end;
+    __mapped_heap->big_chunks       = (big_chunk_t*)_fastbin_area_end;
+    __mapped_heap->allocated_chunks = 0;
     __mapped_heap->start_address    = start;
     __mapped_heap->end_address      = end;
     __mapped_heap->max_address      = max;
     __mapped_heap->is_kernel        = is_kernel;
     __mapped_heap->rw               = rw;
+
+    // clear the first chunk
+    memset(__mapped_heap->big_chunks, 0, sizeof(big_chunk_t));
 
     paging::_HeapMappingSettings heap_mapping = paging::_HeapMappingSettings{start, end};
     kernel::paging::initialize(&heap_mapping);    
@@ -93,7 +109,6 @@ static void* __malloc_fastbin()
                                     (i * __fast_bin->chunk_size / 4));  // need to divide by 4 because we're casting 
                                                                         // to a uint32_t pointer, where the rules of 
                                                                         // arithmetic are WEIRD, man!
-            //heap_addr = SET_FASTBIN(heap_addr);    // so we'll be able to tell if its a fast bin or not
             __fast_bin->chunks[i].ptr_to_heap = (uint32_t*)heap_addr;
             addr = (uint32_t*)heap_addr;
 
@@ -101,7 +116,7 @@ static void* __malloc_fastbin()
         }
     }
 
-#ifdef K_LOG_MALLOC
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_ALLOCATIONS)
     if (addr)
     {
         LOG_SA("MALLOC - FASTBIN: ", "Allocated chunk at %d (%x)\n", addr, addr);
@@ -115,11 +130,114 @@ static void* __malloc_fastbin()
     return addr;
 }
 
-static void* __malloc_big()
+static void* __malloc_big(uint32_t req_size)
 {
-    uint32_t* curr = __mapped_heap->slow_bins;
-    
-     
+    big_chunk_t* curr_chunk = __mapped_heap->big_chunks;
+    big_chunk_t* smallest_hole = nullptr;
+    uint32_t  smallest_hole_value = -1; // max uint32_t value
+    big_chunk_t* ret = nullptr;
+
+    // no chunks are allocated
+    if (!__mapped_heap->allocated_chunks)
+    {
+        curr_chunk->size = req_size;
+        curr_chunk->used = true;
+        ret = curr_chunk;
+    }
+    // there are chunks to search
+    else
+    {
+        // try to find the smallest hole
+        while(curr_chunk->next)
+        {
+            if (!curr_chunk->used)
+            {
+                uint32_t size = (uint32_t)PTR_SUB(curr_chunk->next, curr_chunk);//curr_chunk->next - curr_chunk; 
+                // make sure it is indeed the smallest hole, and also satisifes
+                // the requested amount of memory
+                if (size < smallest_hole_value && size >= req_size)
+                {
+                    smallest_hole = curr_chunk;
+                    smallest_hole_value = req_size;
+                    break;
+                }
+            }
+
+            curr_chunk = curr_chunk->next;
+        }
+
+        // not all chunks were used, we found a hole!
+        if (smallest_hole)
+        {
+            smallest_hole->used = true;
+            ret = smallest_hole; 
+
+            // the hole is bigger than the requested size and,
+            // we can allocate another chunk with the remaining space
+            if (smallest_hole_value - BIGCHUNK_MIN_SPACE > req_size)
+            {
+                big_chunk_t* unused_chunk = (big_chunk_t*)PTR_ADVANCE(ret, req_size); //((void*)ret + req_size);
+                memset(unused_chunk, 0, sizeof(big_chunk_t));
+
+                unused_chunk->size = (uint32_t)PTR_SUB(ret->next, ret) - req_size; //(ret->next - ret) - req_size;
+                
+                big_chunk_t* tmp = ret->next;
+                ret->next = unused_chunk;
+                tmp->prev = unused_chunk;
+                unused_chunk->prev = ret;
+                unused_chunk->next = tmp;
+            }
+            else
+            {
+                ret->size = ret->next - ret - 1;
+            }
+        }
+        // all chunks were used; append another chunk at the end
+        else
+        {
+            void* new_chunk_location = PTR_ADVANCE(curr_chunk, curr_chunk->size);//((uint32_t*)curr_chunk) + curr_chunk->size;
+
+            // clear any garbage found
+            memset(new_chunk_location, 0, sizeof(big_chunk_t));
+
+            big_chunk_t* new_chunk = (big_chunk_t*)new_chunk_location;
+
+            curr_chunk->next = new_chunk;
+            new_chunk->prev = curr_chunk;
+            new_chunk->used = true;
+            new_chunk->size = req_size;
+
+            ret =  new_chunk;
+        }
+    }
+
+
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_ALLOCATIONS)
+    if (ret)
+    {
+        LOG_SA("MALLOC - BIGCHUNK: ", "Allocated chunk at %d (%x)\n", ret, ret);
+    }
+    else
+    {
+        LOG_S("MALLOC - BIGCHUNK: ", "Failed to allocate chunk!\n")
+    }
+#endif
+
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_DUMPS)
+    LOG_SA("MALLOC - BIG CHUNK DUMP:\n", 
+    "Prev: %p,\nNext:%p,\nSize: %d,\nUsed: %d\n", 
+    ret->prev,
+    ret->next,
+    ret->size,
+    ret->used)
+#endif
+
+    if (ret)
+    {
+        __mapped_heap->allocated_chunks++;
+    }
+
+    return BIGCHUNK_DATA_BEGIN(ret);
 }
 
 /**
@@ -132,10 +250,9 @@ static void* __malloc_big()
 static void __free_fastbin(void* ptr)
 {
     // we calculate the index of the chunk, so we'll know where to free
-    const uint32_t chunk_idx = (uint32_t)(
-        ((uint32_t*)ptr - ((uint32_t*)__mapped_heap->fast_bins))
-        / (FASTBIN_THRESHOLD / 4)
-    );
+    const uint32_t chunk_idx = 
+        (uint32_t)PTR_SUB(ptr, __mapped_heap->fast_bins)
+        / (FASTBIN_THRESHOLD);
 
 #ifdef K_LOG_MALLOC
     LOG_SA("FREE - FASTBIN: ", "Freeing chunk at addr %p (index %d)\n", ptr, chunk_idx);
@@ -153,7 +270,10 @@ static void __free_fastbin(void* ptr)
  */
 static void __free_big(void* ptr)
 {
+    big_chunk_t* chunk = (big_chunk_t*)PTR_ADVANCE(ptr, -sizeof(big_chunk_t)); //(big_chunk_t*)(ptr - sizeof(big_chunk_t));
 
+    chunk->used = false;
+    __mapped_heap->allocated_chunks--;
 }
 
 void* kernel::memory_manager::malloc(size_t size)
@@ -167,14 +287,19 @@ void* kernel::memory_manager::malloc(size_t size)
     }
     else
     {
-        return __malloc_big();
+        // by aligning the size of the chunk to a power of 2,
+        // we always have a few bits at the end of the "size"
+        // to use to our needs. Thus, we can save a few bytes
+        // of overhead
+        size = ALIGN_VAL(size, CHUNK_SIZE_ALIGN);
+        return __malloc_big(size);
     }
 }
 
 void kernel::memory_manager::free(void* ptr)
 {
     // we know a chunk is a fast bin if it is in the fastbin region
-    if (IN_RANGE_C(ptr, __mapped_heap->fast_bins, __mapped_heap->slow_bins))
+    if (ptr >= __mapped_heap->fast_bins && ptr <= __mapped_heap->big_chunks)
     {
         __free_fastbin(ptr);
     }

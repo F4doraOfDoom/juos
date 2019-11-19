@@ -16,7 +16,7 @@ LIBC:=${LIBC}
 LIBCXX:=${LIBCXX}
 KERNEL_BUILD_ARGS:=${KERNEL_BUILD_ARGS}
 
-KERNEL_BUILD_ARGS:=$(patsubst %, -D %, $(KERNEL_BUILD_ARGS))
+KERNEL_BUILD_ARGS:=$(patsubst %, -D%, $(KERNEL_BUILD_ARGS))
 KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
 KERNEL_C=$(wildcard kernel/*.c kernel/*/.c) 
 KERNEL_CPP=$(wildcard kernel/*.cpp kernel/*/.cpp)

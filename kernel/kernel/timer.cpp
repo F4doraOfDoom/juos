@@ -1,5 +1,7 @@
 #include <kernel/timer.h>
 
+uint64_t timer::__tick_counter = 0;
+
 void timer::start(uint32_t clock_freq)
 {
     interrupts::set_handler(TIMER_PORT, timer::__tick_handler);

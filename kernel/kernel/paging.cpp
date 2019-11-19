@@ -51,7 +51,10 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
 {
     uint32_t pages_created = 0;
 
+#if CHECK_LOG_LEVEL(K_LOG_PAGING, PAGING_LOG_MAPPING)
     LOG_SA("PAGING: ", "Identity mapping regions %d (%p) to %d (%p)...\n", start, start, end, end);
+#endif
+
     for(uint32_t top = start; top < end; pages_created++, top += PAGE_SIZE)
     {
         auto res = frame_table.find_first();
@@ -89,8 +92,7 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
     LOG_S("PAGING: ", "Initializing...\n");
 
     auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE;
-    uint32_t page_idx = 0;
-
+    
     page_directory_t* kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
     memset((char*)kernel_directory, '\0', sizeof(page_directory_t));
 
@@ -106,7 +108,9 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
         pages_created += map_region(K_HEAP_START, heap_end, kernel_directory);
     }
 
+#if CHECK_LOG_LEVEL(K_LOG_PAGING, PAGING_LOG_CREATION)
     LOG_SA("PAGING: ", "Created %d pages.\n", pages_created);
+#endif
 
     current_directory = kernel_directory;
 
@@ -114,7 +118,6 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 
     _load_page_directory((uint32_t*)&kernel_directory->table_addresses);
     _enable_paging();
-
 }
 
 

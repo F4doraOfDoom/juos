@@ -10,8 +10,8 @@
 
 #include "pic.h"
 
-static void _pic_remap(uint8_t offset1, uint8_t offset2);
-static void _set_all_interrupts();
+void _pic_remap(uint8_t offset1, uint8_t offset2);
+void _set_all_interrupts();
 
 NAMESPACE_BEGIN(idt)
 
@@ -36,7 +36,7 @@ NAMESPACE_BEGIN(idt)
     /*
         This function initializes the IDT table and writes it to the CPU
     */
-    static void _init();
+     void _init();
 
     /*
         This function configures an IDT entry by index
@@ -48,7 +48,7 @@ NAMESPACE_BEGIN(idt)
     void edit_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
 
     template <uint32_t N>
-    static inline void _request_isr();
+     inline void _request_isr();
 
 NAMESPACE_END(idt)
 

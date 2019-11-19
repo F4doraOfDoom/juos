@@ -23,11 +23,15 @@
 #include "kuseful.h"
 #include "kdef.h"
 
+#define PAGING_LOG_CREATION         1
+#define PAGING_LOG_MAPPING          1
+
 #define PAGE_SIZE_FACTOR            11 // Order of magnitude dictating the page size (2 << PAGE_SIZE_FACTOR)
-#define PAGE_SIZE                   (2 << PAGE_SIZE_FACTOR) // The size of a page and frame
+//#define PAGE_SIZE                   (2 << PAGE_SIZE_FACTOR) // The size of a page and frame
 #define FRAME_SIZE                  PAGE_SIZE // frame and page must be of the same size
 #define PAGE_TABLE_SIZE             1024
 #define PAGE_DIRECTORY_SIZE         1024
+#define CHUNK_SIZE_ALIGN            8
 
 //Errors
 #define PAGE_NOT_FOUND              -1

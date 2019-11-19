@@ -14,7 +14,7 @@ void idt::initialize()
     an interrupt.
 */
 
-static void idt::_init()
+void idt::_init()
 {
     idt_ptr.size = (sizeof(idt::entry_t) * 256) - 1;
     idt_ptr.base = (uint32_t)&idt_entries;
@@ -38,7 +38,7 @@ void idt::edit_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags)
 }
 
 
-static void _set_all_interrupts()
+void _set_all_interrupts()
 {
     // 32 base CPU interrupts
     idt::edit_entry(0, reinterpret_cast<uint32_t>(isr_0), 0x08, 0x8E);

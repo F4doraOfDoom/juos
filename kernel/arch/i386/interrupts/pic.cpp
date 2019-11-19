@@ -10,14 +10,14 @@ void pic::initialize(uint32_t base)
     pic::_add_to_int_table();
 }
 
-static inline void pic::_enable_devices(uint8_t master_dev, uint8_t slave_dev)
+inline void pic::_enable_devices(uint8_t master_dev, uint8_t slave_dev)
 {
     outb(0x21, master_dev);
     outb(0xa1, slave_dev);
     asm volatile ("sti;");
 }
 
-static inline void pic::_pic_remap(uint8_t offset1, uint8_t offset2)
+inline void pic::_pic_remap(uint8_t offset1, uint8_t offset2)
 {
     unsigned char a1, a2;
 
@@ -38,7 +38,7 @@ static inline void pic::_pic_remap(uint8_t offset1, uint8_t offset2)
 	outb(PIC2_DATA, a2);
 }
 
-static inline void pic::_add_to_int_table()
+inline void pic::_add_to_int_table()
 {
     interrupts::add_to_idt(32, reinterpret_cast<uint32_t>(irq_0), 0x08, 0x8E);
     interrupts::add_to_idt(33, reinterpret_cast<uint32_t>(irq_1), 0x08, 0x8E);

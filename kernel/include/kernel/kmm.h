@@ -25,6 +25,9 @@
 #include "kuseful.h"
 
 
+#define MM_LOG_ALLOCATIONS          1
+#define MM_LOG_DUMPS                2
+
 #define K_HEAP_START         0xC0000000
 #define K_HEAP_INITIAL_SIZE  0x100000
 #define K_HEAP_INDEX_SIZE    0x20000
@@ -46,7 +49,7 @@ NAMESPACE_BEGIN(kernel)
         struct FastChunk
         {
             uint32_t* ptr_to_heap;
-        };
+        } __PACKED;
 
         struct FastBin
         {
@@ -55,24 +58,27 @@ NAMESPACE_BEGIN(kernel)
             uint32_t    bin_size; 
             uint32_t    start_addr;
             uint32_t    end_addr;
-        };
+        } __PACKED;
 
         struct BigChunk
         {
             BigChunk*       prev;
             BigChunk*       next;
-        };
+            uint32_t        size;
+            bool            used;
+        } __PACKED;
 
         struct Heap
         {
             uint32_t*       fast_bins;
-            uint32_t*       slow_bins;
+            BigChunk*       big_chunks;
+            uint32_t        allocated_chunks;
             uint32_t        start_address; // The start of our allocated space.
             uint32_t        end_address;   // The end of our allocated space. May be expanded up to max_address.
             uint32_t        max_address;   // The maximum address the heap can be expanded to.
             bool            is_kernel;     // Should extra pages requested by us be mapped as supervisor-only?
             bool            rw;             // Should extra pages requested by us be mapped as read-only?
-        };
+        } __PACKED;
 
         typedef FastChunk   fast_chunk_t;
         typedef FastBin     fast_bin_t;

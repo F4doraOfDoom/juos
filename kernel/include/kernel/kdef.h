@@ -22,13 +22,15 @@
         printf(message, __VA_ARGS__);                       \
         printf("File: " __FILE__ "\n");                       \
         printf("Line: %d\n", __LINE__);                       \
-        while(1) { asm volatile (""); }         \  
+        while(1) { asm volatile (""); }         \
 
 #define ASSERT(condition)   \
     if (!(condition)) {GO_PANIC("Failed Assertion: " #condition "\n", "")}
 
 #define NAMESPACE_BEGIN(name)   namespace name {
 #define NAMESPACE_END(name)     }
+
+#define CHECK_LOG_LEVEL(flag, level) (flag >= level)
 
 // Set up arch flags
 #ifdef __i386__

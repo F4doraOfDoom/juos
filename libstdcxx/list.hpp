@@ -22,7 +22,7 @@ NAMESPACE_BEGIN(std)
         node_pointer   prev;
     };
     
-    template <typename Item, class Less = Less<Item>, template <typename T> class Allocator = IAllocator>
+    template <typename Item, class Less = Less<Item>, template <typename T> class Allocator = std::allocator>
     class list
     {
     public:
@@ -33,7 +33,7 @@ NAMESPACE_BEGIN(std)
         typedef const Item&                 const_reference;    
         typedef double_linked_node<Item>    node;
         typedef double_linked_node<Item>*   node_pointer;
-        typedef bool(*lessthan)(const_reference, const_reference);
+        //typedef bool(*lessthan)(const_reference, const_reference);
 
         struct iterator
         {

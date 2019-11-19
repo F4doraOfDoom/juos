@@ -49,7 +49,8 @@ NAMESPACE_BEGIN(timer)
     void __tick_handler(void*);
 
     // internal tick counter 
-    static uint64_t __tick_counter = 0;
+    // defined in timer.cpp
+    extern uint64_t __tick_counter;
 
 NAMESPACE_END(timer)
 

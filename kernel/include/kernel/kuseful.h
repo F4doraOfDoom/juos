@@ -12,8 +12,24 @@
 #ifndef K_USEFUL_H_
 #define K_USEFUL_H_
 
-#define IN_RANGE_X(n, min, max) ((n < min) || (n > max) ? 1 : 0)
-#define IN_RANGE_C(n, min, max) ((n <= min) || (n >= max) ? 1 : 0)
+inline void* PTR_ADVANCE(void* ptr, uint32_t n) {
+    return (void*)((uint8_t*)ptr + n);
+}
+
+inline void* PTR_ADD(void* a, void* b) {
+    return (void*)((uintptr_t)a + (uintptr_t)b);
+}
+
+inline void* PTR_SUB(void* a, void* b) {
+    return (void*)((uintptr_t)a - (uintptr_t)b);
+}
+
+inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
+    return value + (-value & (alignment - 1));
+}
+
+#define IN_RANGE_X(n, min, max) ((n < min) && (n < max))
+#define IN_RANGE_C(n, min, max) ((n >= min) && (n <= max))
 
 // bitset
 #define BIT_MASK(b)             (1 << ((b)))

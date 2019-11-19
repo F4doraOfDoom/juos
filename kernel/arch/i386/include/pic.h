@@ -21,7 +21,7 @@ NAMESPACE_BEGIN(pic)
         uint32_t master_dev - devices to be enabled in the master PIC
         uint32_t slave_dev - devices to be enabled in the slave PIC
     */
-    static inline void _enable_devices(uint8_t master_dev, uint8_t slave_dev);
+     inline void _enable_devices(uint8_t master_dev, uint8_t slave_dev);
 
     /*
         Maps the PIC to certain offsets in the interrupt table
@@ -29,9 +29,9 @@ NAMESPACE_BEGIN(pic)
             the interrupt table
         uint8_5 slave_base - same but for the base
     */
-    static inline void _pic_remap(uint8_t master_base, uint8_t slave_base);  
+     inline void _pic_remap(uint8_t master_base, uint8_t slave_base);  
 
-    static inline void _add_to_int_table();  
+     inline void _add_to_int_table();  
 
 NAMESPACE_END(pic)
 

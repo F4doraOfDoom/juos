@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 // Make the kernel log stuff by compiling with -DK_LOG
-#ifdef K_LOG
+#ifdef K_LOG_GENERAL
     #define LOG(msg)                printf(msg);
     #define LOG_A(msg, ...)         printf(msg, __VA_ARGS__);
     #define LOG_SA(subject, msg, ...)                                       \
