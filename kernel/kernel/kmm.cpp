@@ -254,7 +254,7 @@ static void __free_fastbin(void* ptr)
         (uint32_t)PTR_SUB(ptr, __mapped_heap->fast_bins)
         / (FASTBIN_THRESHOLD);
 
-#ifdef K_LOG_MALLOC
+#if CHECK_LOG_LEVEL(K_LOG_MM, K_LOG_ALLOCATIONS)
     LOG_SA("FREE - FASTBIN: ", "Freeing chunk at addr %p (index %d)\n", ptr, chunk_idx);
 #endif
 
@@ -272,7 +272,54 @@ static void __free_big(void* ptr)
 {
     big_chunk_t* chunk = (big_chunk_t*)PTR_ADVANCE(ptr, -sizeof(big_chunk_t)); //(big_chunk_t*)(ptr - sizeof(big_chunk_t));
 
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_CONSOLIDATION)
+    bool consolidated_forwards = false;
+    bool consolidated_backwards = false;
+#endif
+
     chunk->used = false;
+
+    // consolidate forwards
+    if (chunk->next && !chunk->next->used)
+    {
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_CONSOLIDATION)
+        consolidated_forwards = true;
+#endif
+        auto tmp = chunk->next;
+
+        // remove the next block from the linked list
+        chunk->next = tmp->next;
+        if (tmp->next)
+        {
+            tmp->next->prev = chunk;
+        }
+
+        chunk->size += tmp->size + sizeof(BigChunk);
+    }
+
+    // consolidate backwards
+    if (chunk->prev && !chunk->prev->used)
+    {
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_CONSOLIDATION)
+        consolidated_backwards = true;
+#endif
+        auto tmp = chunk->prev;
+
+        // remove the next block from the linked list
+        chunk->prev = tmp->prev;
+        if (tmp->prev)
+        {
+            tmp->prev->next = chunk;
+        }
+
+        chunk->size += tmp->size + sizeof(BigChunk);
+    }
+
+#if CHECK_LOG_LEVEL(K_LOG_MM, MM_LOG_CONSOLIDATION)
+    LOG_SA("MALLOC - FREE: ", "Chunk %p: Forwards: %d, Backwards: %d\n", chunk, consolidated_forwards, consolidated_backwards);
+#endif
+
+
     __mapped_heap->allocated_chunks--;
 }
 

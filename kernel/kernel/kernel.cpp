@@ -61,7 +61,7 @@ __NO_MANGELING void kernel_main(void) {
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	//printf("Hello paing world!\n");
-	
+
 	Something* hello_world = new Something();
 	printf(hello_world->arr);
 
@@ -73,8 +73,13 @@ __NO_MANGELING void kernel_main(void) {
 	printf("Allocated c: %p\n", c);
 
 	memory_manager::free(b);
-	b = memory_manager::malloc(100);
-	printf("Allocated b again: %p\n", b);
+	memory_manager::free(c);
+	memory_manager::free(a);
+	
+	a = memory_manager::malloc(300);
+	printf("Allocated a: %p\n", a);
+	//b = memory_manager::malloc(100);
+	//printf("Allocated b again: %p\n", b);
 
 	for (;;)
 	{
