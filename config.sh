@@ -4,6 +4,7 @@ export ARCH=$(./scripts/arch.sh)
 export TOOLS=$(./scripts/cross_tools_location.sh)
 export HOST=$(./scripts/host.sh)
 
+export DEBUGGER=$(./scripts/debugger.sh)
 export EMULATOR=qemu-system-$ARCH
 export CC=$TOOLS$HOST-g++
 export AS=$TOOLS$HOST-as
@@ -34,5 +35,6 @@ else
     echo "Compiler:         " $CC
     echo "CFLAGS:           " $CFLAGS
     echo "CPPFLAGS          " $CPPFLAGS
+    echo "DEBUGGER          " $DEBUGGER
     echo "************\n"
 fi
