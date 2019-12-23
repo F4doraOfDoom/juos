@@ -60,26 +60,9 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	//printf("Hello paing world!\n");
-
-	Something* hello_world = new Something();
-	printf(hello_world->arr);
-
-	void* a = memory_manager::malloc(100);
-	void* b = memory_manager::malloc(100);
-	void* c = memory_manager::malloc(100);
-	printf("Allocated a: %p\n", a);
-	printf("Allocated b: %p\n", b);
-	printf("Allocated c: %p\n", c);
-
-	memory_manager::free(b);
-	memory_manager::free(c);
-	memory_manager::free(a);
-	
-	a = memory_manager::malloc(300);
-	printf("Allocated a: %p\n", a);
-	//b = memory_manager::malloc(100);
-	//printf("Allocated b again: %p\n", b);
+	printf("Hello timer!\n");
+	timer::sleep(50);
+	printf("We slept half a second!\n");
 
 	for (;;)
 	{

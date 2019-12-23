@@ -40,6 +40,15 @@ NAMESPACE_BEGIN(timer)
      */
     void start(uint32_t clock_freq);
 
+    /**
+     * @brief Make the current thread sleep until n time slices have passed.
+     * A time slice is defined by the clock frequency passed to timer::start 
+     * 
+     * TODO: Add multithread support
+     * 
+     * @param slices - n of time slices to sleep
+     */
+    void sleep(uint32_t slices);
 
     /**
      * @brief this function is called upon every tick. it updates the kernel's

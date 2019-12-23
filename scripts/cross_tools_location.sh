@@ -1,2 +1,2 @@
 #!/bin/sh
-echo /usr/local/cross/bin/
+echo ~/opt/cross/bin/
