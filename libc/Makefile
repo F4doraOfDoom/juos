@@ -30,7 +30,6 @@ TO_BUILD=$(LIBK_OBJ) $(LIBC_OBJ)
 .SUFFIXES: .libc.o libk.o .cpp
 
 build: $(TO_BUILD) 
-	$(ROOT)/scripts/mkdir.sh lib
 	$(AR) rcs $(ROOT)/bin/libc/$@.libc.a $(LIBC_OUT)
 	$(AR) rcs $(ROOT)/bin/libc/$@.libk.a $(LIBK_OUT)
 
@@ -47,7 +46,3 @@ $(LIBK_OBJ): $(REQUIRED_LIBK)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LIBK_FLAGS) \
 	-I$(LIBC_HEADERS) \
 	$< -o $(ROOT)/bin/libc/$$(basename $@)
-
-clean:
-	rm $(foreach dir, $(SUPPORTED), $(wildcard $(dir)/*.o)) 
-	rm -rf lib/

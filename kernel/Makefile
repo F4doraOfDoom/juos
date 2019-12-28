@@ -97,6 +97,3 @@ $(DRIVER_OBJS): $(DRIVER_C) $(DRIVER_CPP) $(DRIVER_ASM)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(KERNEL_FLAGS) $(KERNEL_BUILD_ARGS) \
 	-I$(KINCLUDE) -I$(INCLUDE) -I$(CXXINCLUDE) -I$(ARCH_DIR) \
 	-c $< -o $(ROOT)/bin/arch/$$(basename $@)
-
-clean:
-	rm -f */*.o */*/*.o */*/*/*.o
