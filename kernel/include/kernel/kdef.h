@@ -15,6 +15,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#define MACRO(name, val)            constexpr uint32_t name = val
+#define MACRO_T(type, name, val)    consexptr type name = val
+
 #define __NO_MANGELING          extern "C"
 
 #define GO_PANIC(message, ...)                  \

@@ -47,7 +47,6 @@ __NO_MANGELING void kernel_main(void) {
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
-	ata::initialize();
 
 	// after this initialization, operators new and delete can be used
 	memory_manager::initialize(
@@ -60,9 +59,8 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	printf("Hello timer!\n");
-	timer::sleep(50);
-	printf("We slept half a second!\n");
+	printf("Hello ata!\n");
+	ata::initialize();
 
 	for (;;)
 	{

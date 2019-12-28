@@ -14,5 +14,9 @@ done;
 #check if build is good
 ./scripts/is_multiboot.sh $PROJECT_NAME.kernel
 
+#create symbols
 objcopy --only-keep-debug juos.kernel juos.sym
+
+#create storage
+qemu-img create -f raw $PROJECT_NAME.storage 4G
 
