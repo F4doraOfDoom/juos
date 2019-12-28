@@ -11,6 +11,7 @@
 #include <kernel/kmm.h>
 #include <kernel/knew.hpp>
 #include <kernel/kuseful.h>
+#include <drivers/ata.h>
 
 #include <kernel/kstdcxx.hpp>
 #include <list.hpp>
@@ -46,6 +47,7 @@ __NO_MANGELING void kernel_main(void) {
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
+	ata::initialize();
 
 	// after this initialization, operators new and delete can be used
 	memory_manager::initialize(

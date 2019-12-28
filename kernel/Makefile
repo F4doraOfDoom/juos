@@ -21,10 +21,16 @@ KERNEL_FLAGS=-ffreestanding -fno-exceptions -fno-rtti -nostdlib -lgcc
 KERNEL_C=$(wildcard kernel/*.c kernel/*/.c) 
 KERNEL_CPP=$(wildcard kernel/*.cpp kernel/*/.cpp)
 KERNEL_ASM=$(wildcard kernel/*.S kernel/*/.S)
+DRIVER_C=$(wildcard drivers/*.c drivers/*/.c) 
+DRIVER_CPP=$(wildcard drivers/*.cpp drivers/*/.cpp)
+DRIVER_ASM=$(wildcard drivers/*.S drivers/*/.S)
 KERNEL_OBJS= \
 $(KERNEL_C:.c=.o) \
 $(KERNEL_CPP:.cpp=.o) \
-$(KERNEL_ASM:.S=.o)
+$(KERNEL_ASM:.S=.o) \
+$(DRIVER_C:.c=.o) \
+$(DRIVER_CPP:.cpp=.o) \
+$(DRIVER_ASM:.S=.o) 
 
 ARCH_DIR=arch/$(ARCH)
 ARCH_C=$(wildcard $(ARCH_DIR)/*.c $(ARCH_DIR)/*/*.c) 
