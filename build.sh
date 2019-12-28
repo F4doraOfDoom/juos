@@ -7,6 +7,10 @@ export KERNEL_BUILD_ARGS="$1"
 
 echo $KERNEL_BUILD_ARGS
 
+qemu-img create -f raw $PWD/$PROJECT_NAME.storage 4G
+
+mkdir -p bin/kernel bin/libc bin/arch bin/drivers
+
 for DIR in $PROJECTS; do
     cd $DIR && make build && cd ..
 done;
@@ -18,5 +22,4 @@ done;
 objcopy --only-keep-debug juos.kernel juos.sym
 
 #create storage
-qemu-img create -f raw $PROJECT_NAME.storage 4G
 

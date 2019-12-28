@@ -6,6 +6,7 @@ rm $PROJECT_NAME.iso
 rm $PROJECT_NAME.sym
 rm $PROJECT_NAME.storage
 rm -rf isodir/
+rm -rf bin/
 
 for DIR in $PROJECTS; do
     cd $DIR && make clean && cd ..

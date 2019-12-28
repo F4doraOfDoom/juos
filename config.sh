@@ -21,7 +21,7 @@ export KINCLUDE=$PWD/kernel/include/
 export AINCLUDE=$PWD/kernel/include/$ARCH/include
 
 export ROOT=$PWD
-export PROJECTS="libc kernel libcxx" #important to build libc first
+export PROJECTS="libc kernel" #important to build libc first
 
 export PROJECT_NAME="juos"
 
