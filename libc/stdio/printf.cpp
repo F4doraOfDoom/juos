@@ -116,6 +116,10 @@ int printf(const char* __restrict format, ...)
                     print_n(va_arg(args, int), 8);
                 break;
 
+                case 'b':
+                    print_n(va_arg(args, int), 2);
+                break;
+
                 // print pointer at base 16
                 case 'p':
                     print_s(PTR_PREFIX, strlen(PTR_PREFIX));

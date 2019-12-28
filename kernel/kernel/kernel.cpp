@@ -15,8 +15,6 @@
 #include <kernel/kstdcxx.hpp>
 #include <list.hpp>
 
-#include <include/dtables_structs.h>
-
 #include <stdio.h>
 #include <string.h>
 

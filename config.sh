@@ -17,8 +17,8 @@ export LIBCXX=$PWD/libstdcxx
 
 export INCLUDE=$LIBC/include
 export CXXINCLUDE=$LIBCXX
-export KINCLUDE=$PWD/kernel/include
-export AINCLUDE=$PWD/arch/$ARCH/include
+export KINCLUDE=$PWD/kernel/include/
+export AINCLUDE=$PWD/kernel/include/$ARCH/include
 
 export ROOT=$PWD
 export PROJECTS="libc kernel libcxx" #important to build libc first

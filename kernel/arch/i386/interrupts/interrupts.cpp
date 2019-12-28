@@ -1,4 +1,4 @@
-#include <include/interrupts.h>
+#include <arch/i386/interrupts.h>
 
 interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 

@@ -1,4 +1,4 @@
-#include <include/gdt.h>
+#include <arch/i386/gdt.h>
 
 gdt::entry_t    gdt_entries[5]      = { 0 };
 gdt::PtrStruct  gdt_ptr             = { 0, 0 };

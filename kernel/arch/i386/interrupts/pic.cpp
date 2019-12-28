@@ -1,4 +1,4 @@
-#include <include/pic.h>
+#include <arch/i386/pic.h>
 
 void pic::initialize(uint32_t base)
 {

@@ -6,7 +6,7 @@
  
 #include <kernel/tty.h>
 
-#include "include/vgh.h"
+#include <arch/i386/vgh.h>
 
 static void _terminal_setcolor(uint8_t color);
 static void _terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y);

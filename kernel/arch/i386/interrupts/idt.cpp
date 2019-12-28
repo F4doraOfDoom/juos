@@ -1,4 +1,4 @@
-#include <include/idt.h>
+#include <arch/i386/idt.h>
 
 idt::entry_t    idt_entries[256]    = { 0 };
 idt::PtrStruct  idt_ptr             = { 0, 0 };

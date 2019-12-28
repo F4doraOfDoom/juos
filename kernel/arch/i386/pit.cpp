@@ -1,4 +1,4 @@
-#include <include/pit.h>
+#include <arch/i386/pit.h>
 #include <kernel/klog.h>
 
 void timer::initialize(uint32_t clock_freq)
