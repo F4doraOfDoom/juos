@@ -27,4 +27,45 @@ struct RegistersStruct_x86_32
 
 typedef RegistersStruct_x86_32 registers32_t;
 
+union Bits32 
+{
+    struct 
+    {
+        uint8_t bit1 : 1;
+        uint8_t bit2 : 1;
+        uint8_t bit3 : 1;
+        uint8_t bit4 : 1;
+        uint8_t bit5 : 1;
+        uint8_t bit6 : 1;
+        uint8_t bit7 : 1;
+        uint8_t bit8 : 1;
+        uint8_t bit9 : 1;
+        uint8_t bit10 : 1;
+        uint8_t bit11 : 1;
+        uint8_t bit12 : 1;
+        uint8_t bit13 : 1;
+        uint8_t bit14 : 1;
+        uint8_t bit15 : 1;
+        uint8_t bit16 : 1;
+        uint8_t bit17 : 1;
+        uint8_t bit18 : 1;
+        uint8_t bit19 : 1;
+        uint8_t bit20 : 1;
+        uint8_t bit21 : 1;
+        uint8_t bit22 : 1;
+        uint8_t bit23 : 1;
+        uint8_t bit24 : 1;
+        uint8_t bit25 : 1;
+        uint8_t bit26 : 1;
+        uint8_t bit27 : 1;
+        uint8_t bit28 : 1;
+        uint8_t bit29 : 1;
+        uint8_t bit30 : 1;
+        uint8_t bit31 : 1;
+        uint8_t bit32 : 1;
+    } bits;
+
+    uint32_t value;
+};
+
 #endif //KERNEL_STRUCTS_H

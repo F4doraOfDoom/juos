@@ -24,6 +24,15 @@ inline void* PTR_SUB(void* a, void* b) {
     return (void*)((uintptr_t)a - (uintptr_t)b);
 }
 
+inline uint32_t GET_BIT_OF(uint32_t value)
+{
+    return ((2 << (value - 1)) == 0);
+}
+
+#define BIT_IS_CLEAR(n, k) (((((uint64_t)n) & (1 << (((uint64_t)k) - 1)))) != 0)
+
+#define BIT_IS_SET(n,k) ((NOT BIT_IS_CLEAR(n, k)))
+
 inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
     return value + (-value & (alignment - 1));
 }
@@ -36,6 +45,10 @@ inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
 #define BIT_SET(a, b, off)      ((a)[b] |= BIT_MASK(off))
 #define BIT_CLEAR(a, b, off)    ((a)[b] &= ~BIT_MASK(off))
 #define BIT_TEST(a, b, off)     ((a)[b] & BIT_MASK(off))
+
+// for easy access to bits
+
+
 
 
 //#define BIT_NSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)

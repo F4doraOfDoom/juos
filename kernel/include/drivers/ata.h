@@ -4,6 +4,7 @@
 #include <kernel/kdef.h>
 #include <kernel/kcommon.h>
 #include <kernel/timer.h>
+#include <kernel/kuseful.h>
 
 #include <stdint.h>
 
@@ -43,6 +44,17 @@ NAMESPACE_BEGIN(ata)
         Command         = 7
     };
 
+    enum class StatusRegisterState : uint8_t {
+        ERR  = 0,   	// Indicates an error occurred. Send a new command to clear it (or nuke it with a Software Reset).
+        IDX  = 1, 		// Index. Always set to zero.
+        CORR = 2, 	 	// Corrected data. Always set to zero.
+        DRQ  = 3, 		// Set when the drive has PIO data to transfer, or is ready to accept PIO data.
+        SRV  = 4, 		// Overlapped Mode Service Request.
+        DF 	 = 5, 	    // Drive Fault Error (does not set ERR).
+        RDY  = 6, 		// Bit is clear when drive is spun down, or after an error. Set otherwise.
+        BSY  = 7 		// Indicates the drive is preparing to send/receive data (wait for it to clear). In case of 'hang' (it never clears), do a software reset. 
+    };
+
     enum class CommandRegister : uint32_t {
         AlternateStatus = 0,
         DeviceControl = 0,
@@ -53,83 +65,48 @@ NAMESPACE_BEGIN(ata)
         Identify = 0xEC
     };
 
-    /**
-     * @brief Get the IO base value of bus _bus_ 
-     */
-    inline uint32_t IO_BASE(Bus bus)
+    union StatusRegister
     {
-        return (bus == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE);   
-    }
+        struct StatusFlags {
+            uint8_t Err  : 1;   	// Indicates an error occurred. Send a new command to clear it (or nuke it with a Software Reset).
+            uint8_t Idx  : 1; 		// Index. Always set to zero.
+            uint8_t Corr : 1; 	 	// Corrected data. Always set to zero.
+            uint8_t Drq  : 1; 		// Set when the drive has PIO data to transfer, or is ready to accept PIO data.
+            uint8_t Srv  : 1; 		// Overlapped Mode Service Request.
+            uint8_t Df 	 : 1; 	    // Drive Fault Error (does not set ERR).
+            uint8_t Rdy  : 1; 		// Bit is clear when drive is spun down, or after an error. Set otherwise.
+            uint8_t Bsy  : 1;		// Indicates the drive is preparing to send/receive data (wait for it to clear). In case of 'hang' (it never clears), do a software reset. 
+        } flags;
 
+        uint8_t value;
+    };
 
-    /**
-     * @brief Get the command base value of bus _bus_ 
-     */
-    inline uint32_t COMMAND_BASE(Bus bus)
+    struct DeviceInfoResult
     {
-        return (bus == Bus::Primary ? PRIMARY_COMMAND_BASE : SECONDARY_COMMAND_BASE);
-    }
-
-    /**
-     * @brief Get the offset of a register _reg_ from IO port base of bus _bus_ 
-     * 
-     * @param reg register or type IoRegister
-     * @param bus bus to offset from
-     * @return uint32_t 
-     */
-    inline uint32_t IO_REG_OFFSET(IoRegister reg, Bus bus) 
-    {
-        return static_cast<int>(reg) + IO_BASE(bus);
-
-    }
-
-    /**
-     * @brief Set value _val_ in IO register _reg_
-     * 
-     * @param reg - IO register to modify
-     * @param val - value to set
-     */
-    inline void IO_REG_SET(IoRegister reg, uint8_t val)
-    {
-        uint32_t offset = IO_REG_OFFSET(reg, selected_controller); 
-        outb(offset, val);
-    }
-
-    /**
-     * @brief Select a controller _bus_
-     * 
-     * @param bus bus to select
-     */
-    inline void SELECT(Bus bus)
-    {
-        selected_controller = bus;
-        uint32_t port = (bus == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE);
-        uint32_t val = (bus == Bus::Primary ? PRIMARY_SELECT : SECONDARY_SELECT);
-        outb(port, val); 
-    }
-
-    /**
-     * @brief Send command _cmd_ to the control register
-     * 
-     * @param cmd - command to send
-     */
-    inline void COMMAND(Command cmd)
-    {
-        uint32_t port = COMMAND_BASE(selected_controller) + static_cast<uint32_t>(CommandRegister::DeviceControl);
-        uint8_t val = static_cast<uint32_t>(cmd);
-        outb(port, val);
-    }
-
-    inline uint32_t READ(IoRegister reg)
-    {
-        uint32_t port = IO_REG_OFFSET(reg, selected_controller);
+        bool        found                   = false;
+        bool        not_ata                 = false;
+        bool        is_hard_disk            = false;
+        bool        LBA48_supported         = false;
+        uint16_t    supported_UDMA_modes    = 0;
+        bool        conductor_cable_found   = false;
+        struct __PACKED {
+            uint16_t low;
+            uint16_t high;
+        }  LBA28_sectors                     = { 0 };
         
-        return inb(port);
-    }
+        struct __PACKED {
+            uint16_t low;
+            uint16_t low_mid;
+            uint16_t mid_high;
+            uint16_t high;
+        }    LBA48_sectors                  = { 0 };
+
+    };
 
     struct FindDeviceResult
     {
-        bool device_found = false;
+        DeviceInfoResult master;
+        DeviceInfoResult slave;
     };
 
     /**

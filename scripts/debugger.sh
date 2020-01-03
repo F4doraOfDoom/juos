@@ -1,3 +1,2 @@
 #!/bin/sh
-
-echo gdb-pwndbg
+echo gdb-peda

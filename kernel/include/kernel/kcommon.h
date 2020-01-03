@@ -13,6 +13,7 @@
 #define KERNEL_COMMON_H_
 
 #include "kdef.h"
+#include <stdint.h>
 
 /*
     Common port IO tasks
@@ -21,9 +22,15 @@ __NO_MANGELING inline void outb(short port, char value) {
     asm volatile ("outb %1, %0" : : "dN" (port), "a" (value));
 }
 
-__NO_MANGELING inline char inb(short port) {
-   char ret;
+__NO_MANGELING inline uint8_t inb(short port) {
+   uint8_t ret;
    asm volatile("inb %1, %0" : "=a" (ret) : "dN" (port));
+   return ret;
+}
+
+__NO_MANGELING inline uint16_t inw(short port) {
+   uint16_t ret;
+   asm volatile("inw %1, %0" : "=a" (ret) : "dN" (port));
    return ret;
 }
 
