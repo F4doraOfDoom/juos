@@ -38,8 +38,8 @@ NAMESPACE_BEGIN(ata)
         SectorNumber    = 3, LBAlow  = 3,
         CylinderLow     = 4, LBAmid  = 4, 
         CylinderHigh    = 5, LBAhigh = 5,
-        
-        Head            = 6,
+        Head            = 6, Drive   = 6,
+
         Status          = 7,
         Command         = 7
     };
@@ -61,8 +61,24 @@ NAMESPACE_BEGIN(ata)
         DriveAddress = 1
     };
 
+    enum class DeviceType : uint8_t {
+        Master = 0,
+        Slave = 1
+    };
+
     enum class Command : uint8_t {
-        Identify = 0xEC
+        Identify = 0xEC,
+        ReadBuffer = 0xE4,
+        WriteBuffer = 0xE8,
+        ReadSectorsWithRetry = 0x20,
+        WriteSectorsWithRetry = 0x30,
+        ReadDMA28 = 0xC8,
+        ReadDMA48 = 0x25,
+        WriteDMA28 = 0xCA,
+        WriteDMA48 = 0x35,
+        CacheFlush = 0xE7,
+        Standby = 0xE0,
+        StandbyLBA28 = (Standby | 0x40), // bit 6 enables for LBA 28 bit
     };
 
     union StatusRegister
@@ -80,6 +96,12 @@ NAMESPACE_BEGIN(ata)
 
         uint8_t value;
     };
+
+    struct PRDT {
+        uint32_t buffer_phys;
+        uint16_t transfer_size;
+        uint16_t mark_end;
+    } __PACKED;
 
     struct DeviceInfoResult
     {
@@ -114,6 +136,10 @@ NAMESPACE_BEGIN(ata)
      * 
      */
     void initialize();
+
+    void read();
+
+    void write(char* data, size_t len);
 
     /**
      * @brief Will poll the buses to see if there are any ata devices

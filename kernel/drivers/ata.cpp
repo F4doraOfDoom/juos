@@ -3,15 +3,8 @@
 using namespace ata;
 
 Bus ata::selected_controller;
-
-/**
- * @brief Get the IO base value of bus _bus_ 
- */
-inline uint32_t IO_BASE(Bus bus)
-{
-    return (bus == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE);   
-}
-
+//static char ata_buffer[512] = { 0 };
+//PRDT prdt;
 
 /**
  * @brief Get the command base value of bus _bus_ 
@@ -30,8 +23,7 @@ inline uint32_t COMMAND_BASE(Bus bus)
  */
 inline uint32_t IO_REG_OFFSET(IoRegister reg, Bus bus) 
 {
-    return static_cast<int>(reg) + IO_BASE(bus);
-
+    return static_cast<int>(reg) + (bus == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE);
 }
 
 /**
@@ -58,7 +50,6 @@ inline void SELECT(Bus bus)
     uint32_t val = (bus == Bus::Primary ? PRIMARY_SELECT : SECONDARY_SELECT);
     outb(port, val); 
 }
-
 
 
 inline uint8_t READ_BYTE(IoRegister reg)
@@ -99,7 +90,6 @@ inline void WAIT_UNTIL_READY()
     } while (status.flags.Rdy == 0);
 }
 
-
 /**
  * @brief Send command _cmd_ to the control register
  * 
@@ -109,15 +99,37 @@ inline void COMMAND(Command cmd)
 {
     WAIT_NO_BUSY();
 
-    asm volatile("cli;");
-
     WAIT_UNTIL_READY();
 
     uint32_t port = (selected_controller == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE) + ((int)IoRegister::Command);
     uint8_t val = static_cast<uint8_t>(cmd);
     outb(port, val);
 
-    asm volatile("sti;");
+}
+
+inline void RESET_COMMAND_REGISTER()
+{
+    COMMAND((ata::Command)0);
+}
+
+inline void SET_SECTOR_COUNT(uint32_t count)
+{
+    IO_REG_SET(IoRegister::SectorCount, count);
+}
+
+inline void DELAY_400_NS()
+{
+    for (int i = 0; i < 4; i++) 
+    {
+        READ_BYTE(IoRegister::Status);
+    }
+}
+
+inline void SET_LBA(uint32_t lba)
+{
+    IO_REG_SET(IoRegister::LBAlow, lba & 0x000000ff);
+    IO_REG_SET(IoRegister::LBAmid, lba & 0x0000ff00 >> 8);
+    IO_REG_SET(IoRegister::LBAhigh, lba & 0x00ff0000 >> 16);
 }
 
 static DeviceInfoResult _get_device_info(Bus bus);
@@ -161,9 +173,7 @@ void ata::initialize()
     device.master.LBA48_sectors
     );
 #endif
-    }
-
-
+    } 
 }
 
 FindDeviceResult ata::find_devices()
@@ -171,8 +181,51 @@ FindDeviceResult ata::find_devices()
     return {
         _get_device_info(Bus::Primary),
         // currently we'll use only the primary device
-        {} //_get_device_info(Bus::Secondary)
+       {} //2 _get_device_info(Bus::Secondary)
     };
+}
+
+void ata::read()
+{
+    asm volatile ("cli;");
+
+    IO_REG_SET(IoRegister::Drive, static_cast<uint8_t>(Command::StandbyLBA28));
+    SET_SECTOR_COUNT(1);
+    SET_LBA(100);
+
+    COMMAND(Command::ReadSectorsWithRetry);
+
+    WAIT_NO_BUSY();
+    WAIT_UNTIL_READY();
+
+    char buf[512] = { 0 };
+    insw((unsigned short)IoRegister::Data, buf, 256);
+
+    printf("data read: %s\n", buf);
+
+    asm volatile ("sti;");
+}
+
+void ata::write(char* buf, size_t len)
+{
+    asm volatile ("cli;");
+
+    IO_REG_SET(IoRegister::Drive, static_cast<uint8_t>(Command::StandbyLBA28));
+    SET_SECTOR_COUNT(1);
+    SET_LBA(100);
+
+    COMMAND(Command::WriteSectorsWithRetry);
+
+    WAIT_NO_BUSY();
+    WAIT_UNTIL_READY();
+
+    char buff[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+    outsw((unsigned short)IoRegister::Data, buff, 256);
+
+    COMMAND(Command::CacheFlush);
+    DELAY_400_NS();
+
+    asm volatile ("sti;");
 }
 
 DeviceInfoResult _get_device_info(Bus bus)

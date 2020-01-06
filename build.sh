@@ -7,7 +7,7 @@ export KERNEL_BUILD_ARGS="$1"
 
 echo $KERNEL_BUILD_ARGS
 
-qemu-img create -f raw $PWD/$PROJECT_NAME.storage 4G
+qemu-img create -f raw $PWD/$PROJECT_NAME.storage 1G
 
 mkdir -p bin/kernel bin/libc bin/arch bin/drivers
 

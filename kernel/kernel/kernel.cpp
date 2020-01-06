@@ -62,6 +62,10 @@ __NO_MANGELING void kernel_main(void) {
 	printf("Hello ata!\n");
 	ata::initialize();
 
+	char buffer[] = "Hello world!\n";
+	ata::write(buffer, 13);
+	ata::read();
+
 	for (;;)
 	{
 		asm volatile (

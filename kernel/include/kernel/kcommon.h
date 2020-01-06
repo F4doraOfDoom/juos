@@ -34,4 +34,16 @@ __NO_MANGELING inline uint16_t inw(short port) {
    return ret;
 }
 
+__NO_MANGELING inline void insw(unsigned short port, void *addr, size_t cnt)
+{
+   __asm volatile("rep; insw"
+       : "+D" (addr), "+c" (cnt)
+       : "d" (port)
+       : "memory");
+}
+
+__NO_MANGELING inline void outsw(unsigned short port, const void *addr, size_t cnt){
+   __asm volatile("rep; outsw" : "+S" (addr), "+c" (cnt) : "d" (port));
+}
+
 #endif // KERNEL_COMMON_H_
