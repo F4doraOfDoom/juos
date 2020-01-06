@@ -2,17 +2,10 @@
 
 using namespace ata;
 
-Bus ata::selected_controller;
 //static char ata_buffer[512] = { 0 };
 //PRDT prdt;
 
-/**
- * @brief Get the command base value of bus _bus_ 
- */
-inline uint32_t COMMAND_BASE(Bus bus)
-{
-    return (bus == Bus::Primary ? PRIMARY_COMMAND_BASE : SECONDARY_COMMAND_BASE);
-}
+static ata::Bus selected_controller;
 
 /**
  * @brief Get the offset of a register _reg_ from IO port base of bus _bus_ 
@@ -34,7 +27,7 @@ inline uint32_t IO_REG_OFFSET(IoRegister reg, Bus bus)
  */
 inline void IO_REG_SET(IoRegister reg, uint8_t val)
 {
-    uint32_t offset = IO_REG_OFFSET(reg, selected_controller); 
+    uint32_t offset = IO_REG_OFFSET(reg, ::selected_controller); 
     outb(offset, val);
 }
 
@@ -45,7 +38,7 @@ inline void IO_REG_SET(IoRegister reg, uint8_t val)
  */
 inline void SELECT(Bus bus)
 {
-    selected_controller = bus;
+    ::selected_controller = bus;
     uint32_t port = (bus == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE);
     uint32_t val = (bus == Bus::Primary ? PRIMARY_SELECT : SECONDARY_SELECT);
     outb(port, val); 
@@ -54,14 +47,14 @@ inline void SELECT(Bus bus)
 
 inline uint8_t READ_BYTE(IoRegister reg)
 {
-    uint16_t port = IO_REG_OFFSET(reg, selected_controller);
+    uint16_t port = IO_REG_OFFSET(reg, ::selected_controller);
     
     return inb(port);
 }
 
 inline uint16_t READ_WORD(IoRegister reg)
 {
-    uint16_t port = IO_REG_OFFSET(reg, selected_controller);
+    uint16_t port = IO_REG_OFFSET(reg, ::selected_controller);
 
     return inw(port);
 }
@@ -101,7 +94,7 @@ inline void COMMAND(Command cmd)
 
     WAIT_UNTIL_READY();
 
-    uint32_t port = (selected_controller == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE) + ((int)IoRegister::Command);
+    uint32_t port = (::selected_controller == Bus::Primary ? PRIMARY_IO_BASE : SECONDARY_IO_BASE) + ((int)IoRegister::Command);
     uint8_t val = static_cast<uint8_t>(cmd);
     outb(port, val);
 
@@ -134,21 +127,21 @@ inline void SET_LBA(uint32_t lba)
 
 static DeviceInfoResult _get_device_info(Bus bus);
 
-void ata::initialize()
+Device ata::create_device()
 {
 #ifdef K_LOG_GENERAL
     LOG_S("ATA Driver: ", "Initializing...\n");
 #endif 
 
-    FindDeviceResult device = find_devices();
+    FindDeviceResult device_info = find_devices();
 
-    if (device.master.found == false && device.slave.found == false)
+    if (device_info.master.found == false && device_info.slave.found == false)
     {
         GO_PANIC("No ATA device was found!\n", "");
     }
     else
     {
-        if (device.master.not_ata && device.slave.not_ata)
+        if (device_info.master.not_ata && device_info.slave.not_ata)
         {
             GO_PANIC("ATA: Device found, but not ATA compilant!\n", "");
         }
@@ -165,15 +158,18 @@ void ata::initialize()
     "Conductor cable found: %d\n"
     "LBA28 available sectors: %d\n"
     "LBA48 available sectors: %d\n",
-    device.master.is_hard_disk,
-    device.master.LBA48_supported,
-    device.master.supported_UDMA_modes,
-    device.master.conductor_cable_found,
-    device.master.LBA28_sectors,
-    device.master.LBA48_sectors
+    device_info.master.is_hard_disk,
+    device_info.master.LBA48_supported,
+    device_info.master.supported_UDMA_modes,
+    device_info.master.conductor_cable_found,
+    device_info.master.LBA28_sectors,
+    device_info.master.LBA48_sectors
     );
 #endif
     } 
+
+    // kind of ignore slave
+    return Device(DeviceType::Master, device_info.master);
 }
 
 FindDeviceResult ata::find_devices()
@@ -185,42 +181,45 @@ FindDeviceResult ata::find_devices()
     };
 }
 
-void ata::read()
+Device::Device(DeviceType type, const DeviceInfoResult& res) : 
+        _type(type),
+        _lba_28_sectors(res.LBA28_sectors.value),
+        _lba_48_sectors(res.LBA48_sectors.value)
+{
+}
+
+void Device::read_sectors(char* buffer, uint32_t lba, uint32_t sectors)
 {
     asm volatile ("cli;");
 
     IO_REG_SET(IoRegister::Drive, static_cast<uint8_t>(Command::StandbyLBA28));
-    SET_SECTOR_COUNT(1);
-    SET_LBA(100);
+    SET_SECTOR_COUNT(lba);
+    SET_LBA(sectors);
 
     COMMAND(Command::ReadSectorsWithRetry);
 
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();
 
-    char buf[512] = { 0 };
-    insw((unsigned short)IoRegister::Data, buf, 256);
-
-    printf("data read: %s\n", buf);
+    insw((unsigned short)IoRegister::Data, buffer, sectors * 256);
 
     asm volatile ("sti;");
 }
-
-void ata::write(char* buf, size_t len)
+ 
+void Device::write_sectors(const char* buffer, uint32_t lba, uint32_t sectors)
 {
     asm volatile ("cli;");
 
     IO_REG_SET(IoRegister::Drive, static_cast<uint8_t>(Command::StandbyLBA28));
-    SET_SECTOR_COUNT(1);
-    SET_LBA(100);
+    SET_SECTOR_COUNT(sectors);
+    SET_LBA(lba);
 
     COMMAND(Command::WriteSectorsWithRetry);
 
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();
 
-    char buff[] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-    outsw((unsigned short)IoRegister::Data, buff, 256);
+    outsw((unsigned short)IoRegister::Data, buffer, sectors * 256);
 
     COMMAND(Command::CacheFlush);
     DELAY_400_NS();
@@ -284,14 +283,14 @@ DeviceInfoResult _get_device_info(Bus bus)
                                                 BIT_IS_CLEAR(device_information[93], 11);
         
         // the number of sectors is made 32 bit long - made out of 2, 16 bit numbers;
-        device_propreties.LBA28_sectors.low     = device_information[60];
-        device_propreties.LBA28_sectors.high    = device_information[61];
+        device_propreties.LBA28_sectors.sectors.low     = device_information[60];
+        device_propreties.LBA28_sectors.sectors.high    = device_information[61];
 
         // the number of sectors is made 64 bit long - made out of 4, 16 bit numbers;
-        device_propreties.LBA48_sectors.low         = device_information[100];
-        device_propreties.LBA48_sectors.low_mid     = device_information[101];
-        device_propreties.LBA48_sectors.mid_high    = device_information[102];
-        device_propreties.LBA48_sectors.high        = device_information[103];
+        device_propreties.LBA48_sectors.sectors.low         = device_information[100];
+        device_propreties.LBA48_sectors.sectors.low_mid     = device_information[101];
+        device_propreties.LBA48_sectors.sectors.mid_high    = device_information[102];
+        device_propreties.LBA48_sectors.sectors.high        = device_information[103];
 
         return device_propreties;
     }

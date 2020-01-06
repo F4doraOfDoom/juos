@@ -111,17 +111,25 @@ NAMESPACE_BEGIN(ata)
         bool        LBA48_supported         = false;
         uint16_t    supported_UDMA_modes    = 0;
         bool        conductor_cable_found   = false;
-        struct __PACKED {
-            uint16_t low;
-            uint16_t high;
-        }  LBA28_sectors                     = { 0 };
+        union
+        {
+            struct __PACKED {
+                uint16_t low;
+                uint16_t high;
+            }  sectors                     = { 0 };
+            uint32_t value;
+        }   LBA28_sectors;
         
-        struct __PACKED {
-            uint16_t low;
-            uint16_t low_mid;
-            uint16_t mid_high;
-            uint16_t high;
-        }    LBA48_sectors                  = { 0 };
+        union 
+        {
+            struct __PACKED {
+                uint16_t low;
+                uint16_t low_mid;
+                uint16_t mid_high;
+                uint16_t high;
+            }  sectors                  = { 0 };
+            uint64_t value;
+        } LBA48_sectors;
 
     };
 
@@ -130,16 +138,45 @@ NAMESPACE_BEGIN(ata)
         DeviceInfoResult master;
         DeviceInfoResult slave;
     };
+ 
+    class Device
+    {
+    private:
+        struct Request {
+            uint8_t* buffer;
+            uint32_t lba;
+            uint32_t sectors;
+        };
+
+    public:
+        using ReadRequest = Request;
+        using WriteRequest = Request;
+
+        Device(DeviceType type, const DeviceInfoResult& info);
+
+        Device(const Device&) = delete;
+        Device(Device&) = delete;
+        void operator=(Device&) = delete;
+        void operator=(const Device&) = delete;
+
+
+        void read_sectors(char* buffer, uint32_t lba, uint32_t sectors);
+
+        void write_sectors(const char* buffer, uint32_t lba, uint32_t sectors);
+
+    private:
+        uint32_t    _int_buffer[512] = { 0 };
+        
+        const DeviceType  _type;
+        const uint32_t    _lba_28_sectors;
+        const uint64_t    _lba_48_sectors;
+    };
 
     /**
      * @brief Initialize the ATA driver
      * 
      */
-    void initialize();
-
-    void read();
-
-    void write(char* data, size_t len);
+    Device create_device();
 
     /**
      * @brief Will poll the buses to see if there are any ata devices
