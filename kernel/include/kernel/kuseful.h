@@ -37,7 +37,7 @@ inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
     return value + (-value & (alignment - 1));
 }
 
-#define IN_RANGE_X(n, min, max) ((n < min) && (n < max))
+#define IN_RANGE_X(n, min, max) ((n > min) && (n < max))
 #define IN_RANGE_C(n, min, max) ((n >= min) && (n <= max))
 
 // bitset

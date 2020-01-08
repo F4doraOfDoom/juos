@@ -7,6 +7,7 @@
 #include <kernel/kuseful.h>
 
 #include <stdint.h>
+#include <string.h>
 
 NAMESPACE_BEGIN(ata)
 
@@ -17,6 +18,11 @@ NAMESPACE_BEGIN(ata)
     MACRO(SECONDARY_IO_BASE,        0x170); 
     MACRO(SECONDARY_COMMAND_BASE,   0x376);
     MACRO(SECONDARY_SELECT,         0xB0);
+
+    MACRO(SECTOR_SIZE_BYTES,         512);
+    MACRO(SECTOR_SIZE_WORDS,        SECTOR_SIZE_BYTES/2);  
+
+    MACRO(INTERRUPT_REGISTER,       0x3F6);
 
     // same as Controller with Master/Slave
     enum class Bus : bool {
@@ -159,15 +165,19 @@ NAMESPACE_BEGIN(ata)
         void operator=(Device&) = delete;
         void operator=(const Device&) = delete;
 
+        bool read_bytes(char* buffer, uint32_t loc, uint32_t count);
 
-        void read_sectors(char* buffer, uint32_t lba, uint32_t sectors);
+        bool write_bytes(const char* buffer, uint32_t loc, uint32_t count);
 
-        void write_sectors(const char* buffer, uint32_t lba, uint32_t sectors);
+        bool read_sectors(char* buffer, uint32_t lba, uint32_t sectors);
+
+        bool write_sectors(const char* buffer, uint32_t lba, uint32_t sectors);
 
     private:
         uint32_t    _int_buffer[512] = { 0 };
         
-        const DeviceType  _type;
+        const DeviceType  _device_type;
+        const Bus         _bus_type;  
         const uint32_t    _lba_28_sectors;
         const uint64_t    _lba_48_sectors;
     };

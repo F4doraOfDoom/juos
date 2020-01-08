@@ -34,7 +34,8 @@ __NO_MANGELING inline uint16_t inw(short port) {
    return ret;
 }
 
-__NO_MANGELING inline void insw(unsigned short port, void *addr, size_t cnt)
+
+__NO_MANGELING inline void rep_insw(unsigned short port, void *addr, size_t cnt)
 {
    __asm volatile("rep; insw"
        : "+D" (addr), "+c" (cnt)
@@ -42,8 +43,17 @@ __NO_MANGELING inline void insw(unsigned short port, void *addr, size_t cnt)
        : "memory");
 }
 
-__NO_MANGELING inline void outsw(unsigned short port, const void *addr, size_t cnt){
+
+__NO_MANGELING inline void rep_outsw(unsigned short port, const void *addr, size_t cnt){
    __asm volatile("rep; outsw" : "+S" (addr), "+c" (cnt) : "d" (port));
 }
 
+__NO_MANGELING inline void insw(unsigned short port, void *addr)
+{
+   rep_insw(port, addr, 1);
+}
+
+__NO_MANGELING inline void outsw(unsigned short port, const void *addr){
+   rep_outsw(port, addr, 1);
+}
 #endif // KERNEL_COMMON_H_

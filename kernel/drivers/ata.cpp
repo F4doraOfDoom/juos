@@ -87,8 +87,9 @@ inline void WAIT_UNTIL_READY()
  * @brief Send command _cmd_ to the control register
  * 
  * @param cmd - command to send
+ * @return - 0 if succeded, status register value otherwise
  */
-inline void COMMAND(Command cmd)
+inline bool COMMAND(Command cmd)
 {
     WAIT_NO_BUSY();
 
@@ -98,11 +99,23 @@ inline void COMMAND(Command cmd)
     uint8_t val = static_cast<uint8_t>(cmd);
     outb(port, val);
 
+    auto status = READ_BYTE(IoRegister::Status);
+    return status;
+}
+
+inline void DISABLE_INTERRUPTS()
+{
+    outb(INTERRUPT_REGISTER, 0x2);
 }
 
 inline void RESET_COMMAND_REGISTER()
 {
     COMMAND((ata::Command)0);
+}
+
+inline void SET_HEAD(uint32_t lba, uint32_t slavebit)
+{
+    outb(0x1F6, (0xE0 | (slavebit <<  4) | (lba >> 24 & 0x0F))); 
 }
 
 inline void SET_SECTOR_COUNT(uint32_t count)
@@ -120,9 +133,9 @@ inline void DELAY_400_NS()
 
 inline void SET_LBA(uint32_t lba)
 {
-    IO_REG_SET(IoRegister::LBAlow, lba & 0x000000ff);
-    IO_REG_SET(IoRegister::LBAmid, lba & 0x0000ff00 >> 8);
-    IO_REG_SET(IoRegister::LBAhigh, lba & 0x00ff0000 >> 16);
+    IO_REG_SET(IoRegister::LBAlow, (unsigned char)lba);
+    IO_REG_SET(IoRegister::LBAmid, (unsigned char)(lba >> 8));
+    IO_REG_SET(IoRegister::LBAhigh, (unsigned char)(lba >> 16));
 }
 
 static DeviceInfoResult _get_device_info(Bus bus);
@@ -182,49 +195,86 @@ FindDeviceResult ata::find_devices()
 }
 
 Device::Device(DeviceType type, const DeviceInfoResult& res) : 
-        _type(type),
+        _device_type(type),
+        _bus_type(Bus::Primary),
         _lba_28_sectors(res.LBA28_sectors.value),
         _lba_48_sectors(res.LBA48_sectors.value)
 {
 }
 
-void Device::read_sectors(char* buffer, uint32_t lba, uint32_t sectors)
+bool Device::read_bytes(char* output, uint32_t location, uint32_t count)
 {
-    asm volatile ("cli;");
+    auto sectors = ALIGN_VAL(count, SECTOR_SIZE_BYTES) / SECTOR_SIZE_BYTES;
+    auto lba = (int)(location / SECTOR_SIZE_BYTES);
 
-    IO_REG_SET(IoRegister::Drive, static_cast<uint8_t>(Command::StandbyLBA28));
-    SET_SECTOR_COUNT(lba);
-    SET_LBA(sectors);
+    char* buffer = new char[sectors * SECTOR_SIZE_BYTES];
+    //char buffer[512] = {0};
+
+    bool success = read_sectors(buffer, lba, sectors);
+
+    int offset = SECTOR_SIZE_BYTES % offset;
+
+    memcpy(output, buffer + offset, count);
+
+    return success;
+}
+
+bool Device::write_bytes(const char* input, uint32_t location, uint32_t count)
+{
+    count = ALIGN_VAL(count, SECTOR_SIZE_BYTES);
+    auto sectors = count / SECTOR_SIZE_BYTES;
+    auto lba = (int)(location / SECTOR_SIZE_BYTES);
+ 
+    bool success = write_sectors(input, lba, sectors);
+
+    return success;
+}
+
+bool Device::read_sectors(char* buffer, uint32_t LBA, uint32_t sectors)
+{
+    int count = 1;      //number of sectors to read     
+    char slavebit =0;   //0 for master device 1 for slave   sets bit 5 in 1f6
+    int stat = 0;
+
+    DISABLE_INTERRUPTS();
+
+    SET_HEAD(LBA, slavebit);
+
+    DELAY_400_NS();
+
+    SET_SECTOR_COUNT(sectors);
+    timer::sleep(1);
+
+    SET_LBA(LBA);
 
     COMMAND(Command::ReadSectorsWithRetry);
 
-    WAIT_NO_BUSY();
-    WAIT_UNTIL_READY();
-
-    insw((unsigned short)IoRegister::Data, buffer, sectors * 256);
-
-    asm volatile ("sti;");
+    rep_insw(IO_REG_OFFSET(IoRegister::Data, _bus_type), buffer, 256);
+    
+    return READ_BYTE(IoRegister::Status);
 }
  
-void Device::write_sectors(const char* buffer, uint32_t lba, uint32_t sectors)
+bool Device::write_sectors(const char* buffer, uint32_t LBA, uint32_t sectors)
 {
-    asm volatile ("cli;");
+    int stat;
+    DISABLE_INTERRUPTS();
 
-    IO_REG_SET(IoRegister::Drive, static_cast<uint8_t>(Command::StandbyLBA28));
-    SET_SECTOR_COUNT(sectors);
-    SET_LBA(lba);
+    SET_HEAD(LBA, 0);
 
-    COMMAND(Command::WriteSectorsWithRetry);
-
-    WAIT_NO_BUSY();
-    WAIT_UNTIL_READY();
-
-    outsw((unsigned short)IoRegister::Data, buffer, sectors * 256);
-
-    COMMAND(Command::CacheFlush);
     DELAY_400_NS();
 
-    asm volatile ("sti;");
+    SET_SECTOR_COUNT(sectors);
+    timer::sleep(1);
+
+    SET_LBA(LBA);
+    
+    COMMAND(Command::WriteSectorsWithRetry);
+
+    rep_outsw(0x1f0, buffer, 256);
+
+    COMMAND(Command::CacheFlush);
+
+    return READ_BYTE(IoRegister::Status);
 }
 
 DeviceInfoResult _get_device_info(Bus bus)
