@@ -212,7 +212,7 @@ bool Device::read_bytes(char* output, uint32_t location, uint32_t count)
 
     bool success = read_sectors(buffer, lba, sectors);
 
-    int offset = SECTOR_SIZE_BYTES % offset;
+    int offset = (location == 0 ? 0 : location % SECTOR_SIZE_BYTES);
 
     memcpy(output, buffer + offset, count);
 
@@ -247,7 +247,14 @@ bool Device::read_sectors(char* buffer, uint32_t LBA, uint32_t sectors)
 
     SET_LBA(LBA);
 
+    WAIT_NO_BUSY();
+    WAIT_UNTIL_READY();
+
     COMMAND(Command::ReadSectorsWithRetry);
+    timer::sleep(1);
+    
+    WAIT_NO_BUSY();
+    WAIT_UNTIL_READY();
 
     rep_insw(IO_REG_OFFSET(IoRegister::Data, _bus_type), buffer, 256);
     
@@ -268,7 +275,16 @@ bool Device::write_sectors(const char* buffer, uint32_t LBA, uint32_t sectors)
 
     SET_LBA(LBA);
     
+    WAIT_NO_BUSY();
+    WAIT_UNTIL_READY();
+
     COMMAND(Command::WriteSectorsWithRetry);
+    timer::sleep(1);
+    
+    WAIT_NO_BUSY();
+    WAIT_UNTIL_READY();
+
+    StatusRegister status ={.value =  READ_BYTE(IoRegister::Status)};
 
     rep_outsw(0x1f0, buffer, 256);
 
