@@ -216,16 +216,27 @@ bool Device::read_bytes(char* output, uint32_t location, uint32_t count)
 
     memcpy(output, buffer + offset, count);
 
+    delete[] buffer;
+
     return success;
 }
 
 bool Device::write_bytes(const char* input, uint32_t location, uint32_t count)
 {
-    count = ALIGN_VAL(count, SECTOR_SIZE_BYTES);
-    auto sectors = count / SECTOR_SIZE_BYTES;
+    auto sectors = ALIGN_VAL(count, SECTOR_SIZE_BYTES) / SECTOR_SIZE_BYTES;
     auto lba = (int)(location / SECTOR_SIZE_BYTES);
- 
-    bool success = write_sectors(input, lba, sectors);
+
+    char* buffer = new char[sectors * SECTOR_SIZE_BYTES];
+    
+    read_sectors(buffer, lba, sectors);
+
+    int offset = (location == 0 ? 0 : location % SECTOR_SIZE_BYTES);
+
+    memcpy(buffer + offset, input, count);
+
+    bool success = write_sectors(buffer, lba, sectors);
+
+    delete[] buffer;
 
     return success;
 }
