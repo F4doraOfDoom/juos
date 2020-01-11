@@ -5,6 +5,7 @@
 #include <kernel/kcommon.h>
 #include <kernel/timer.h>
 #include <kernel/kuseful.h>
+#include <kernel/storage.h>
 
 #include <stdint.h>
 #include <string.h>
@@ -145,7 +146,7 @@ NAMESPACE_BEGIN(ata)
         DeviceInfoResult slave;
     };
  
-    class Device
+    class Device : public StorageDeviceHandler
     {
     private:
         struct Request {
@@ -196,7 +197,7 @@ NAMESPACE_BEGIN(ata)
          * @return true if read is successful (not really working though)
          * @return false if read is unsuccessful
          */
-        bool read_sectors(char* buffer, uint32_t lba, uint32_t sectors);
+        virtual bool read_sectors(char* buffer, uint32_t lba, uint32_t sectors) override;
 
          /**
          * @brief Write a _sectors_ count of sectors to LBA _lba_ from _buffer_
@@ -207,10 +208,10 @@ NAMESPACE_BEGIN(ata)
          * @return true if write is successful(not really working though)
          * @return false if write is unsuccessful
          */
-        bool write_sectors(const char* buffer, uint32_t lba, uint32_t sectors);
+        virtual bool write_sectors(const char* buffer, uint32_t lba, uint32_t sectors) override;
 
     private:
-        uint32_t    _int_buffer[512] = { 0 };
+        //uint32_t    _int_buffer[512] = { 0 };
         
         const DeviceType  _device_type;
         const Bus         _bus_type;  

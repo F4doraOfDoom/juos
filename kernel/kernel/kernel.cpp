@@ -86,3 +86,6 @@ void divide_by_zero(void* r)
 {
 	LOG_A("Divide by zero! %d", ((registers32_t*)r)->eax);
 }
+
+// enable pure virtual functions
+__NO_MANGELING void __cxa_pure_virtual() {}
