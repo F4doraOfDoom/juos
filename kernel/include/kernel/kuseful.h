@@ -46,7 +46,6 @@ inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
 #define BIT_CLEAR(a, b, off)    ((a)[b] &= ~BIT_MASK(off))
 #define BIT_TEST(a, b, off)     ((a)[b] & BIT_MASK(off))
 
-
 #define OFFSET_OF(struct, field) ((int)(&( ((struct*)(0))->field )))
 
 

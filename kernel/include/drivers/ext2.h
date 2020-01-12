@@ -1,11 +1,19 @@
 #ifndef DRIVER_EXT2_H_
 #define DRIVER_EXT2_H_
 
-#include <kernel/storage.h>
-#include <kernel/kdef.h>
 #include <stdint.h>
+#include <string.h>
+
+#include <kernel/storage.h>
+#include <kernel/vfs.h>
+
+#include <kernel/kdef.h>
+#include <kernel/kuseful.h>
 
 NAMESPACE_BEGIN(ext2)
+
+    MACRO(SECTOR_SIZE_BYTES,    512);
+    MACRO(EXT2_SIGN,            0xef53);
 
     enum class FsState : uint16_t
     {
@@ -184,6 +192,38 @@ NAMESPACE_BEGIN(ext2)
         uint32_t                fragment_block_addr ; // Block address of fragment 
         uint32_t                os_specific_2[3]    ; // Operating System Specific Value #2                 
     };
+
+    struct FsDescriptor
+    {
+        uint32_t block_size;
+    };
+
+    class Fs : public kernel::FsHandler
+    {
+    public:
+        /**
+         * @brief Construct a new Ext 2 Fs object
+         * 
+         * @param storage_device - pointer to a class implementing StorageDeviceHandler,
+         * that handles reading and writing from the OS's storage medium
+         */
+        Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor);
+
+
+        // TODO implement
+        virtual void create_file(const char* filename) override {}
+
+        virtual void delete_file(const char* filename) override {}
+
+    private:
+        void _read_storage(char* buffer, uint32_t block, uint32_t n);
+
+        void _write_storage(const char* buffer, uint32_t block, uint32_t n);
+
+        kernel::StorageDeviceHandler*   _storage_device;
+        FsDescriptor                    _info;
+    };
+
 NAMESPACE_END(ext2)
 
 #endif //DRIVER_EXT2_H_

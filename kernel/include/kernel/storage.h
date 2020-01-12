@@ -3,9 +3,13 @@
 
 #include <stdint.h>
 
+#include <kernel/kdef.h>
+
+NAMESPACE_BEGIN(kernel)
+
 /**
  * @brief All drivers handling storage (such as an ATA driver for the HDD),
- * must implement this interface, as it is used by the VFS to read/write
+ * must implement this interface, as it is used by the FS implementation to read/write
  * sectors to the storage medium.
  * 
  */
@@ -32,6 +36,10 @@ struct StorageDeviceHandler
          * @return false if write is unsuccessful
          */
         virtual bool write_sectors(const char* buffer, uint32_t lba, uint32_t sectors) = 0;
+
+        virtual ~StorageDeviceHandler() = default;
 };
+
+NAMESPACE_END(kernel)
 
 #endif // KERNEL_STORAGE_H_

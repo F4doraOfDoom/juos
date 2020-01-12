@@ -140,7 +140,7 @@ inline void SET_LBA(uint32_t lba)
 
 static DeviceInfoResult _get_device_info(Bus bus);
 
-Device ata::create_device()
+Device* ata::create_device()
 {
 #ifdef K_LOG_GENERAL
     LOG_S("ATA Driver: ", "Initializing...\n");
@@ -182,7 +182,7 @@ Device ata::create_device()
     } 
 
     // kind of ignore slave
-    return Device(DeviceType::Master, device_info.master);
+    return new Device(DeviceType::Master, device_info.master);
 }
 
 FindDeviceResult ata::find_devices()

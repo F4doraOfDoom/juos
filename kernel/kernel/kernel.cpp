@@ -50,7 +50,6 @@ __NO_MANGELING void kernel_main(void) {
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();
-
 	// after this initialization, operators new and delete can be used
 	memory_manager::initialize(
 		K_HEAP_START, // beginning address
@@ -62,10 +61,15 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
+	auto storage_device = ata::create_device();
+
 	printf("Hello EXT2!\n");
 
-	//static_assert(sizeof(ext2::InodeTypeAndPermission) == 2);
-	printf("Sizeof: %d\n", OFFSET_OF(ext2::SuperBlock, ext2_sign));
+	ext2::FsDescriptor desc {.block_size = 1024};
+	auto fs = new ext2::Fs { storage_device, desc };
+
+	fs->create_file("hello world!");
+
 
 	for (;;)
 	{
@@ -74,7 +78,8 @@ __NO_MANGELING void kernel_main(void) {
 		);
 	}
 
-
+	delete fs;
+	delete storage_device;
 }
 
 void divide_by_zero(void* r)

@@ -146,7 +146,7 @@ NAMESPACE_BEGIN(ata)
         DeviceInfoResult slave;
     };
  
-    class Device : public StorageDeviceHandler
+    class Device : public kernel::StorageDeviceHandler
     {
     private:
         struct Request {
@@ -223,7 +223,7 @@ NAMESPACE_BEGIN(ata)
      * @brief Initialize the ATA driver
      * 
      */
-    Device create_device();
+    [[nodiscard]] Device* create_device();
 
     /**
      * @brief Will poll the buses to see if there are any ata devices
