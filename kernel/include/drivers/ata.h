@@ -123,7 +123,7 @@ NAMESPACE_BEGIN(ata)
             struct __PACKED {
                 uint16_t low;
                 uint16_t high;
-            }  sectors                     = { 0 };
+            }  sectors                     = { 0, 0 };
             uint32_t value;
         }   LBA28_sectors;
         
@@ -134,7 +134,7 @@ NAMESPACE_BEGIN(ata)
                 uint16_t low_mid;
                 uint16_t mid_high;
                 uint16_t high;
-            }  sectors                  = { 0 };
+            }  sectors                  = { 0, 0, 0, 0 };
             uint64_t value;
         } LBA48_sectors;
 

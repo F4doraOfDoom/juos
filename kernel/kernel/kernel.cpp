@@ -12,6 +12,7 @@
 #include <kernel/knew.hpp>
 #include <kernel/kuseful.h>
 #include <drivers/ata.h>
+#include <drivers/ext2.h>
 
 #include <kernel/kstdcxx.hpp>
 #include <list.hpp>
@@ -22,6 +23,8 @@
 using namespace kernel;
 
 void divide_by_zero(void*);
+__NO_MANGELING void kernel_main(void);
+__NO_MANGELING void __cxa_pure_virtual();
 
 struct Something
 {
@@ -59,18 +62,10 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	printf("Hello ata!\n");
-	auto device = ata::create_device();
+	printf("Hello EXT2!\n");
 
-	char buffer[512] = { 0 };
-	char msg[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	char change[] = "AAAA";
-
-	device.write_sectors(msg, 0, 1);
-	//device.write_bytes(change, 1, 4);
-	device.read_sectors(buffer, 0, 1);
-
-	printf("Buf %s\n", buffer);
+	//static_assert(sizeof(ext2::InodeTypeAndPermission) == 2);
+	printf("Sizeof: %d\n", OFFSET_OF(ext2::SuperBlock, ext2_sign));
 
 	for (;;)
 	{

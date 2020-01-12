@@ -91,9 +91,6 @@ void* operator new(size_t size)
     return kernel::memory_manager::malloc(size);
 }
 
-
-
-
 void* operator new[](size_t size)
 {
 #ifdef K_LOG_MALLOC
@@ -107,6 +104,24 @@ void operator delete(void* ptr)
 {
 #ifdef K_LOG_MALLOC
     LOG_SA("NEW: ", "Deleting object the at %p\n", ptr);
+#endif
+
+    kernel::memory_manager::free(ptr);
+}
+
+void operator delete(void* ptr, long unsigned int)
+{
+#ifdef K_LOG_MALLOC
+    LOG_SA("NEW: ", "Deleting object the at %p\n", ptr);
+#endif
+
+    kernel::memory_manager::free(ptr);
+}
+
+void operator delete[](void* ptr, long unsigned int)
+{
+#ifdef K_LOG_MALLOC
+    LOG_SA("NEW: ", "Deleting object[] the at %p\n", ptr);
 #endif
 
     kernel::memory_manager::free(ptr);

@@ -243,9 +243,7 @@ bool Device::write_bytes(const char* input, uint32_t location, uint32_t count)
 
 bool Device::read_sectors(char* buffer, uint32_t LBA, uint32_t sectors)
 {
-    int count = 1;      //number of sectors to read     
     char slavebit =0;   //0 for master device 1 for slave   sets bit 5 in 1f6
-    int stat = 0;
 
     DISABLE_INTERRUPTS();
 
@@ -274,7 +272,6 @@ bool Device::read_sectors(char* buffer, uint32_t LBA, uint32_t sectors)
  
 bool Device::write_sectors(const char* buffer, uint32_t LBA, uint32_t sectors)
 {
-    int stat;
     DISABLE_INTERRUPTS();
 
     SET_HEAD(LBA, 0);
@@ -295,7 +292,7 @@ bool Device::write_sectors(const char* buffer, uint32_t LBA, uint32_t sectors)
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();
 
-    StatusRegister status ={.value =  READ_BYTE(IoRegister::Status)};
+    READ_BYTE(IoRegister::Status);
 
     rep_outsw(0x1f0, buffer, 256);
 
@@ -372,6 +369,8 @@ DeviceInfoResult _get_device_info(Bus bus)
         return device_propreties;
     }
 
+    // please no angry gcc
+    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
     return { .found = false };
 }
 

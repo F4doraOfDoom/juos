@@ -7,7 +7,7 @@
 
 NAMESPACE_BEGIN(ext2)
 
-    enum class FsState 
+    enum class FsState : uint16_t
     {
         Clean,
         HasErrors
@@ -20,7 +20,7 @@ NAMESPACE_BEGIN(ext2)
         Panic
     } __PACKED;
 
-    enum class OsId
+    enum class OsId : uint32_t
     {
         Linux   = 0,
         Gnu     = 1,
@@ -46,31 +46,31 @@ NAMESPACE_BEGIN(ext2)
 
     struct SuperBlock
     {
-        uint32_t total_inodes            : 4; //  Total number of inodes in file system 
-        uint32_t total_blocks            : 4; //  Total number of blocks in file system 
-        uint32_t n_su_blocks             : 4; //  Number of blocks reserved for superuser (see offset 80) 
-        uint32_t unallocated_blocks      : 4; //  Total number of unallocated blocks 
-        uint32_t unallocated_inodes      : 4; //  Total number of unallocated inodes 
-        uint32_t sb_block                : 4; //  Block number of the block containing the superblock 
-        uint32_t block_size              : 4; //  log2 (block size) - 10. (In other words, the number to shift 1,024 to the left by to obtain the block size) 
-        uint32_t fragment_size           : 4; //  log2 (fragment size) - 10. (In other words, the number to shift 1,024 to the left by to obtain the fragment size) 
-        uint32_t group_block_size        : 4; //  Number of blocks in each block group 
-        uint32_t group_fragment_size     : 4; //  Number of fragments in each block group 
-        uint32_t group_inode_size        : 4; //  Number of inodes in each block group 
-        uint32_t last_mount_time         : 4; //  Last mount time (in POSIX time)     
-        uint32_t last_written_time       : 4; //  Last written time (in POSIX time) 
-        uint32_t mount_since_last_ck     : 2; //  Number of times the volume has been mounted since its last consistency check (fsck) 
-        uint32_t n_mounts_before_ck      : 2; //  Number of mounts allowed before a consistency check (fsck) must be done 
-        uint32_t ext2_sign               : 2; //  Ext2 signature (0xef53), used to help confirm the presence of Ext2 on a volume 
-        FsState fs_state                 : 2; //  File system state (see below) 
-        uint32_t err_handling_spec       : 2; //  What to do when an error is detected (see below) 
-        uint32_t version_minor           : 2; //  Minor portion of version (combine with Major portion below to construct full version field) 
-        uint32_t last_ck_time            : 4; //  POSIX time of last consistency check (fsck) 
-        uint32_t forced_ck_interval      : 4; //  Interval (in POSIX time) between forced consistency checks (fsck) 
-        OsId os_id                       : 4; //  Operating system ID from which the filesystem on this volume was created (see below)  
-        uint32_t version_major           : 4; //  Major portion of version (combine with Minor portion above to construct full version field) 
-        uint32_t uid_can_reserve         : 2; //  User ID that can use reserved blocks 
-        uint32_t gid_can_reserve         : 2; //  Group ID that can use reserved blocks 
+        uint32_t total_inodes            ; //  Total number of inodes in file system 
+        uint32_t total_blocks            ; //  Total number of blocks in file system 
+        uint32_t n_su_blocks             ; //  Number of blocks reserved for superuser (see offset 80) 
+        uint32_t unallocated_blocks      ; //  Total number of unallocated blocks 
+        uint32_t unallocated_inodes      ; //  Total number of unallocated inodes 
+        uint32_t sb_block                ; //  Block number of the block containing the superblock 
+        uint32_t block_size              ; //  log2 (block size) - 10. (In other words, the number to shift 1,024 to the left by to obtain the block size) 
+        uint32_t fragment_size           ; //  log2 (fragment size) - 10. (In other words, the number to shift 1,024 to the left by to obtain the fragment size) 
+        uint32_t group_block_size        ; //  Number of blocks in each block group 
+        uint32_t group_fragment_size     ; //  Number of fragments in each block group 
+        uint32_t group_inode_size        ; //  Number of inodes in each block group 
+        uint32_t last_mount_time         ; //  Last mount time (in POSIX time)     
+        uint32_t last_written_time       ; //  Last written time (in POSIX time) 
+        uint16_t mount_since_last_ck     ; //  Number of times the volume has been mounted since its last consistency check (fsck) 
+        uint16_t n_mounts_before_ck      ; //  Number of mounts allowed before a consistency check (fsck) must be done 
+        uint16_t ext2_sign               ; //  Ext2 signature (0xef53), used to help confirm the presence of Ext2 on a volume 
+        FsState fs_state                 ; //  File system state (see below) 
+        uint16_t err_handling_spec       ; //  What to do when an error is detected (see below) 
+        uint16_t version_minor           ; //  Minor portion of version (combine with Major portion below to construct full version field) 
+        uint32_t last_ck_time            ; //  POSIX time of last consistency check (fsck) 
+        uint32_t forced_ck_interval      ; //  Interval (in POSIX time) between forced consistency checks (fsck) 
+        OsId os_id                       ; //  Operating system ID from which the filesystem on this volume was created (see below)  
+        uint32_t version_major           ; //  Major portion of version (combine with Minor portion above to construct full version field) 
+        uint16_t uid_can_reserve         ; //  User ID that can use reserved blocks 
+        uint16_t gid_can_reserve         ; //  Group ID that can use reserved blocks 
     } __PACKED;
 
     struct BlockGroupDescriptor
@@ -114,49 +114,76 @@ NAMESPACE_BEGIN(ext2)
 
             StickyBit   = 0x200,
             SetGroupId  = 0x400,
-            SetUserId   = 0x800
+            SetUserId   = 0x800,
         } __PACKED;
 
-        struct PermissionStruct 
+
+        // as defined in PermissionFlags
+        uint8_t other_x     : 1;
+        uint8_t other_w     : 1;
+        uint8_t other_r     : 1;
+
+        uint8_t group_x     : 1;
+        uint8_t group_w     : 1;
+        uint8_t group_r     : 1;
+        
+        uint8_t user_x      : 1;
+        uint8_t user_w      : 1;
+        uint8_t user_r      : 1;    
+
+        uint8_t sticky_bit  : 1;
+        uint8_t set_grp_id  : 1;
+        uint8_t set_usr_id  : 1;
+
+        // as defined in Type
+        uint32_t type       : 4;
+    } __PACKED;
+ 
+    union InodeFlags
+    {
+        struct flags
         {
-            uint32_t OtherX      : 1;
-            uint32_t OtherW      : 1;
-            uint32_t OtherR      : 1;
-            uint32_t GroupX      : 1;
-            uint32_t GroupW      : 1;
-            uint32_t GroupR      : 1;
-            uint32_t UserX       : 1;
-            uint32_t UserW       : 1;
-            uint32_t UserR       : 1;
-            uint32_t StickyBit   : 1;
-            uint32_t SetGroupId  : 1;
-            uint32_t SetUserId   : 1;
-        } __PACKED;
+            uint8_t secure_deletion         : 1; // Secure deletion (not used) 
+            uint8_t keep_copy_on_deletion   : 1; // Keep a copy of data when deleted (not used) 
+            uint8_t file_compression        : 1; // File compression (not used) 
+            uint8_t syncronouse_updates     : 1; // Synchronous updates—new data is written immediately to disk 
+            uint8_t immutable_file          : 1; // Immutable file (content cannot be changed) 
+            uint8_t append_only             : 1; // Append only 
+            uint8_t not_in_dump             : 1; // File is not included in 'dump' command 
+            uint8_t lat_no_update           : 1; // Last accessed time should not updated 
+            uint8_t reserved                : 8; // reserved
+            uint8_t hash_indexed_dir        : 1; // Hash indexed directory 
+            uint8_t afs_dir                 : 1; // AFS Directory
+            uint8_t journal_file_data       : 1; // Journal file data 
+        };
 
-        union Permissions
-        {
-            PermissionStruct    flags;
-            uint32_t            value : 18;
-        } __PACKED;
-
-        Type        type;
-        Permissions permissions;
-
+        uint32_t value;
     } __PACKED;
 
     struct Inode
     {
-        InodeTypeAndPermission  type_permission;         // Type and Permissions (see below) 
-        uint32_t                user_id             : 2; // User Id  
-        uint32_t                size_lower          : 4; // Lower 32 bits of size in bytes
-        uint32_t                last_access_time    : 4; // Last Access Time (in POSIX time)   
-        uint32_t                creation_time       : 4; // Creation Time (in POSIX time) 
-        uint32_t                last_mod_time       : 4; // Last Modification time (in POSIX time) 
-        uint32_t                deletion_time       : 4; // Last Modification time (in POSIX time) 
-    
-        // TODO coninue
+        InodeTypeAndPermission  type_permission     ; // Type and Permissions (see below) 
+        uint16_t                user_id             ; // User Id  
+        uint16_t                size_lower          ; // Lower 32 bits of size in bytes
+        uint32_t                last_access_time    ; // Last Access Time (in POSIX time)   
+        uint32_t                creation_time       ; // Creation Time (in POSIX time) 
+        uint32_t                last_mod_time       ; // Last Modification time (in POSIX time) 
+        uint32_t                deletion_time       ; // Deletion time (in POSIX time) 
+        uint16_t                group_id            ; // Group ID
+        uint16_t                n_hard_links        ; //  Count of hard links (directory entries) to this inode. When this reaches 0, the data blocks are marked as unallocated. 
+        uint32_t                n_disk_sectors      ; //  Count of disk sectors (not Ext2 blocks) in use by this inode, not counting the actual inode structure nor directory entries linking to the inode.         
+        InodeFlags              flags               ;
+        uint32_t                os_specific_1       ; // Operating System Specific value #1
+        uint32_t                block_ptrs[12]      ; // Pointers to data blocks
+        uint32_t                indirect_ptr_1      ; // Singly Indirect Block Pointer (Points to a block that is a list of block pointers to data) 
+        uint32_t                indirect_ptr_2      ; // Doubly Indirect Block Pointer (Points to a block that is a list of block pointers to Singly Indirect Blocks) 
+        uint32_t                indirect_ptr_3      ; // Triply Indirect Block Pointer (Points to a block that is a list of block pointers to Doubly Indirect Blocks) 
+        uint32_t                generation_number   ; // Generation number (Primarily used for NFS) 
+        uint32_t                extended_attr_blk   ; // In Ext2 version 0, this field is reserved. In version >= 1, Extended attribute block (File ACL). 
+        uint32_t                file_size_upper     ; // In Ext2 version 0, this field is reserved. In version >= 1, Upper 32 bits of file size (if feature bit set) if it's a file, Directory ACL if it's a directory 
+        uint32_t                fragment_block_addr ; // Block address of fragment 
+        uint32_t                os_specific_2[3]    ; // Operating System Specific Value #2                 
     };
-
 NAMESPACE_END(ext2)
 
 #endif //DRIVER_EXT2_H_

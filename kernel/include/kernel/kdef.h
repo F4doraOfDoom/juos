@@ -47,10 +47,13 @@
 /*
     Compiler specific
 */
-#ifdef __GNUC__
+#ifdef __GNUC__ 
+    #pragma GCC diagnostic ignored "-Wattributes"
     #define __PACKED        __attribute__((packed))
     #define __IS_USED       __attribute__((used))
     #define __ALIGNED(x)    __attribute__((aligned(x)))
+    #define __MAYBE_UNUSED  __attribute__((unused))
+    #define __IGNORE(warning)   GCC diagnostic ignored "warning"
 #else
     // add flags from different compilers
 #endif

@@ -8,7 +8,7 @@
 
 #include <arch/i386/vgh.h>
 
-static void _terminal_setcolor(uint8_t color);
+static void _terminal_setcolor(uint8_t color) __MAYBE_UNUSED;
 static void _terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y);
 
 static const size_t VGA_WIDTH = 80;
@@ -96,6 +96,7 @@ void tty::clean()
 		}
 	}
 }
+
 
 void _terminal_setcolor(uint8_t color) 
 {
