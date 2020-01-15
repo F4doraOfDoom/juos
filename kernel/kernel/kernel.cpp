@@ -70,7 +70,6 @@ __NO_MANGELING void kernel_main(void) {
 
 	fs->create_file("hello world!");
 
-
 	for (;;)
 	{
 		asm volatile (
