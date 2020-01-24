@@ -70,7 +70,7 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
         page->rw = false;
         page->frame_addr = res.idx;        
 
-        frame_table.set_at_addr(top);
+        frame_table.set_at_idx(res.idx);
     }
 
     return pages_created;
@@ -91,7 +91,7 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 {
     LOG_S("PAGING: ", "Initializing...\n");
 
-    auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE;
+    auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE * 10;
     
     page_directory_t* kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
     memset((char*)kernel_directory, '\0', sizeof(page_directory_t));
@@ -103,6 +103,7 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 
     if (heap_mapping)
     {
+        BREAKPOINT();
         // map the heap
         uint32_t heap_end = K_HEAP_START + K_HEAP_INITIAL_SIZE;
         pages_created += map_region(K_HEAP_START, heap_end, kernel_directory);

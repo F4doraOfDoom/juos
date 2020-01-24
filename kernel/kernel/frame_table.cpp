@@ -24,6 +24,11 @@ void FrameTable::set_at_addr(uint32_t addr)
     this->frames[addr / PAGE_SIZE].is_taken = true;
 } 
 
+void FrameTable::set_at_idx(uint32_t idx)
+{
+    this->frames[idx].is_taken = true;
+}
+
 kernel::paging::frame_table_t::FrameTable(uint32_t length)
 {
     this->length = length;

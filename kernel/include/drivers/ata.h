@@ -175,7 +175,7 @@ NAMESPACE_BEGIN(ata)
          * @return true 
          * @return false 
          */
-        bool read_bytes(char* buffer, uint32_t loc, uint32_t count);
+        bool read_bytes(uint8_t* buffer, uint32_t loc, uint32_t count);
 
         /**
          * @brief DEPRECATED - user write_sectors instead
@@ -186,7 +186,7 @@ NAMESPACE_BEGIN(ata)
          * @return true 
          * @return false 
          */
-        bool write_bytes(const char* buffer, uint32_t loc, uint32_t count);
+        bool write_bytes(const uint8_t* buffer, uint32_t loc, uint32_t count);
 
         /**
          * @brief Read a _sectors_ count of sectors from LBA _lba_ to _buffer_
@@ -197,7 +197,7 @@ NAMESPACE_BEGIN(ata)
          * @return true if read is successful (not really working though)
          * @return false if read is unsuccessful
          */
-        virtual bool read_sectors(char* buffer, uint32_t lba, uint32_t sectors) override;
+        virtual bool read_sectors(uint8_t* buffer, uint32_t lba, uint32_t sectors) override;
 
          /**
          * @brief Write a _sectors_ count of sectors to LBA _lba_ from _buffer_
@@ -208,7 +208,7 @@ NAMESPACE_BEGIN(ata)
          * @return true if write is successful(not really working though)
          * @return false if write is unsuccessful
          */
-        virtual bool write_sectors(const char* buffer, uint32_t lba, uint32_t sectors) override;
+        virtual bool write_sectors(const uint8_t* buffer, uint32_t lba, uint32_t sectors) override;
 
     private:
         //uint32_t    _int_buffer[512] = { 0 };

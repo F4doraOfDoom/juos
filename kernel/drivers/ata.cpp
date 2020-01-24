@@ -202,12 +202,12 @@ Device::Device(DeviceType type, const DeviceInfoResult& res) :
 {
 }
 
-bool Device::read_bytes(char* output, uint32_t location, uint32_t count)
+bool Device::read_bytes(uint8_t* output, uint32_t location, uint32_t count)
 {
     auto sectors = ALIGN_VAL(count, SECTOR_SIZE_BYTES) / SECTOR_SIZE_BYTES;
     auto lba = (int)(location / SECTOR_SIZE_BYTES);
 
-    char* buffer = new char[sectors * SECTOR_SIZE_BYTES];
+    uint8_t* buffer = new uint8_t[sectors * SECTOR_SIZE_BYTES];
     //char buffer[512] = {0};
 
     bool success = read_sectors(buffer, lba, sectors);
@@ -221,12 +221,12 @@ bool Device::read_bytes(char* output, uint32_t location, uint32_t count)
     return success;
 }
 
-bool Device::write_bytes(const char* input, uint32_t location, uint32_t count)
+bool Device::write_bytes(const uint8_t* input, uint32_t location, uint32_t count)
 {
     auto sectors = ALIGN_VAL(count, SECTOR_SIZE_BYTES) / SECTOR_SIZE_BYTES;
     auto lba = (int)(location / SECTOR_SIZE_BYTES);
 
-    char* buffer = new char[sectors * SECTOR_SIZE_BYTES];
+    uint8_t* buffer = new uint8_t[sectors * SECTOR_SIZE_BYTES];
     
     read_sectors(buffer, lba, sectors);
 
@@ -241,7 +241,7 @@ bool Device::write_bytes(const char* input, uint32_t location, uint32_t count)
     return success;
 }
 
-bool Device::read_sectors(char* buffer, uint32_t LBA, uint32_t sectors)
+bool Device::read_sectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
 {
     char slavebit =0;   //0 for master device 1 for slave   sets bit 5 in 1f6
 
@@ -270,7 +270,7 @@ bool Device::read_sectors(char* buffer, uint32_t LBA, uint32_t sectors)
     return READ_BYTE(IoRegister::Status);
 }
  
-bool Device::write_sectors(const char* buffer, uint32_t LBA, uint32_t sectors)
+bool Device::write_sectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors)
 {
     DISABLE_INTERRUPTS();
 

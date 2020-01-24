@@ -15,6 +15,7 @@ function list_include_item {
   return $result
 }
 
+
 export SCRIPT_ARGS="$1"
 export KERNEL_BUILD_ARGS="$2"
 export LIBC_BUILD_ARGS="$3"

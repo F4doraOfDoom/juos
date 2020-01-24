@@ -137,6 +137,8 @@ static void* __malloc_big(uint32_t req_size)
     uint32_t  smallest_hole_value = -1; // max uint32_t value
     big_chunk_t* ret = nullptr;
 
+    //req_size += sizeof(big_chunk_t);
+
     // no chunks are allocated
     if (!__mapped_heap->allocated_chunks)
     {
@@ -196,6 +198,8 @@ static void* __malloc_big(uint32_t req_size)
         else
         {
             void* new_chunk_location = PTR_ADVANCE(curr_chunk, curr_chunk->size);//((uint32_t*)curr_chunk) + curr_chunk->size;
+            // size for header
+            // new_chunk_location = PTR_ADVANCE(new_chunk_location, sizeof(big_chunk_t));
 
             // clear any garbage found
             memset(new_chunk_location, 0, sizeof(big_chunk_t));
@@ -338,7 +342,7 @@ void* kernel::memory_manager::malloc(size_t size)
         // we always have a few bits at the end of the "size"
         // to use to our needs. Thus, we can save a few bytes
         // of overhead
-        size = ALIGN_VAL(size, CHUNK_SIZE_ALIGN);
+        size = ALIGN_VAL(size + sizeof(big_chunk_t), CHUNK_SIZE_ALIGN);
         return __malloc_big(size);
     }
 }

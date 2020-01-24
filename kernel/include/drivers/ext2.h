@@ -193,6 +193,38 @@ NAMESPACE_BEGIN(ext2)
         uint32_t                os_specific_2[3]    ; // Operating System Specific Value #2                 
     };
 
+    struct BlockGroupTable
+    {
+        /**
+         * @brief Construct a new Block Group objects
+         * 
+         * @param is_read - is this object constructed to read data from storage?
+         * 
+         */
+        BlockGroupTable(bool is_read) : _read(is_read) {}
+
+        // deprecated default constructor
+        BlockGroupTable() {}
+
+        BlockGroupDescriptor    group_descriptor;
+        uint8_t*                block_bitmap;
+        uint8_t*                inode_bitmap;
+        Inode*                  inode_table;
+    
+        ~BlockGroupTable()
+        {
+            if (_read)
+            {
+                delete[] block_bitmap;
+                delete[] inode_bitmap;
+                delete[] inode_table;
+            }
+        }
+    private:
+        // Needed to know in order to clean up resources
+        bool _read;
+    };
+
     struct FsDescriptor
     {
         uint32_t block_size;
@@ -201,6 +233,13 @@ NAMESPACE_BEGIN(ext2)
     class Fs : public kernel::FsHandler
     {
     public:
+        
+        // cannot copy FS
+        Fs(const Fs&) = delete;
+        Fs(Fs&&) = delete;
+        Fs& operator=(const Fs&) = delete;
+        Fs& operator=(Fs&&) = delete;
+
         /**
          * @brief Construct a new Ext 2 Fs object
          * 
@@ -209,16 +248,23 @@ NAMESPACE_BEGIN(ext2)
          */
         Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor);
 
-
-        // TODO implement
         virtual void create_file(const char* filename) override {}
 
         virtual void delete_file(const char* filename) override {}
 
-    private:
-        void _read_storage(char* buffer, uint32_t block, uint32_t n);
+        // destructor to clean up resources
+        ~Fs();
 
-        void _write_storage(const char* buffer, uint32_t block, uint32_t n);
+    private:
+        void _read_storage(uint8_t* buffer, uint32_t block, uint32_t n);
+
+        void _write_storage(const uint8_t* buffer, uint32_t block, uint32_t n);
+
+        void _read_object_from_block(void* obj, uint32_t block, uint32_t obj_size);
+
+        void _write_object_to_block(void* obj, uint32_t block, uint32_t obj_size);
+
+        void _zero_block(uint32_t block);
 
         /**
          * @brief Parse SuperBlock metadata from block _sb_block_idx_s_
@@ -230,6 +276,16 @@ NAMESPACE_BEGIN(ext2)
          * @return SuperBlock 
          */
         SuperBlock _get_super_block(uint32_t sb_block_idx, bool create_new = false, const FsDescriptor* descriptor = nullptr);
+
+        /**
+         * @brief Parse the block group metadata of block group _block_idx_
+         * if _create_new_ is true, create a new block group, and the returned object's pointer
+         * will be null;
+         * 
+         * @param block_idx 
+         * @param create_new 
+         */
+        BlockGroupTable*    _get_block_group(uint32_t block_idx, bool create_new = false);
 
         kernel::StorageDeviceHandler*   _storage_device;
         FsDescriptor                    _info;

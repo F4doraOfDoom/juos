@@ -3,6 +3,7 @@
 
 #include "kdef.h"
 #include "kmm.h"
+#include "kuseful.h"
 #include "klog.h"
 
 

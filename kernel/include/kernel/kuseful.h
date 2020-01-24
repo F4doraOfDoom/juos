@@ -48,6 +48,7 @@ inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
 
 #define OFFSET_OF(struct, field) ((int)(&( ((struct*)(0))->field )))
 
+void BREAKPOINT(void);
 
 //#define BIT_NSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)
 

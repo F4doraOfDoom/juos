@@ -136,6 +136,8 @@ NAMESPACE_BEGIN(kernel)
             FrameTable() {};
 
             frame_table_result_t find_first();
+
+            void set_at_idx(uint32_t idx);
             void set_at_addr(uint32_t addr);
 
             Frame*      frames = nullptr;

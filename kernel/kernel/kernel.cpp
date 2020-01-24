@@ -26,15 +26,9 @@ void divide_by_zero(void*);
 __NO_MANGELING void kernel_main(void);
 __NO_MANGELING void __cxa_pure_virtual();
 
-struct Something
-{
-	Something()
-	{
-		memcpy(arr, "Hello new world!\n", 16);
-	}
-
-	char arr[16] = { 0 };
-};
+void BREAKPOINT() {
+	
+}
 
 __NO_MANGELING void kernel_main(void) {
 	/**
@@ -60,6 +54,16 @@ __NO_MANGELING void kernel_main(void) {
 	);
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+
+	memory_manager::malloc(0x400);
+	memory_manager::malloc(0x400);
+	memory_manager::malloc(0x400);
+	for(int i = 0; i < 100; i++)
+	{
+		void* ptr = memory_manager::malloc(0x400);
+		printf("ptr %p\n", ptr);
+		memset(ptr, '\x42', 0x400);
+	}
 
 	auto storage_device = ata::create_device();
 
