@@ -55,24 +55,14 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	memory_manager::malloc(0x400);
-	memory_manager::malloc(0x400);
-	memory_manager::malloc(0x400);
-	for(int i = 0; i < 100; i++)
-	{
-		void* ptr = memory_manager::malloc(0x400);
-		printf("ptr %p\n", ptr);
-		memset(ptr, '\x42', 0x400);
-	}
-
 	auto storage_device = ata::create_device();
 
 	printf("Hello EXT2!\n");
 
-	ext2::FsDescriptor desc {.block_size = 1024};
+	ext2::FsDescriptor desc {.block_size = 512};
 	auto fs = new ext2::Fs { storage_device, desc };
 
-	fs->create_file("hello world!");
+	fs->create_file("hello_world!");
 
 	for (;;)
 	{

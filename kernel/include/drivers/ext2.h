@@ -15,6 +15,11 @@ NAMESPACE_BEGIN(ext2)
     MACRO(SECTOR_SIZE_BYTES,    512);
     MACRO(EXT2_SIGN,            0xef53);
 
+    MACRO(FILENAME_LENGTH,      512);
+    MACRO(MAX_FILES,            1024);
+
+    MACRO(SUPER_BLOCK_IDX,      1);
+
     enum class FsState : uint16_t
     {
         Clean,
@@ -248,7 +253,7 @@ NAMESPACE_BEGIN(ext2)
          */
         Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor);
 
-        virtual void create_file(const char* filename) override {}
+        virtual void create_file(const char* filename) override;
 
         virtual void delete_file(const char* filename) override {}
 
@@ -256,15 +261,18 @@ NAMESPACE_BEGIN(ext2)
         ~Fs();
 
     private:
+
         void _read_storage(uint8_t* buffer, uint32_t block, uint32_t n);
 
         void _write_storage(const uint8_t* buffer, uint32_t block, uint32_t n);
 
         void _read_object_from_block(void* obj, uint32_t block, uint32_t obj_size);
 
-        void _write_object_to_block(void* obj, uint32_t block, uint32_t obj_size);
+        void _write_object_to_block(const void* obj, uint32_t block, uint32_t obj_size);
 
         void _zero_block(uint32_t block);
+
+        uint32_t    _get_available_inode_idx();
 
         /**
          * @brief Parse SuperBlock metadata from block _sb_block_idx_s_
@@ -287,8 +295,18 @@ NAMESPACE_BEGIN(ext2)
          */
         BlockGroupTable*    _get_block_group(uint32_t block_idx, bool create_new = false);
 
+        void _write_block_group(const BlockGroupTable* bg, uint32_t block_idx);
+
         kernel::StorageDeviceHandler*   _storage_device;
         FsDescriptor                    _info;
+
+        struct FileInode
+        {
+            uint8_t      name[256] = { 0 };
+            uint32_t     inode_idx;
+        };
+        FileInode _file_inodes_cache[1024];
+
     };
 
 NAMESPACE_END(ext2)

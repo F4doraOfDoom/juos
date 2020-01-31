@@ -7,8 +7,8 @@ static SuperBlock global_super_block;
 // static buffer the size of SECTOR_SIZE_BYTES, for reading writing sectors
 // static char     ext2_sector_buffer[SECTOR_SIZE_BYTES] = { 0 };
 // buffer the size of block_size in bytes, for reading/writing block
-static uint8_t*    ext2_block_buffer = nullptr;
-
+static uint8_t*     ext2_block_buffer = nullptr;
+//static uint8_t      __fs_buffer[SECTOR_SIZE_BYTES];
 
 // how many sectors are in a block
 static uint32_t sectors_per_block = 0;
@@ -23,6 +23,27 @@ static inline void ZERO_BUFFER(uint8_t* buffer, size_t size)
     memset(buffer, '\x00', size);
 }
 
+static inline uint32_t BYTES_TO_BLOCKS(uint32_t bytes)
+{
+    return bytes / global_super_block.block_size;
+}
+
+static inline uint32_t INODE_IDX_TO_BLOCK_GROUP(uint32_t idx)
+{
+    return ((idx - 1) / global_super_block.group_inode_size) 
+        + SUPER_BLOCK_IDX + 1; // first block_group is at the block after the super_block
+}
+
+static inline uint32_t INODE_IDX_IN_BLOCK_GROUP(uint32_t idx)
+{
+    return (idx - 1) % global_super_block.group_inode_size;
+}
+
+static inline uint32_t INODE_IDX_CONTAINING_BLOCK(uint32_t idx)
+{
+    return (idx * sizeof(Inode)) / global_super_block.block_size;
+}
+
 Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor)
                                                                 : _storage_device(storage_device),
                                                                    _info(descriptor) 
@@ -30,14 +51,77 @@ Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descrip
     ASSERT(descriptor.block_size % SECTOR_SIZE_BYTES == 0);
 
     ext2_block_buffer = new uint8_t[descriptor.block_size];
-
-    // get the super block from block 1
-    global_super_block = _get_super_block(1);
+    memset(_file_inodes_cache, 0, sizeof(_file_inodes_cache));
+    
     sectors_per_block = (descriptor.block_size / SECTOR_SIZE_BYTES);
 
-    auto block_group = _get_block_group(2);
+    // get the super block from block 1
+    global_super_block = _get_super_block(SUPER_BLOCK_IDX
+#ifdef K_NEW_STORAGE
+    , true
+    , &descriptor
+#endif
+    );
     
-    block_group->block_bitmap = nullptr;
+
+    auto block_group = _get_block_group((SUPER_BLOCK_IDX + 1)
+#ifdef K_NEW_STORAGE
+    , true
+#endif
+    );
+    block_group->block_bitmap = block_group->block_bitmap;
+
+    _file_inodes_cache[0].inode_idx = 1;
+    memcpy(_file_inodes_cache[0].name, "root", 5); 
+
+    delete block_group;
+}
+
+void Fs::create_file(const char* filename)
+{
+    auto idx = _get_available_inode_idx();
+
+    ASSERT(idx != ((uint32_t)-1));
+    ASSERT(strlen(filename) < FILENAME_LENGTH);
+
+    memcpy(_file_inodes_cache[idx].name, filename, strlen(filename));
+
+    auto bg_idx = INODE_IDX_TO_BLOCK_GROUP(idx);
+    auto bg = _get_block_group(bg_idx);
+
+    auto inode = &bg->inode_table[INODE_IDX_TO_BLOCK_GROUP(idx)];
+
+    printf("%d\n", inode->user_id);
+    inode->user_id = 0x49;
+    inode->size_lower = 0x1111;
+
+    bg->inode_bitmap[INODE_IDX_IN_BLOCK_GROUP(idx)] = 1;
+
+    _write_block_group(bg, bg_idx);
+}
+
+void Fs::_write_block_group(const BlockGroupTable* bg, uint32_t block_idx)
+{
+    const auto& descriptor = bg->group_descriptor;
+
+    _write_object_to_block(&bg->group_descriptor, block_idx, sizeof(BlockGroupDescriptor));
+
+    _write_storage(bg->block_bitmap, descriptor.block_bitmap_block, BYTES_TO_BLOCKS(_info.block_size));
+    _write_storage(bg->inode_bitmap, descriptor.inode_bitmap_block, BYTES_TO_BLOCKS(_info.block_size));
+    _write_storage((uint8_t*)(bg->inode_table), descriptor.inode_table_start_block, BYTES_TO_BLOCKS(global_super_block.group_inode_size * sizeof(Inode)));
+}
+
+uint32_t Fs::_get_available_inode_idx()
+{
+    for (uint32_t i = 0; i < MAX_FILES; i++)
+    {
+        if (_file_inodes_cache[i].inode_idx == 0)
+        {
+            return i + 1;
+        }
+    }
+
+    return -1;
 }
 
 SuperBlock Fs::_get_super_block(uint32_t sb_block_idx, bool create_new, const FsDescriptor* descriptor)
@@ -52,7 +136,7 @@ SuperBlock Fs::_get_super_block(uint32_t sb_block_idx, bool create_new, const Fs
         ASSERT(descriptor != nullptr);
         memset(&super_block, 0, sizeof(SuperBlock));
 
-        super_block.total_inodes        = 0;
+        super_block.total_inodes        = -1;
         super_block.total_inodes        = 0;
         super_block.n_su_blocks         = 0;
         super_block.unallocated_blocks  = 0;
@@ -143,7 +227,6 @@ BlockGroupTable* Fs::_get_block_group(uint32_t block_idx, bool create_new)
         block_group->inode_bitmap = new uint8_t[_info.block_size];
         block_group->inode_table = new Inode[global_super_block.group_inode_size];
 
-        BREAKPOINT();
         _read_object_from_block(&block_group->group_descriptor, block_idx, sizeof(BlockGroupDescriptor));
         
         ASSERT(block_group->group_descriptor.block_bitmap_block != 0);
@@ -160,7 +243,7 @@ BlockGroupTable* Fs::_get_block_group(uint32_t block_idx, bool create_new)
     return block_group;
 }
 
-void Fs::_write_object_to_block(void* obj, uint32_t block, uint32_t obj_size)
+void Fs::_write_object_to_block(const void* obj, uint32_t block, uint32_t obj_size)
 {
     ZERO_BUFFER(ext2_block_buffer, _info.block_size);
     memcpy(ext2_block_buffer, obj, obj_size);
@@ -177,12 +260,24 @@ void Fs::_read_object_from_block(void* obj, uint32_t block, uint32_t obj_size)
 
 void Fs::_read_storage(uint8_t* buffer, uint32_t block, uint32_t n_blocks)
 {    
-    _storage_device->read_sectors(buffer, BLOCK_TO_SECTOR(block, _info.block_size), sectors_per_block * n_blocks);
+    auto n_sectors      = sectors_per_block * n_blocks;
+    auto sector_start   = BLOCK_TO_SECTOR(block, _info.block_size);
+
+    for (uint32_t i = 0; i < n_sectors; i++)
+    {
+        _storage_device->read_sectors(buffer + (i * SECTOR_SIZE_BYTES), sector_start + i, 0);
+    }
 }
 
 void Fs::_write_storage(const uint8_t* buffer, uint32_t block, uint32_t n_blocks)
 {
-    _storage_device->write_sectors(buffer, BLOCK_TO_SECTOR(block, _info.block_size), sectors_per_block * n_blocks);
+    auto n_sectors      = sectors_per_block * n_blocks;
+    auto sector_start   = BLOCK_TO_SECTOR(block, _info.block_size);
+
+    for (uint32_t i = 0; i < n_sectors; i++)
+    {
+        _storage_device->write_sectors(buffer + (i * SECTOR_SIZE_BYTES), sector_start + i, 0);
+    }
 }
 
 void Fs::_zero_block(uint32_t block)
