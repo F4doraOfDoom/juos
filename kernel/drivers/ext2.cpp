@@ -50,25 +50,26 @@ Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descrip
 {
     ASSERT(descriptor.block_size % SECTOR_SIZE_BYTES == 0);
 
+#ifdef K_LOG_EXT2
+    LOG_SA("EXT2: ", "Initializing... StorageDevice: %p, descriptor: %p\n", storage_device, descriptor);
+#endif
+
     ext2_block_buffer = new uint8_t[descriptor.block_size];
     memset(_file_inodes_cache, 0, sizeof(_file_inodes_cache));
     
     sectors_per_block = (descriptor.block_size / SECTOR_SIZE_BYTES);
 
+    _GetObjectOptions opts;
+#ifdef K_NEW_STORAGE
+    opts = _GetObjectOptions::ForceCreate;
+#else
+    opts = _GetObjectOptions::CreateIfNotFound;
+#endif
     // get the super block from block 1
-    global_super_block = _get_super_block(SUPER_BLOCK_IDX
-#ifdef K_NEW_STORAGE
-    , true
-    , &descriptor
-#endif
-    );
+    global_super_block = _get_super_block(SUPER_BLOCK_IDX, opts, &descriptor);
     
-
-    auto block_group = _get_block_group((SUPER_BLOCK_IDX + 1)
-#ifdef K_NEW_STORAGE
-    , true
-#endif
-    );
+    // check if first block group exists, if not, create
+    auto block_group = _get_block_group((SUPER_BLOCK_IDX + 1), opts);
     block_group->block_bitmap = block_group->block_bitmap;
 
     _file_inodes_cache[0].inode_idx = 1;
@@ -79,23 +80,27 @@ Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descrip
 
 void Fs::create_file(const char* filename)
 {
-    auto idx = _get_available_inode_idx();
+    auto inode_idx = _get_available_inode_idx();
 
-    ASSERT(idx != ((uint32_t)-1));
+#ifdef K_LOG_EXT2
+    LOG_SA("EXT2: ", "Create file request (name: %s, inode: %d)\n", filename, inode_idx);
+#endif
+
+    ASSERT(inode_idx != ((uint32_t)-1));
     ASSERT(strlen(filename) < FILENAME_LENGTH);
 
-    memcpy(_file_inodes_cache[idx].name, filename, strlen(filename));
+    memcpy(_file_inodes_cache[inode_idx].name, filename, strlen(filename));
 
-    auto bg_idx = INODE_IDX_TO_BLOCK_GROUP(idx);
-    auto bg = _get_block_group(bg_idx);
+    auto bg_idx = INODE_IDX_TO_BLOCK_GROUP(inode_idx);
+    auto bg = _get_block_group(bg_idx, _GetObjectOptions::CreateIfNotFound);
 
-    auto inode = &bg->inode_table[INODE_IDX_TO_BLOCK_GROUP(idx)];
+    auto inode = &bg->inode_table[INODE_IDX_TO_BLOCK_GROUP(inode_idx)];
 
     printf("%d\n", inode->user_id);
     inode->user_id = 0x49;
     inode->size_lower = 0x1111;
 
-    bg->inode_bitmap[INODE_IDX_IN_BLOCK_GROUP(idx)] = 1;
+    bg->inode_bitmap[INODE_IDX_IN_BLOCK_GROUP(inode_idx)] = 1;
 
     _write_block_group(bg, bg_idx);
 }
@@ -124,11 +129,11 @@ uint32_t Fs::_get_available_inode_idx()
     return -1;
 }
 
-SuperBlock Fs::_get_super_block(uint32_t sb_block_idx, bool create_new, const FsDescriptor* descriptor)
+SuperBlock Fs::_get_super_block(uint32_t sb_block_idx, _GetObjectOptions opt, const FsDescriptor* descriptor)
 {
     SuperBlock super_block;
 
-    if (create_new)
+    if (opt == _GetObjectOptions::ForceCreate)
     {
 #ifdef K_LOG_EXT2
         LOG_SA("EXT2: ", "Creating new Superblock at block %d\n", sb_block_idx);
@@ -178,18 +183,29 @@ SuperBlock Fs::_get_super_block(uint32_t sb_block_idx, bool create_new, const Fs
     else
     {
         _read_object_from_block(&super_block, 1, sizeof(SuperBlock));
-    }
+    
+        if (opt == _GetObjectOptions::NoCreate)
+        {
+            ASSERT(super_block.ext2_sign != 0);
+        }
+        else if (opt == _GetObjectOptions::CreateIfNotFound)
+        {
+#ifdef K_LOG_EXT2
+    LOG_S("EXT2: ", "Super block not found, creating new...\n");
+#endif
+            super_block = _get_super_block(sb_block_idx, _GetObjectOptions::ForceCreate, descriptor);
+        }
 
-    ASSERT(super_block.ext2_sign != 0);
+    }
 
     return super_block;
 }
 
-BlockGroupTable* Fs::_get_block_group(uint32_t block_idx, bool create_new)
+BlockGroupTable* Fs::_get_block_group(uint32_t block_idx, _GetObjectOptions opt)
 {
     BlockGroupTable* block_group = nullptr;
 
-    if (create_new)
+    if (opt == _GetObjectOptions::ForceCreate)
     {
 #ifdef K_LOG_EXT2
         LOG_SA("EXT2: ", "Creating new block group at block %d\n", block_idx);
@@ -222,15 +238,29 @@ BlockGroupTable* Fs::_get_block_group(uint32_t block_idx, bool create_new)
     else
     {
         block_group = new BlockGroupTable(true);
+
+        _read_object_from_block(&block_group->group_descriptor, block_idx, sizeof(BlockGroupDescriptor));
+        
+        if (opt == _GetObjectOptions::NoCreate)
+        {
+            ASSERT(block_group->group_descriptor.block_bitmap_block != 0);
+            ASSERT(block_group->group_descriptor.inode_bitmap_block != 0);
+        } 
+        else if (opt == _GetObjectOptions::CreateIfNotFound)
+        {
+#ifdef K_LOG_EXT2
+    LOG_SA("EXT2: ", "Block group %d not found, creating new...\n", block_idx);
+#endif
+            if (block_group->group_descriptor.block_bitmap_block == 0 || 
+                block_group->group_descriptor.inode_bitmap_block == 0)
+            {
+                block_group = _get_block_group(block_idx, _GetObjectOptions::ForceCreate);
+            }
+        }
         
         block_group->block_bitmap = new uint8_t[_info.block_size];
         block_group->inode_bitmap = new uint8_t[_info.block_size];
         block_group->inode_table = new Inode[global_super_block.group_inode_size];
-
-        _read_object_from_block(&block_group->group_descriptor, block_idx, sizeof(BlockGroupDescriptor));
-        
-        ASSERT(block_group->group_descriptor.block_bitmap_block != 0);
-        ASSERT(block_group->group_descriptor.inode_bitmap_block != 0);
 
         //memset(block_group->block_bitmap, 'A', 0x400);
         _read_storage(block_group->block_bitmap, block_group->group_descriptor.block_bitmap_block, 1);

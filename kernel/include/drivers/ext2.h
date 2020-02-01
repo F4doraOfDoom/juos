@@ -9,6 +9,8 @@
 
 #include <kernel/kdef.h>
 #include <kernel/kuseful.h>
+#include <kernel/klog.h>
+
 
 NAMESPACE_BEGIN(ext2)
 
@@ -262,6 +264,13 @@ NAMESPACE_BEGIN(ext2)
 
     private:
 
+        enum class _GetObjectOptions 
+        {
+            NoCreate,           // Dont create new block group
+            CreateIfNotFound,   // Create object only if requested object is not found
+            ForceCreate         // Create new objects always, even it already exists
+        };
+
         void _read_storage(uint8_t* buffer, uint32_t block, uint32_t n);
 
         void _write_storage(const uint8_t* buffer, uint32_t block, uint32_t n);
@@ -283,7 +292,7 @@ NAMESPACE_BEGIN(ext2)
          * @param create_new 
          * @return SuperBlock 
          */
-        SuperBlock _get_super_block(uint32_t sb_block_idx, bool create_new = false, const FsDescriptor* descriptor = nullptr);
+        SuperBlock _get_super_block(uint32_t sb_block_idx, _GetObjectOptions opt, const FsDescriptor* descriptor = nullptr);
 
         /**
          * @brief Parse the block group metadata of block group _block_idx_
@@ -293,7 +302,7 @@ NAMESPACE_BEGIN(ext2)
          * @param block_idx 
          * @param create_new 
          */
-        BlockGroupTable*    _get_block_group(uint32_t block_idx, bool create_new = false);
+        BlockGroupTable*    _get_block_group(uint32_t block_idx, _GetObjectOptions opt);
 
         void _write_block_group(const BlockGroupTable* bg, uint32_t block_idx);
 
