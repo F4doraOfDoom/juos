@@ -62,7 +62,11 @@ __NO_MANGELING void kernel_main(void) {
 	ext2::FsDescriptor desc {.block_size = 512};
 	auto fs = new ext2::Fs { storage_device, desc };
 
-	fs->create_file("hello_world!");
+	while (true) 
+	{
+		asm volatile("nop");
+		fs->create_file("hello_world!");
+	}
 
 	for (;;)
 	{

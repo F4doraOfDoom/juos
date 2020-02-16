@@ -216,15 +216,16 @@ NAMESPACE_BEGIN(ext2)
         BlockGroupDescriptor    group_descriptor;
         uint8_t*                block_bitmap;
         uint8_t*                inode_bitmap;
-        Inode*                  inode_table;
-    
+        //Inode*                  inode_table;
+        uint8_t                 inode_table_block_size;
+
         ~BlockGroupTable()
         {
             if (_read)
             {
-                delete[] block_bitmap;
-                delete[] inode_bitmap;
-                delete[] inode_table;
+                if (block_bitmap) delete[] block_bitmap;
+                if (inode_bitmap) delete[] inode_bitmap;
+                //delete[] inode_table;
             }
         }
     private:
@@ -263,6 +264,14 @@ NAMESPACE_BEGIN(ext2)
         ~Fs();
 
     private:
+
+        struct _WriteBlockGroupRequest
+        {
+            const BlockGroupTable*  bg;
+            uint32_t                block_idx;
+            const Inode&            inode;
+            uint32_t                inode_idx;
+        };
 
         enum class _GetObjectOptions 
         {
@@ -304,7 +313,9 @@ NAMESPACE_BEGIN(ext2)
          */
         BlockGroupTable*    _get_block_group(uint32_t block_idx, _GetObjectOptions opt);
 
-        void _write_block_group(const BlockGroupTable* bg, uint32_t block_idx);
+        //void _print_filesystem();
+
+        void _write_block_group(const _WriteBlockGroupRequest&& request);
 
         kernel::StorageDeviceHandler*   _storage_device;
         FsDescriptor                    _info;
