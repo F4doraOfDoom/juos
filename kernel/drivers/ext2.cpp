@@ -12,6 +12,8 @@ static uint8_t*     ext2_block_buffer = nullptr;
 
 // how many sectors are in a block
 static uint32_t sectors_per_block = 0;
+// starting block of super block
+static uint32_t super_block_idx = 0;
 
 static inline uint32_t BLOCK_TO_SECTOR(uint32_t block, uint32_t block_size)
 {
@@ -28,10 +30,10 @@ static inline uint32_t BYTES_TO_BLOCKS(uint32_t bytes)
     return bytes / global_super_block.block_size;
 }
 
-static inline uint32_t INODE_IDX_TO_BLOCK_GROUP(uint32_t idx)
+static auto INODE_IDX_TO_BLOCK_GROUP(uint32_t idx)
 {
     return ((idx - 1) / global_super_block.group_inode_size) 
-        + SUPER_BLOCK_IDX + 1; // first block_group is at the block after the super_block
+        + super_block_idx + 1; // first block_group is at the block after the super_block
 }
 
 static inline uint32_t INODE_IDX_IN_BLOCK_GROUP(uint32_t idx)
@@ -59,6 +61,7 @@ Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descrip
     memset(_file_inodes_cache, 0, sizeof(_file_inodes_cache));
     
     sectors_per_block = (descriptor.block_size / SECTOR_SIZE_BYTES);
+    super_block_idx = descriptor.super_block_idx;
 
     _GetObjectOptions opts;
 #ifdef K_NEW_STORAGE
@@ -67,10 +70,10 @@ Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descrip
     opts = _GetObjectOptions::CreateIfNotFound;
 #endif
     // get the super block from block 1
-    global_super_block = _get_super_block(SUPER_BLOCK_IDX, opts, &descriptor);
+    global_super_block = _get_super_block(super_block_idx, opts, &descriptor);
     
     // check if first block group exists, if not, create
-    auto block_group = _get_block_group((SUPER_BLOCK_IDX + 1), opts);
+    auto block_group = _get_block_group((super_block_idx + 1), opts);
     //scri[pt:say:hello_world]
     block_group->block_bitmap = block_group->block_bitmap;
 
@@ -98,7 +101,7 @@ void Fs::create_file(const char* filename)
     bg->inode_bitmap[INODE_IDX_IN_BLOCK_GROUP(inode_idx)] = 1;
 
     _file_inodes_cache[inode_idx - 1].inode_idx = inode_idx;
-    memcpy(_file_inodes_cache[inode_idx].name, filename, strlen(filename));
+    memcpy(_file_inodes_cache[inode_idx - 1].name, filename, strlen(filename));
 
     Inode inode;
     memset(&inode, 0, sizeof(Inode)); // inode exists

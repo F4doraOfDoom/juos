@@ -236,6 +236,7 @@ NAMESPACE_BEGIN(ext2)
     struct FsDescriptor
     {
         uint32_t block_size;
+        uint32_t super_block_idx;
     };
 
     class Fs : public kernel::FsHandler

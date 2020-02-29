@@ -11,6 +11,7 @@
 #include <kernel/kmm.h>
 #include <kernel/knew.hpp>
 #include <kernel/kuseful.h>
+#include <kernel/kprocess.h>
 #include <drivers/ata.h>
 #include <drivers/ext2.h>
 
@@ -29,6 +30,7 @@ __NO_MANGELING void __cxa_pure_virtual();
 void BREAKPOINT() {
 	
 }
+
 
 __NO_MANGELING void kernel_main(void) {
 	/**
@@ -55,18 +57,9 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	auto storage_device = ata::create_device();
-
-	printf("Hello EXT2!\n");
-
-	ext2::FsDescriptor desc {.block_size = 512};
-	auto fs = new ext2::Fs { storage_device, desc };
-
-	while (true) 
-	{
-		asm volatile("nop");
-		fs->create_file("hello_world!");
-	}
+	char code[10] = { 0 };
+	memcpy(code, "\x90\x90\x90\x90\xc3", 5);
+	process::run_code(code);
 
 	for (;;)
 	{
@@ -74,9 +67,6 @@ __NO_MANGELING void kernel_main(void) {
 			"hlt;"
 		);
 	}
-
-	delete fs;
-	delete storage_device;
 }
 
 void divide_by_zero(void* r)
