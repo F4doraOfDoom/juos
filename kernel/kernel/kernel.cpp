@@ -31,6 +31,13 @@ void BREAKPOINT() {
 	
 }
 
+void loop()
+{
+	while (true)
+	{
+		asm volatile("nop");
+	}
+}
 
 __NO_MANGELING void kernel_main(void) {
 	/**
@@ -57,9 +64,7 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	char code[10] = { 0 };
-	memcpy(code, "\x90\x90\x90\x90\xc3", 5);
-	process::run_code(code);
+	processing::run_code((void*)loop);
 
 	for (;;)
 	{

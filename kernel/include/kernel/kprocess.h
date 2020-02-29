@@ -18,7 +18,22 @@
 
 NAMESPACE_BEGIN(kernel)
 
-    NAMESPACE_BEGIN(process)
+    NAMESPACE_BEGIN(processing)
+
+        struct Task
+        {
+            enum class Priority
+            {
+                Low,
+                Regular,
+                High,
+                System
+            };
+
+            uint32_t    start_time;
+            uint32_t    slice_size;
+            Priority    priority;
+        };
 
         /**
          * @brief This function starts executing code from _code_ptr_
@@ -27,7 +42,7 @@ NAMESPACE_BEGIN(kernel)
          */
         void run_code(const void* code_ptr);
 
-    NAMESPACE_END(kernel)
+    NAMESPACE_END(processing)
 
 NAMESPACE_END(kernel)
 
