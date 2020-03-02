@@ -2,10 +2,10 @@
 #define KERNEL_NEW_H_
 
 #include "kdef.h"
-#include "kmm.h"
 #include "kuseful.h"
 #include "klog.h"
 
+#include <kernel/mem_operators.hpp>
 
 NAMESPACE_BEGIN(kernel)
 
@@ -62,12 +62,12 @@ NAMESPACE_BEGIN(kernel)
 
         static pointer allocate(uint32_t n)
         {
-            return (pointer)kernel::memory_manager::malloc(n * object_size);
+            return new Type[n];
         }
 
         static void deallocate(pointer p, size_t n)
         {
-            kernel::memory_manager::free(p);
+            delete p;
         }
 
         static void construct(pointer p, const_reference v)
@@ -83,59 +83,6 @@ NAMESPACE_BEGIN(kernel)
 
 NAMESPACE_END(kernel)
 
-void* operator new(size_t size)
-{
-#ifdef K_LOG_MALLOC
-    LOG_SA("NEW: ", "Allocating object the size of %d\n", size);
-#endif
-
-    return kernel::memory_manager::malloc(size);
-}
-
-void* operator new[](size_t size)
-{
-#ifdef K_LOG_MALLOC
-    LOG_SA("NEW: ", "Allocating object[] the size of %d\n", size);
-#endif
-
-    return kernel::memory_manager::malloc(size);
-}
-
-void operator delete(void* ptr)
-{
-#ifdef K_LOG_MALLOC
-    LOG_SA("NEW: ", "Deleting object the at %p\n", ptr);
-#endif
-
-    kernel::memory_manager::free(ptr);
-}
-
-void operator delete(void* ptr, long unsigned int)
-{
-#ifdef K_LOG_MALLOC
-    LOG_SA("NEW: ", "Deleting object the at %p\n", ptr);
-#endif
-
-    kernel::memory_manager::free(ptr);
-}
-
-void operator delete[](void* ptr, long unsigned int)
-{
-#ifdef K_LOG_MALLOC
-    LOG_SA("NEW: ", "Deleting object[] the at %p\n", ptr);
-#endif
-
-    kernel::memory_manager::free(ptr);
-}
-
-void operator delete[](void* ptr)
-{
-#ifdef K_LOG_MALLOC
-    LOG_SA("NEW: ", "Deleting object[] the at %p\n", ptr);
-#endif
-
-    kernel::memory_manager::free(ptr);
-}
 
 
 #endif // KERNEL_NEW_H_

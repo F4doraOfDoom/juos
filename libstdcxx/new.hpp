@@ -4,7 +4,7 @@
 #include "libcxx_def.hpp"
 
 #ifdef __is_libk
-    #include <kernel/knew.hpp>
+    //#include <kernel/knew.hpp>
 #else
     // implement some sort of user level 
 #endif 

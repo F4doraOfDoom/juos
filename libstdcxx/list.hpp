@@ -17,12 +17,14 @@ NAMESPACE_BEGIN(std)
         double_linked_node(const_reference v) : val(v), next(nullptr), prev(nullptr)
         {}
 
+        double_linked_node() = default;
+
         value_type     val;
         node_pointer   next;
         node_pointer   prev;
     };
     
-    template <typename Item, class Less = Less<Item>, template <typename T> class Allocator = std::allocator>
+    template <typename Item, template <typename T> class Allocator = std::allocator>
     class list
     {
     public:
@@ -106,7 +108,7 @@ NAMESPACE_BEGIN(std)
          */
         node_pointer    _insert_internal(const_reference item, node_pointer pos)
         {
-            node_pointer n = m_allocator.allocate(1);
+            node_pointer n = m_allocator.allocate_single();
             m_allocator.construct(n, item);
 
             m_size++;

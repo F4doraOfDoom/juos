@@ -1,7 +1,6 @@
 #ifndef _CXX_ALLOCATOR_H
 #define _CXX_ALLOCATOR_H
 
-#include "new.hpp"
 #include "libcxx_def.hpp"
 
 NAMESPACE_BEGIN(std)
@@ -34,6 +33,16 @@ NAMESPACE_BEGIN(std)
         static pointer allocate(size_t n)
         {
             return new T[n];
+        }
+
+                /**
+         * @brief Allocate an object of type T without constructing them
+         * 
+         * @return pointer - pointer to the object allocated
+         */
+        static pointer allocate_single()
+        {
+            return new T();
         }
 
         /**

@@ -9,7 +9,7 @@
 #include <kernel/kheap.h>
 #include <kernel/klog.h>
 #include <kernel/kmm.h>
-#include <kernel/knew.hpp>
+#include <kernel/kallocators.hpp>
 #include <kernel/kuseful.h>
 #include <kernel/kprocess.h>
 #include <drivers/ata.h>
@@ -64,7 +64,7 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	processing::run_code((void*)loop);
+	processing::start::code((void*)loop);
 
 	for (;;)
 	{
