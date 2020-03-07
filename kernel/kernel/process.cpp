@@ -4,8 +4,8 @@
 
 using namespace kernel;
 
-static std::list<processing::RegisteredProcess>     _registered_processes;
-std::list<processing::Task>                          current_tasks;
+static data_structures::Vector<processing::RegisteredProcess>    _registered_processes;
+std::list<processing::Task>                                     current_tasks;
 
 void processing::start::code(const void* code_ptr)
 {
@@ -18,5 +18,5 @@ void register_process(const char* name, const void* func)
     p.func_ptr = func;
     memcpy(p.name, name, processing::RegisteredProcess::MaxNameLength);
 
-    _registered_processes.push_back(p);
+    //_registered_processes.push_back(p);
 }
