@@ -24,13 +24,14 @@ NAMESPACE_BEGIN(kernel)
 
         struct RegisteredProcess
         {
-            static constexpr uint32_t MaxNameLength = 32;
+            RegisteredProcess() : name(""), func_ptr(nullptr) {}
+            RegisteredProcess(const String& _name, const void* _ptr) : name(_name), func_ptr(_ptr) {}
 
-            char            name[MaxNameLength] = { 0 };
+            String          name;
             const void*     func_ptr; // pointer to some code
         };
 
-        struct Task
+        struct Process
         {
             using ID = uint32_t;
             
@@ -42,10 +43,13 @@ NAMESPACE_BEGIN(kernel)
                 System
             };
 
-            ID          tid;
+            ID          pid;
             uint32_t    start_time;
             uint32_t    slice_size;
             Priority    priority;
+        
+        private:
+            static unsigned long long _pid_seq;
         };
 
         /**
@@ -54,7 +58,7 @@ NAMESPACE_BEGIN(kernel)
          * @param name - name of the process
          * @param func - pointer to the process code
          */
-        void register_process(const char* name, const void* func);
+        void register_process(String name, const void* func);
 
         NAMESPACE_BEGIN(start)
 
@@ -70,7 +74,7 @@ NAMESPACE_BEGIN(kernel)
              * @param name 
              * @return Task::TaskID - id of the task
              */
-            Task::ID process(const char* name);
+            Process::ID process(const char* name);
 
         NAMESPACE_END(start)
             
@@ -81,11 +85,10 @@ NAMESPACE_BEGIN(kernel)
              * 
              * @param id 
              */
-            void process(Task::ID id);
+            void process(Process::ID id);
 
         NAMESPACE_END(end)
         
-
     NAMESPACE_END(processing)
 
 NAMESPACE_END(kernel)

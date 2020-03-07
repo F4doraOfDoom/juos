@@ -65,7 +65,7 @@ __NO_MANGELING void kernel_main(void) {
 
 	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
-	processing::start::code((void*)loop);
+	processing::register_process("loop", (void*)loop);
 
 	for (;;)
 	{
