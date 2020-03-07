@@ -16,6 +16,7 @@
 
 #include <kernel/kdef.h>
 #include <kernel/data_structures/vector.hpp>
+#include <kernel/data_structures/string.hpp>
 
 NAMESPACE_BEGIN(kernel)
 

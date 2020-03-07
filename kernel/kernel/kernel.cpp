@@ -25,17 +25,17 @@ using namespace kernel;
 
 void divide_by_zero(void*);
 __NO_MANGELING void kernel_main(void);
-__NO_MANGELING void __cxa_pure_virtual();
 
 void BREAKPOINT() {
 	
 }
 
-
 void loop()
 {
 	while (true)
 	{
+		// kernel::data_structures::String str("Im looping!\n");
+		// printf("%s\n", str.getText());
 		asm volatile("nop");
 	}
 }
