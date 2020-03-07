@@ -15,8 +15,14 @@
 #include <stdint.h>
 
 #include <kernel/kdef.h>
+#include <kernel/timer.h>
+
 #include <kernel/data_structures/vector.hpp>
 #include <kernel/data_structures/string.hpp>
+
+#include <algorithms.hpp>
+
+using kernel::data_structures::Vector;
 
 NAMESPACE_BEGIN(kernel)
 
@@ -31,10 +37,15 @@ NAMESPACE_BEGIN(kernel)
             const void*     func_ptr; // pointer to some code
         };
 
+        struct Thread
+        {
+            const void* current_address;
+        };
+
         struct Process
         {
-            using ID = uint32_t;
-            
+            using ID        = uint64_t;
+
             enum class Priority
             {
                 Low,
@@ -43,13 +54,21 @@ NAMESPACE_BEGIN(kernel)
                 System
             };
 
-            ID          pid;
-            uint32_t    start_time;
-            uint32_t    slice_size;
-            Priority    priority;
-        
+            Process(const void* func_ptr, Priority priority)
+            {
+                pid = (_pid_seq++);
+                start_time = timer::current_time();
+                active_threads.push_back(Thread{func_ptr});
+            }
+
+            ID              pid;
+            uint64_t        start_time;
+            uint64_t        slice_size;
+            Priority        priority;
+            Vector<Thread>  active_threads;
+
         private:
-            static unsigned long long _pid_seq;
+            static ID _pid_seq;
         };
 
         /**
@@ -74,7 +93,7 @@ NAMESPACE_BEGIN(kernel)
              * @param name 
              * @return Task::TaskID - id of the task
              */
-            Process::ID process(const char* name);
+            Process process(const String& name, Process::Priority priority);
 
         NAMESPACE_END(start)
             

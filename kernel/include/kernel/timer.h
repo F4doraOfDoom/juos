@@ -51,6 +51,13 @@ NAMESPACE_BEGIN(timer)
     void sleep(uint32_t slices);
 
     /**
+     * @brief Get the current time
+     * 
+     * @return uint64_t 
+     */
+    uint64_t current_time();
+
+    /**
      * @brief this function is called upon every tick. it updates the kernel's
      * internal tick count
      * 

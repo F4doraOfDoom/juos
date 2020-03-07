@@ -28,6 +28,11 @@ void timer::sleep(uint32_t slices)
     }
 }
 
+uint64_t timer::current_time()
+{
+    return __tick_counter;
+}
+
 void timer::__tick_handler(void*)
 {
     timer::__tick_counter++;
