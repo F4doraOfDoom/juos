@@ -89,6 +89,13 @@ NAMESPACE_BEGIN(kernel)
             }
         }
 
+        String(String&& string)
+        {
+            this->data = string.data;
+            this->size = string.size;
+            string.data = nullptr; 
+        }
+
         /**
         * Destructor
         */
@@ -100,6 +107,23 @@ NAMESPACE_BEGIN(kernel)
 
         /** Methods **/
 
+
+        void operator=(String&& string)
+        {
+            this->data = string.data;
+            this->size = string.size;
+            string.data = nullptr;
+        }
+
+        void operator=(const String& string)
+        {
+            this->size = string.getLength();
+            this->data = new char[this->size];
+
+            if (this->data != NULL) {
+                strncpy(this->data, string.data, this->size);
+            }
+        }
 
         char* getText() {
             return data;

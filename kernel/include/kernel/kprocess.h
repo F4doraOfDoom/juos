@@ -20,6 +20,7 @@
 #include <kernel/data_structures/vector.hpp>
 #include <kernel/data_structures/string.hpp>
 
+#include <move.hpp>
 #include <algorithms.hpp>
 
 using kernel::data_structures::Vector;
@@ -35,6 +36,12 @@ NAMESPACE_BEGIN(kernel)
 
             String          name;
             const void*     func_ptr; // pointer to some code
+
+            void operator=(const RegisteredProcess& p)
+            {
+                this->name      = p.name;
+                this->func_ptr  = p.func_ptr;
+            }
         };
 
         struct Thread
@@ -77,7 +84,7 @@ NAMESPACE_BEGIN(kernel)
          * @param name - name of the process
          * @param func - pointer to the process code
          */
-        void register_process(String name, const void* func);
+        void register_process(const String& name, const void* func);
 
         NAMESPACE_BEGIN(start)
 
@@ -93,7 +100,7 @@ NAMESPACE_BEGIN(kernel)
              * @param name 
              * @return Task::TaskID - id of the task
              */
-            Process process(const String& name, Process::Priority priority);
+            Process* process(const String& name, Process::Priority priority);
 
         NAMESPACE_END(start)
             
