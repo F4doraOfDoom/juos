@@ -17,6 +17,7 @@
 #include <kernel/kdef.h>
 #include <kernel/timer.h>
 
+#include <kernel/paging.h>
 #include <kernel/data_structures/vector.hpp>
 #include <kernel/data_structures/string.hpp>
 
@@ -63,16 +64,20 @@ NAMESPACE_BEGIN(kernel)
 
             Process(const void* func_ptr, Priority priority)
             {
-                pid = (_pid_seq++);
-                start_time = timer::current_time();
                 active_threads.push_back(Thread{func_ptr});
+                this->priority = priority;
+
+                // the time each process gets to run is equal to
+                // its priority on a scale of 1-5, times 10
+                slice_size = ((uint64_t)priority + 1) * 10;
             }
 
-            ID              pid;
-            uint64_t        start_time;
-            uint64_t        slice_size;
-            Priority        priority;
-            Vector<Thread>  active_threads;
+            ID                              pid = (_pid_seq++);
+            uint64_t                        start_time = timer::current_time();
+            uint64_t                        slice_size;
+            Priority                        priority;
+            Vector<Thread>                  active_threads;
+            kernel::paging::PageDirectory*  directory = nullptr;
 
         private:
             static ID _pid_seq;

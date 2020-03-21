@@ -4,6 +4,8 @@
 using namespace kernel::paging;
 
 extern uint32_t __primitive_heap; // defined in kheap.cpp
+static uint32_t __kernel_size;
+static uint32_t __base_kernel_tables_size;
 
 FrameTable          frame_table;
 page_directory_t*   current_directory   = nullptr;
@@ -25,7 +27,10 @@ uint32_t*           physical_pages      = nullptr;
 //     enteries[idx].frame_addr    = frame_addr;
 // }
 
-static page_t* _get_page(uint32_t addr, page_directory_t* dir, bool make_page)
+// pointer to a function that allocates memory
+// takes the number of bytes to allocate and other optional arguments
+
+static page_t* _get_page(uint32_t addr, page_directory_t* dir, bool make_page, MemoryAlloctor allocator)
 {
     auto page_idx = addr / PAGE_SIZE;
     auto table_idx = page_idx / PAGE_TABLE_SIZE;
@@ -37,7 +42,7 @@ static page_t* _get_page(uint32_t addr, page_directory_t* dir, bool make_page)
     else if (make_page)
     {
         uint32_t page_addr = 0;
-        dir->tables[table_idx] = (page_table_t*)kernel::heap::allocate_p(sizeof(page_table_t), &page_addr);
+        dir->tables[table_idx] = (page_table_t*)allocator(sizeof(page_table_t), &page_addr);
         memset(dir->tables[table_idx], 0, PAGE_SIZE);
         dir->table_addresses[table_idx] = page_addr | 0x7;
         
@@ -47,7 +52,7 @@ static page_t* _get_page(uint32_t addr, page_directory_t* dir, bool make_page)
     return nullptr;
 } 
 
-static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_t* dir)
+static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_t* dir, MemoryAlloctor allocator)
 {
     uint32_t pages_created = 0;
 
@@ -58,7 +63,7 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
     for(uint32_t top = start; top < end; pages_created++, top += PAGE_SIZE)
     {
         auto res = frame_table.find_first();
-        auto page = _get_page(top, dir, true);
+        auto page = _get_page(top, dir, true, allocator);
         
         if (res.error)
         {
@@ -76,14 +81,14 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
     return pages_created;
 }
 
-uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, page_directory_t* dir)
+uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, MemoryAlloctor allocator,  page_directory_t* dir)
 {
     if (!dir)
     {
         dir = current_directory;
     }
 
-    uint32_t pages_created = _map_virt_to_phys(start, end, dir);
+    uint32_t pages_created = _map_virt_to_phys(start, end, dir, allocator);
     return pages_created;
 }
 
@@ -98,15 +103,24 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 
     frame_table = FrameTable(number_of_frames);    
 
+    // remember the size of the kernel
+    // for future constructions of page directories
+    __kernel_size = __primitive_heap;
+
     // identity map the kernel
-    auto pages_created = map_region(0, __primitive_heap, kernel_directory);
+    auto allocator = [](uint32_t size, void* args) {
+        return (void*)kernel::heap::allocate_p(size, (uint32_t*)args); 
+    };
+    auto pages_created = map_region(0, K_MAPPED_REGION, allocator, kernel_directory);
+
+    uint32_t num_tables = pages_created / PAGE_TABLE_SIZE;
+    __base_kernel_tables_size = (num_tables == 0 ? 1 : num_tables);
 
     if (heap_mapping)
     {
-        BREAKPOINT();
-        // map the heap
+        // map the kernel's heap
         uint32_t heap_end = K_HEAP_START + K_HEAP_INITIAL_SIZE;
-        pages_created += map_region(K_HEAP_START, heap_end, kernel_directory);
+        pages_created += map_region(K_HEAP_START, heap_end, allocator, kernel_directory);
     }
 
 #if CHECK_LOG_LEVEL(K_LOG_PAGING, PAGING_LOG_CREATION)
@@ -121,6 +135,34 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
     _enable_paging();
 }
 
+PageDirectory* kernel::paging::create_directory(_HeapMappingSettings* mappings)
+{
+#ifdef K_LOG_PAGING
+    LOG_S("PAGING: ", "Creating new page directory...\n")
+#endif
+    PageDirectory* new_directory = new PageDirectory();
+
+    // we want to have a kernel that is mapped 1-1
+    for (uint32_t i = 0; i < __base_kernel_tables_size; i++)
+    {
+        new_directory->tables[i]            = current_directory->tables[i];
+        new_directory->table_addresses[i]   = current_directory->table_addresses[i];
+    }
+
+    if (mappings)
+    {
+#ifdef K_LOG_PAGING
+        LOG_SA("PAGING: ", "Mappings are %d->%d\n", mapping->begin, mapping->end);
+#endif
+        auto allocator = [](uint32_t size, void* args) {
+            return (void*)kernel::heap::allocate_p(size, (uint32_t*)args); 
+        };
+    
+        map_region(mappings->begin, mappings->end, allocator, new_directory);
+    }
+
+    return new_directory;
+}
 
 void kernel::paging::page_fault_handler(void* regs_void)
 {

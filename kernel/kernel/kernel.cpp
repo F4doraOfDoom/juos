@@ -71,6 +71,8 @@ __NO_MANGELING void kernel_main(void) {
 
 	processing::start::process("loop2", processing::Process::Priority::High);
 
+	printf("Hello paging!\n");
+	
 	for (;;)
 	{
 		asm volatile (

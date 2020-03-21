@@ -24,6 +24,9 @@ Process* processing::start::process(const String& name, processing::Process::Pri
 
     auto new_process = new Process(proc->func_ptr, priority);
 
+    paging::_HeapMappingSettings proc_mappings {0xA0000000, 0xA0100000};
+    new_process->directory = paging::create_directory(&proc_mappings);
+
     _current_processes.push_back(new_process);
 
     return new_process;

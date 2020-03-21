@@ -22,4 +22,7 @@
 // we assume 16mb of memory
 #define K_PHYSICAL_MEM_SIZE     0x1000000
 
+// the first gigabyte of the memory space is reserved for the kernel
+#define K_MAPPED_REGION         2 << 20
+
 #endif //KERNEL_CONSTANTS_H_

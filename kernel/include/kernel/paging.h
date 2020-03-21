@@ -102,8 +102,8 @@ NAMESPACE_BEGIN(kernel)
 
         struct PageDirectory
         {
-            PageTable*  tables[PAGE_TABLE_SIZE];
-            uint32_t    table_addresses[PAGE_TABLE_SIZE];
+            PageTable*  tables[PAGE_TABLE_SIZE] = { 0 };
+            uint32_t    table_addresses[PAGE_TABLE_SIZE] = { 0 };
         };
 
         struct Frame
@@ -150,6 +150,8 @@ NAMESPACE_BEGIN(kernel)
         typedef Frame           frame_t; 
         typedef FrameTable      frame_table_t;
 
+        using MemoryAlloctor = void* (*)(uint32_t, void*);
+
         /**
          * @brief Initialize paging in the kernel
          * 
@@ -158,7 +160,11 @@ NAMESPACE_BEGIN(kernel)
          */
         void initialize(_HeapMappingSettings* _heap_mapping);
 
-        uint32_t map_region(uint32_t start, uint32_t end, page_directory_t* dir = nullptr);
+        uint32_t map_region(uint32_t start, uint32_t end, MemoryAlloctor allocator,  page_directory_t* dir = nullptr);
+
+        // creates a new page directory with mappings _mappings_
+        // meant to be used only once the memory manager is initialized
+        PageDirectory* create_directory(_HeapMappingSettings* mappings);
 
         void page_fault_handler(void*);
 
