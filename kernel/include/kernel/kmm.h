@@ -25,9 +25,9 @@
 #include "kuseful.h"
 
 
-#define MM_LOG_ALLOCATIONS          1
-#define MM_LOG_CONSOLIDATION        2
-#define MM_LOG_DUMPS                3
+#define MM_LOG_ALLOCATIONS          2
+#define MM_LOG_CONSOLIDATION        3
+#define MM_LOG_DUMPS                4
 
 #define K_HEAP_START         0xC0000000
 #define K_HEAP_INITIAL_SIZE  0x100000

@@ -258,9 +258,9 @@ static void __free_fastbin(void* ptr)
         (uint32_t)PTR_SUB(ptr, __mapped_heap->fast_bins)
         / (FASTBIN_THRESHOLD);
 
-#if CHECK_LOG_LEVEL(K_LOG_MM, K_LOG_ALLOCATIONS)
-    LOG_SA("FREE - FASTBIN: ", "Freeing chunk at addr %p (index %d)\n", ptr, chunk_idx);
-#endif
+// #if CHECK_LOG_LEVEL(K_LOG_MM, K_LOG_ALLOCATIONS)
+//     LOG_SA("FREE - FASTBIN: ", "Freeing chunk at addr %p (index %d)\n", ptr, chunk_idx);
+// #endif
 
     __fast_bin->chunks[chunk_idx].ptr_to_heap = nullptr;
 }

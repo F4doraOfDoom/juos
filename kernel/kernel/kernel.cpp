@@ -76,6 +76,9 @@ __NO_MANGELING void kernel_main(void) {
 	processing::register_process("loop3", (void*)loop);
 
 	processing::start::process("loop2", processing::Process::Priority::High);
+	processing::start::process("loop2", processing::Process::Priority::High);
+	processing::start::process("loop2", processing::Process::Priority::High);
+
 
 	printf("Hello paging!\n");
 	

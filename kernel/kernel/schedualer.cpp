@@ -52,7 +52,9 @@ void ProcessScheduler::Run(void* args)
 
 void ProcessScheduler::_ExecuteProcess(Process* process)
 {
-
+#ifdef K_LOG_SCHEDULER
+    LOG_SA("SCHEDULER:", "Serving process %d\n", process->pid)
+#endif
 }
 
 void scheduler::run_process_scheduler(void* args)
