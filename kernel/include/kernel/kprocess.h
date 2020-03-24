@@ -16,6 +16,7 @@
 
 #include <kernel/kdef.h>
 #include <kernel/timer.h>
+#include <kernel/scheduler_interface.h>
 
 #include <kernel/paging.h>
 #include <kernel/data_structures/vector.hpp>
@@ -104,9 +105,9 @@ NAMESPACE_BEGIN(kernel)
             /**
              * @brief This function starts a process with name _name_
              * @param name 
-             * @return Task::TaskID - id of the task
+             * @return observer pointer to the process struct
              */
-            Process* process(const String& name, Process::Priority priority);
+            const Process* process(const String& name, Process::Priority priority);
 
         NAMESPACE_END(start)
             
@@ -121,6 +122,15 @@ NAMESPACE_BEGIN(kernel)
 
         NAMESPACE_END(end)
         
+
+        using ProcessScheduler = scheduler::IScheduler<Process>*;
+        /**
+         * @brief Initializes the paging system
+         * 
+         * @param scheduler a pointer to an object that implements the IScheduler interface
+         */
+        void initialize(ProcessScheduler scheduler);
+
     NAMESPACE_END(processing)
 
 NAMESPACE_END(kernel)

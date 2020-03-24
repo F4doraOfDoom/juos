@@ -10,9 +10,9 @@ export CC=$TOOLS$HOST-g++
 export AS=$TOOLS$HOST-as
 
 #TODO add -O2 when not debugging
-export CFLAGS="-pedantic-errors -Wall -Wextra -g -D__arch_$ARCH -std=c++2a -fmessage-length=0 -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized"
+export CFLAGS="-Wall -Wextra -g -D__arch_$ARCH -std=c++2a -fmessage-length=0 -Werror -Wwrite-strings -Winit-self -Wcast-align -Wpointer-arith -Wstrict-aliasing -Wformat=2 -Wmissing-include-dirs -Wno-unused-parameter -Wuninitialized"
 
-export CPPFLAGS=""
+export CPPFLAGS="-fno-threadsafe-statics"
 export LIBC=$PWD/libc
 export LIBCXX=$PWD/libstdcxx
 

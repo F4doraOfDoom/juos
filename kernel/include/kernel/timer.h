@@ -16,6 +16,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <kernel/data_structures/vector.hpp>
+using kernel::data_structures::Vector;
+
 #include "klog.h"
 #include "interrupts.h"
 #include "kdef.h"
@@ -24,6 +27,7 @@
 #define TIMER_PORT 32
 
 NAMESPACE_BEGIN(timer)
+
 
     /**
      * @brief this function initializes the clock, implemented by arch
@@ -64,9 +68,19 @@ NAMESPACE_BEGIN(timer)
      */
     void __tick_handler(void*);
 
+    using CallableFunc = void (*)(void*);
+
+    /**
+     * @brief Add a function to be called every tick
+     * 
+     * @param func 
+     */
+    void add_callable_function(CallableFunc func, void* args);
+
     // internal tick counter 
     // defined in timer.cpp
     extern uint64_t __tick_counter;
+    
 
 NAMESPACE_END(timer)
 

@@ -1,5 +1,12 @@
 #include <kernel/timer.h>
 
+struct FuncArgPair
+{
+    timer::CallableFunc func;
+    void* args;
+};
+
+static Vector<FuncArgPair> _functions_to_call;
 uint64_t timer::__tick_counter = 0;
 struct {
     bool is_asleep = 0;
@@ -28,6 +35,11 @@ void timer::sleep(uint32_t slices)
     }
 }
 
+void timer::add_callable_function(CallableFunc func, void* args)
+{
+    _functions_to_call.push_back({func, args});
+}
+
 uint64_t timer::current_time()
 {
     return __tick_counter;
@@ -43,6 +55,11 @@ void timer::__tick_handler(void*)
         {
             __thread_sleep_info.is_asleep = false;
         }
+    }
+
+    for (const auto func_args : _functions_to_call)
+    {
+        func_args.func(func_args.args);
     }
 //#ifdef K_LOG
 //     if (timer::__tick_counter & 1000 == 0)

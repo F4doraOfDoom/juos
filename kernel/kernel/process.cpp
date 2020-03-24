@@ -4,18 +4,26 @@ using namespace kernel;
 
 using processing::RegisteredProcess;
 using processing::Process;
+using processing::ProcessScheduler;
 
 static Vector<RegisteredProcess>        _registered_processes;
 static Vector<Process*>                 _current_processes; 
 
+static ProcessScheduler _scheduler = nullptr;
+
 uint64_t Process::_pid_seq = 0;
+
+void processing::initialize(ProcessScheduler scheduler)
+{
+    _scheduler = scheduler;
+}
 
 void processing::start::code(const void* code_ptr)
 {
     _set_instruction_ptr((uint32_t*)code_ptr);
 }
 
-Process* processing::start::process(const String& name, processing::Process::Priority priority)
+const Process* processing::start::process(const String& name, processing::Process::Priority priority)
 {
     auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](const RegisteredProcess& rp)
     {
@@ -27,7 +35,7 @@ Process* processing::start::process(const String& name, processing::Process::Pri
     paging::_HeapMappingSettings proc_mappings {0xA0000000, 0xA0100000};
     new_process->directory = paging::create_directory(&proc_mappings);
 
-    _current_processes.push_back(new_process);
+    _scheduler->AddItem(new_process);
 
     return new_process;
 }

@@ -1,7 +1,8 @@
 #include <kernel/schedualer.h>
 
+using namespace kernel::scheduler;
 
-void ProcessScheduler::AddProcess(Process* process) 
+void ProcessScheduler::AddItem(Process* process) 
 {
     if (process->priority == Process::Priority::System)
     {
@@ -16,14 +17,15 @@ void ProcessScheduler::AddProcess(Process* process)
 void ProcessScheduler::Run(void* args)
 {
     constexpr unsigned SERVE_SYSTEM_THRESHOLD = 5;
-    static unsigned served_system = 0;
-    _keep_running = true;
+    static unsigned int served_system = 0;
 
     if (_keep_running == false)
     {
         return;
     }
 
+    _keep_running = true;
+    
     // are there any important processes to run?
     // we want to give a high priority of execution to system processes, 
     // but if we only serve system processes all of the time, then we 
@@ -51,4 +53,10 @@ void ProcessScheduler::Run(void* args)
 void ProcessScheduler::_ExecuteProcess(Process* process)
 {
 
+}
+
+void scheduler::run_process_scheduler(void* args)
+{
+    auto scheduler = static_cast<ProcessScheduler*>(args);
+    scheduler->Run(nullptr);
 }
