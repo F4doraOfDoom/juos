@@ -59,6 +59,7 @@ NAMESPACE_BEGIN(kernel)
                 Low,
                 Regular,
                 High,
+                Critical,
                 System
             };
 
