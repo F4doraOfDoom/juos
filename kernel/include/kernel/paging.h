@@ -49,7 +49,7 @@ NAMESPACE_BEGIN(kernel)
     NAMESPACE_BEGIN(paging)
 
         /**
-         * @brief This struct is passed into paging::initialize
+         * @brief This struct is passed into paging::Initialize
          * in order to specify which regions to map for the heap
          * 
          * begin    - beginning address of heap
@@ -65,7 +65,7 @@ NAMESPACE_BEGIN(kernel)
          * @brief Structure representing a Page
          * 
          * is_present - whether or not the page exists
-         * rw - if bit clear - read only; else, read-write
+         * rw - if bit clear - read only; else, read-Write
          * is_user - whether or not the Page is non kernel owned
          * was_accessed - set if the page was accessed since the last refresh
          * was_written - set if the page as written to sicne last refresh
@@ -135,10 +135,10 @@ NAMESPACE_BEGIN(kernel)
              */
             FrameTable() {};
 
-            frame_table_result_t find_first();
+            frame_table_result_t FindFirst();
 
-            void set_at_idx(uint32_t idx);
-            void set_at_addr(uint32_t addr);
+            void SetAtIndex(uint32_t idx);
+            void SetAtAddress(uint32_t addr);
 
             Frame*      frames = nullptr;
             uint32_t    length = 0;
@@ -158,7 +158,7 @@ NAMESPACE_BEGIN(kernel)
          * _heap_mapping - if not null, map the heap according
          * to _heap_mapping. If null, do not map the heap.
          */
-        void initialize(_HeapMappingSettings* _heap_mapping);
+        void Initialize(_HeapMappingSettings* _heap_mapping);
 
         uint32_t map_region(uint32_t start, uint32_t end, MemoryAlloctor allocator,  page_directory_t* dir = nullptr);
 

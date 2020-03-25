@@ -62,7 +62,7 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
 
     for(uint32_t top = start; top < end; pages_created++, top += PAGE_SIZE)
     {
-        auto res = frame_table.find_first();
+        auto res = frame_table.FindFirst();
         auto page = _get_page(top, dir, true, allocator);
         
         if (res.error)
@@ -75,7 +75,7 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
         page->rw = false;
         page->frame_addr = res.idx;        
 
-        frame_table.set_at_idx(res.idx);
+        frame_table.SetAtIndex(res.idx);
     }
 
     return pages_created;
@@ -92,13 +92,13 @@ uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, MemoryAlloctor
     return pages_created;
 }
 
-void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
+void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
 {
     LOG_S("PAGING: ", "Initializing...\n");
 
     auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE * 10;
     
-    page_directory_t* kernel_directory = (page_directory_t*)heap::allocate(sizeof(page_directory_t));
+    page_directory_t* kernel_directory = (page_directory_t*)heap::Allocate(sizeof(page_directory_t));
     memset((char*)kernel_directory, '\0', sizeof(page_directory_t));
 
     frame_table = FrameTable(number_of_frames);    
@@ -109,7 +109,7 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 
     // identity map the kernel
     auto allocator = [](uint32_t size, void* args) {
-        return (void*)kernel::heap::allocate_p(size, (uint32_t*)args); 
+        return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
     };
     auto pages_created = map_region(0, K_MAPPED_REGION, allocator, kernel_directory);
 
@@ -129,7 +129,7 @@ void kernel::paging::initialize(_HeapMappingSettings* heap_mapping)
 
     current_directory = kernel_directory;
 
-    interrupts::set_handler(14, page_fault_handler);
+    Interrupts::set_handler(14, page_fault_handler);
 
     _load_page_directory((uint32_t*)&kernel_directory->table_addresses);
     _enable_paging();
@@ -155,7 +155,7 @@ PageDirectory* kernel::paging::create_directory(_HeapMappingSettings* mappings)
         LOG_SA("PAGING: ", "Mappings are %d->%d\n", mapping->begin, mapping->end);
 #endif
         auto allocator = [](uint32_t size, void* args) {
-            return (void*)kernel::heap::allocate_p(size, (uint32_t*)args); 
+            return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
         };
     
         map_region(mappings->begin, mappings->end, allocator, new_directory);
@@ -182,7 +182,7 @@ void kernel::paging::page_fault_handler(void* regs_void)
     GO_PANIC("PAGE FAULT!\n" 
     "Faulting address: %x\n"
     "Page isnt present: %d\n"
-    "Invalid write operation: %d\n"
+    "Invalid Write operation: %d\n"
     "Access from user-mode: %d\n"
     "Overwritten CPU reserved bits: %d\n"
     "Caused by instruction fetch: %d\n",

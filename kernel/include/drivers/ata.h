@@ -197,18 +197,18 @@ NAMESPACE_BEGIN(ata)
          * @return true if read is successful (not really working though)
          * @return false if read is unsuccessful
          */
-        virtual bool read_sectors(uint8_t* buffer, uint32_t lba, uint32_t sectors) override;
+        virtual bool ReadSectors(uint8_t* buffer, uint32_t lba, uint32_t sectors) override;
 
          /**
          * @brief Write a _sectors_ count of sectors to LBA _lba_ from _buffer_
          * 
-         * @param buffer - buffer to write from
-         * @param lba - logical base address of sectors to write from
+         * @param buffer - buffer to Write from
+         * @param lba - logical base address of sectors to Write from
          * @param sectors - amount of sectors
-         * @return true if write is successful(not really working though)
-         * @return false if write is unsuccessful
+         * @return true if Write is successful(not really working though)
+         * @return false if Write is unsuccessful
          */
-        virtual bool write_sectors(const uint8_t* buffer, uint32_t lba, uint32_t sectors) override;
+        virtual bool WriteSectors(const uint8_t* buffer, uint32_t lba, uint32_t sectors) override;
 
     private:
         //uint32_t    _int_buffer[512] = { 0 };

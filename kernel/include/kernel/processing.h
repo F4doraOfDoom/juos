@@ -29,7 +29,7 @@ using kernel::data_structures::Vector;
 
 NAMESPACE_BEGIN(kernel)
 
-    NAMESPACE_BEGIN(processing)
+    NAMESPACE_BEGIN(Processing)
 
         struct RegisteredProcess
         {
@@ -51,7 +51,7 @@ NAMESPACE_BEGIN(kernel)
             const void* current_address;
         };
 
-        struct Process
+        struct KernelProcess
         {
             using ID        = uint64_t;
 
@@ -64,7 +64,7 @@ NAMESPACE_BEGIN(kernel)
                 System
             };
 
-            Process(const void* func_ptr, Priority priority)
+            KernelProcess(const void* func_ptr, Priority priority)
             {
                 active_threads.push_back(Thread{func_ptr});
                 this->priority = priority;
@@ -75,7 +75,7 @@ NAMESPACE_BEGIN(kernel)
             }
 
             ID                              pid = (_pid_seq++);
-            uint64_t                        start_time = timer::current_time();
+            uint64_t                        start_time = Timer::current_time();
             uint64_t                        slice_size;
             Priority                        priority;
             Vector<Thread>                  active_threads;
@@ -91,25 +91,25 @@ NAMESPACE_BEGIN(kernel)
          * @param name - name of the process
          * @param func - pointer to the process code
          */
-        void register_process(const String& name, const void* func);
+        void RegisterProcess(const String& name, const void* func);
 
-        NAMESPACE_BEGIN(start)
+        NAMESPACE_BEGIN(Start)
 
             /**
              * @brief This function starts executing code from _code_ptr_
              * 
              * @param code_ptr - pointer to code
              */
-            void code(const void* code_ptr);
+            void Code(const void* code_ptr);
 
             /**
              * @brief This function starts a process with name _name_
              * @param name 
              * @return observer pointer to the process struct
              */
-            const Process* process(const String& name, Process::Priority priority);
+            const KernelProcess* Process(const String& name, KernelProcess::Priority priority);
 
-        NAMESPACE_END(start)
+        NAMESPACE_END(Start)
             
         NAMESPACE_BEGIN(end)
 
@@ -118,20 +118,20 @@ NAMESPACE_BEGIN(kernel)
              * 
              * @param id 
              */
-            void process(Process::ID id);
+            void Process(KernelProcess::ID id);
 
         NAMESPACE_END(end)
         
 
-        using ProcessScheduler = scheduler::IScheduler<Process>*;
+        using ProcessScheduler = scheduler::IScheduler<KernelProcess>*;
         /**
          * @brief Initializes the paging system
          * 
          * @param scheduler a pointer to an object that implements the IScheduler interface
          */
-        void initialize(ProcessScheduler scheduler);
+        void Initialize(ProcessScheduler scheduler);
 
-    NAMESPACE_END(processing)
+    NAMESPACE_END(Processing)
 
 NAMESPACE_END(kernel)
 

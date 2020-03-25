@@ -2,7 +2,7 @@
 
 using namespace kernel::paging;
 
-FrameTable::frame_table_result_t kernel::paging::FrameTable::find_first()
+FrameTable::frame_table_result_t kernel::paging::FrameTable::FindFirst()
 {
     FrameTable::frame_table_result_t result;
 
@@ -19,12 +19,12 @@ FrameTable::frame_table_result_t kernel::paging::FrameTable::find_first()
     return result;
 }
 
-void FrameTable::set_at_addr(uint32_t addr)
+void FrameTable::SetAtAddress(uint32_t addr)
 {
     this->frames[addr / PAGE_SIZE].is_taken = true;
 } 
 
-void FrameTable::set_at_idx(uint32_t idx)
+void FrameTable::SetAtIndex(uint32_t idx)
 {
     this->frames[idx].is_taken = true;
 }
@@ -32,7 +32,7 @@ void FrameTable::set_at_idx(uint32_t idx)
 kernel::paging::frame_table_t::FrameTable(uint32_t length)
 {
     this->length = length;
-    this->frames = (frame_t*)heap::allocate(length);
+    this->frames = (frame_t*)heap::Allocate(length);
     
     for (uint32_t i = 0; i < length; i++)
     {

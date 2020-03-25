@@ -29,7 +29,7 @@ NAMESPACE_BEGIN(kernel)
 
         static pointer allocate(uint32_t n)
         {
-            return (pointer)kernel::heap::allocate(n * object_size);
+            return (pointer)kernel::heap::Allocate(n * object_size);
         }
 
         static void construct(pointer p, const_reference v)

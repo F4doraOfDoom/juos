@@ -1,19 +1,19 @@
 #ifndef KERNEL_PROC_SCHEDUALER_H
 #define KERNEL_PROC_SCHEDUALER_H
 
-#include <kernel/kprocess.h>
+#include <kernel/processing.h>
 #include <kernel/scheduler_interface.h>
 #include <kernel/data_structures/queue.hpp>
 
 using namespace kernel;
 using data_structures::Queue;
-using processing::Process;
+using Processing::KernelProcess;
 
 NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(scheduler)
 
-        class ProcessScheduler : public IScheduler<Process>
+        class ProcessScheduler : public IScheduler<KernelProcess>
         {
         public:
             ProcessScheduler() {}  
@@ -23,7 +23,7 @@ NAMESPACE_BEGIN(kernel)
              * 
              * @param process 
              */
-            void AddItem(Process* process);
+            void AddItem(KernelProcess* process);
 
             /**
              * @brief This function should pass to the timer to run every tick
@@ -45,11 +45,11 @@ NAMESPACE_BEGIN(kernel)
              * 
              * @param process 
              */
-            void _ExecuteProcess(Process* process);
+            void _ExecuteProcess(KernelProcess* process);
 
 
-            Queue<Process*> _system_processes;
-            Queue<Process*> _regular_processes;
+            Queue<KernelProcess*> _system_processes;
+            Queue<KernelProcess*> _regular_processes;
 
             bool _keep_running = true;
         };

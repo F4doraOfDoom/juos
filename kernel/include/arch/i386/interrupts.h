@@ -61,18 +61,18 @@
 
 #define I386_INTERRUPTS 256
 
-extern interrupts::handler interrupt_handlers[I386_INTERRUPTS];
+extern Interrupts::handler interrupt_handlers[I386_INTERRUPTS];
 
 typedef void (*isr_t)(registers32_t);
 
-NAMESPACE_BEGIN(interrupts)
+NAMESPACE_BEGIN(Interrupts)
 
     /*
         A function that calls idt::edit_entry
     */
-    void add_to_idt(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
+    void AddToIdt(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
 
-NAMESPACE_END(interrupts)
+NAMESPACE_END(Interrupts)
 
 __NO_MANGELING void isr_handler(registers32_t);
 __NO_MANGELING void irq_handler(registers32_t);

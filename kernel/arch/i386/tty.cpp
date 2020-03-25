@@ -24,7 +24,7 @@ void Tty::Initialize(void)
 {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = _vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
+	terminal_color = _VgaEntryColor(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 	terminal_buffer = VGA_MEMORY;
 
 	LOG_SA("TTY: ", "Initializing. Width: %d Height: %d\n", VGA_WIDTH, VGA_HEIGHT);
@@ -33,7 +33,7 @@ void Tty::Initialize(void)
 		for (size_t x = 0; x < VGA_WIDTH; x++) 
 		{
 			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = _vga_entry(' ', terminal_color);
+			terminal_buffer[index] = _VgaEntry(' ', terminal_color);
 		}
 	}
 } 
@@ -41,7 +41,7 @@ void Tty::Initialize(void)
 void Tty::SetColor(unsigned int fg, unsigned int bg)
 {
 	//LOG_A("TTY: setting terminal colors: %d, %d\n", fg, bg);
-	terminal_color = _vga_entry_color((vga_color)fg, (vga_color)bg);
+	terminal_color = _VgaEntryColor((vga_color)fg, (vga_color)bg);
 }
  
 void Tty::Putchar(char c) 
@@ -106,6 +106,6 @@ void _terminal_setcolor(uint8_t color)
 void _terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) 
 {
 	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = _vga_entry(c, color);
+	terminal_buffer[index] = _VgaEntry(c, color);
 }
  

@@ -12,9 +12,9 @@ NAMESPACE_BEGIN(kernel)
 class FsHandler
 {
 public:
-    virtual void create_file(const char* filename) = 0;
+    virtual void CreateFile(const char* filename) = 0;
 
-    virtual void delete_file(const char* filename) = 0;
+    virtual void DeleteFile(const char* filename) = 0;
 
     virtual ~FsHandler() = default;
 };

@@ -11,7 +11,7 @@
 #include <kernel/kmm.h>
 #include <kernel/kallocators.hpp>
 #include <kernel/kuseful.h>
-#include <kernel/kprocess.h>
+#include <kernel/processing.h>
 #include <drivers/ata.h>
 #include <drivers/ext2.h>
 #include <kernel/schedualer.h>
@@ -52,11 +52,11 @@ __NO_MANGELING void kernel_main(void) {
 	 *
 	 */
 	Tty::Initialize();
-	gdt::initialize();
-	idt::initialize();
-	interrupts::initialize();
+	Gdt::Initialize();
+	Idt::Initialize();
+	Interrupts::Initialize();
 	// after this initialization, operators new and delete can be used
-	memory_manager::initialize(
+	MemoryManager::Initialize(
 		K_HEAP_START, // beginning address
 		K_HEAP_START + K_HEAP_INITIAL_SIZE, // end address
 		0xCFFFF000, // max address
@@ -64,20 +64,20 @@ __NO_MANGELING void kernel_main(void) {
 		true // is read-write
 	);
 
-	timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	auto proc_scheduler = new scheduler::ProcessScheduler();
-	timer::add_callable_function(scheduler::run_process_scheduler, proc_scheduler);
+	Timer::add_callable_function(scheduler::run_process_scheduler, proc_scheduler);
 
-	processing::initialize(proc_scheduler);
+	Processing::Initialize(proc_scheduler);
 	
-	processing::register_process("loop1", (void*)loop);
-	processing::register_process("loop2", (void*)loop);
-	processing::register_process("loop3", (void*)loop);
+	Processing::RegisterProcess("loop1", (void*)loop);
+	Processing::RegisterProcess("loop2", (void*)loop);
+	Processing::RegisterProcess("loop3", (void*)loop);
 
-	processing::start::process("loop2", processing::Process::Priority::High);
-	processing::start::process("loop2", processing::Process::Priority::High);
-	processing::start::process("loop2", processing::Process::Priority::High);
+	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
 
 
 	printf("Hello paging!\n");

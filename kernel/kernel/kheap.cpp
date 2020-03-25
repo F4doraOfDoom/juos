@@ -4,7 +4,7 @@ extern uint32_t end; // defined by linker
 // the primitive heap cannot be freed
 uint32_t __primitive_heap = (uint32_t)&end; 
 
-uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
+uint32_t kernel::heap::Allocate_WPointer(size_t n, uint32_t* phys, bool alligned)
 {
 #ifdef K_LOG_MALLOC
     LOG_SA("PRIMITIVE HEAP: ", "Allocating %d bytes\n", n);
@@ -31,7 +31,7 @@ uint32_t kernel::heap::allocate_p(size_t n, uint32_t* phys, bool alligned)
     return tmp;
 }
 
-uint32_t kernel::heap::allocate(size_t n, bool alligned)
+uint32_t kernel::heap::Allocate(size_t n, bool alligned)
 {
-    return allocate_p(n, nullptr, alligned);
+    return Allocate_WPointer(n, nullptr, alligned);
 }

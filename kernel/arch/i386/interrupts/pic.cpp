@@ -1,23 +1,23 @@
 #include <arch/i386/pic.h>
 
-void pic::initialize(uint32_t base)
+void Pic::Initialize(uint32_t base)
 {
     LOG_SA("PIC: ", "Initializing... Base: %d\n", base);
-    pic::_pic_remap(base, base + 8);
+    Pic::_PicRemap(base, base + 8);
 
-    pic::_enable_devices(0xfc, 0xff);
+    Pic::_EnableDevices(0xfc, 0xff);
 
-    pic::_add_to_int_table();
+    Pic::_AddToInterruptTable();
 }
 
-inline void pic::_enable_devices(uint8_t master_dev, uint8_t slave_dev)
+inline void Pic::_EnableDevices(uint8_t master_dev, uint8_t slave_dev)
 {
     outb(0x21, master_dev);
     outb(0xa1, slave_dev);
     asm volatile ("sti;");
 }
 
-inline void pic::_pic_remap(uint8_t offset1, uint8_t offset2)
+inline void Pic::_PicRemap(uint8_t offset1, uint8_t offset2)
 {
     unsigned char a1, a2;
 
@@ -38,22 +38,22 @@ inline void pic::_pic_remap(uint8_t offset1, uint8_t offset2)
 	outb(PIC2_DATA, a2);
 }
 
-inline void pic::_add_to_int_table()
+inline void Pic::_AddToInterruptTable()
 {
-    interrupts::add_to_idt(32, reinterpret_cast<uint32_t>(irq_0), 0x08, 0x8E);
-    interrupts::add_to_idt(33, reinterpret_cast<uint32_t>(irq_1), 0x08, 0x8E);
-    interrupts::add_to_idt(34, reinterpret_cast<uint32_t>(irq_2), 0x08, 0x8E);
-    interrupts::add_to_idt(35, reinterpret_cast<uint32_t>(irq_3), 0x08, 0x8E);
-    interrupts::add_to_idt(36, reinterpret_cast<uint32_t>(irq_4), 0x08, 0x8E);
-    interrupts::add_to_idt(37, reinterpret_cast<uint32_t>(irq_5), 0x08, 0x8E);
-    interrupts::add_to_idt(38, reinterpret_cast<uint32_t>(irq_6), 0x08, 0x8E);
-    interrupts::add_to_idt(39, reinterpret_cast<uint32_t>(irq_7), 0x08, 0x8E);
-    interrupts::add_to_idt(40, reinterpret_cast<uint32_t>(irq_8), 0x08, 0x8E);
-    interrupts::add_to_idt(41, reinterpret_cast<uint32_t>(irq_9), 0x08, 0x8E);
-    interrupts::add_to_idt(42, reinterpret_cast<uint32_t>(irq_10), 0x08, 0x8E);
-    interrupts::add_to_idt(43, reinterpret_cast<uint32_t>(irq_11), 0x08, 0x8E);
-    interrupts::add_to_idt(44, reinterpret_cast<uint32_t>(irq_12), 0x08, 0x8E);
-    interrupts::add_to_idt(45, reinterpret_cast<uint32_t>(irq_13), 0x08, 0x8E);
-    interrupts::add_to_idt(46, reinterpret_cast<uint32_t>(irq_14), 0x08, 0x8E);
-    interrupts::add_to_idt(47, reinterpret_cast<uint32_t>(irq_15), 0x08, 0x8E);
+    Interrupts::AddToIdt(32, reinterpret_cast<uint32_t>(irq_0), 0x08, 0x8E);
+    Interrupts::AddToIdt(33, reinterpret_cast<uint32_t>(irq_1), 0x08, 0x8E);
+    Interrupts::AddToIdt(34, reinterpret_cast<uint32_t>(irq_2), 0x08, 0x8E);
+    Interrupts::AddToIdt(35, reinterpret_cast<uint32_t>(irq_3), 0x08, 0x8E);
+    Interrupts::AddToIdt(36, reinterpret_cast<uint32_t>(irq_4), 0x08, 0x8E);
+    Interrupts::AddToIdt(37, reinterpret_cast<uint32_t>(irq_5), 0x08, 0x8E);
+    Interrupts::AddToIdt(38, reinterpret_cast<uint32_t>(irq_6), 0x08, 0x8E);
+    Interrupts::AddToIdt(39, reinterpret_cast<uint32_t>(irq_7), 0x08, 0x8E);
+    Interrupts::AddToIdt(40, reinterpret_cast<uint32_t>(irq_8), 0x08, 0x8E);
+    Interrupts::AddToIdt(41, reinterpret_cast<uint32_t>(irq_9), 0x08, 0x8E);
+    Interrupts::AddToIdt(42, reinterpret_cast<uint32_t>(irq_10), 0x08, 0x8E);
+    Interrupts::AddToIdt(43, reinterpret_cast<uint32_t>(irq_11), 0x08, 0x8E);
+    Interrupts::AddToIdt(44, reinterpret_cast<uint32_t>(irq_12), 0x08, 0x8E);
+    Interrupts::AddToIdt(45, reinterpret_cast<uint32_t>(irq_13), 0x08, 0x8E);
+    Interrupts::AddToIdt(46, reinterpret_cast<uint32_t>(irq_14), 0x08, 0x8E);
+    Interrupts::AddToIdt(47, reinterpret_cast<uint32_t>(irq_15), 0x08, 0x8E);
 }

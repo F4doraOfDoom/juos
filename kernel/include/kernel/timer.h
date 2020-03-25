@@ -26,7 +26,7 @@ using kernel::data_structures::Vector;
 // the hardware clock will call this interrupt on every tick
 #define TIMER_PORT 32
 
-NAMESPACE_BEGIN(timer)
+NAMESPACE_BEGIN(Timer)
 
 
     /**
@@ -34,10 +34,10 @@ NAMESPACE_BEGIN(timer)
      * 
      * @param clock_freq - the frequency of the clock's updates
      */
-    void initialize(uint32_t clock_freq);
+    void Initialize(uint32_t clock_freq);
 
     /**
-     * @brief this function calls the arch's implenetation of "initialize",
+     * @brief this function calls the arch's implenetation of "Initialize",
      * and sets up the kernel internal clock (software instead of arch) 
      * 
      * @param clock_freq - the frequency of the clock's updates
@@ -82,6 +82,6 @@ NAMESPACE_BEGIN(timer)
     extern uint64_t __tick_counter;
     
 
-NAMESPACE_END(timer)
+NAMESPACE_END(Timer)
 
 #endif //KERNEL_TIMER_H_

@@ -9,7 +9,7 @@ void* operator new(size_t size)
     LOG_SA("NEW: ", "Allocating object the size of %d\n", size);
 #endif
 
-    return kernel::memory_manager::malloc(size);
+    return kernel::MemoryManager::malloc(size);
 }
 
 void* operator new[](size_t size)
@@ -18,7 +18,7 @@ void* operator new[](size_t size)
     LOG_SA("NEW: ", "Allocating object[] the size of %d\n", size);
 #endif
 
-    return kernel::memory_manager::malloc(size);
+    return kernel::MemoryManager::malloc(size);
 }
 
 void operator delete(void* ptr)
@@ -27,7 +27,7 @@ void operator delete(void* ptr)
     LOG_SA("NEW: ", "Deleting object the at %p\n", ptr);
 #endif
 
-    kernel::memory_manager::free(ptr);
+    kernel::MemoryManager::free(ptr);
 }
 
 void operator delete(void* ptr, long unsigned int)
@@ -36,7 +36,7 @@ void operator delete(void* ptr, long unsigned int)
     LOG_SA("NEW: ", "Deleting object the at %p\n", ptr);
 #endif
 
-    kernel::memory_manager::free(ptr);
+    kernel::MemoryManager::free(ptr);
 }
 
 void operator delete[](void* ptr, long unsigned int)
@@ -45,7 +45,7 @@ void operator delete[](void* ptr, long unsigned int)
     LOG_SA("NEW: ", "Deleting object[] the at %p\n", ptr);
 #endif
 
-    kernel::memory_manager::free(ptr);
+    kernel::MemoryManager::free(ptr);
 }
 
 void operator delete[](void* ptr)
@@ -54,7 +54,7 @@ void operator delete[](void* ptr)
     LOG_SA("NEW: ", "Deleting object[] the at %p\n", ptr);
 #endif
 
-    kernel::memory_manager::free(ptr);
+    kernel::MemoryManager::free(ptr);
 }
 
 #endif // KERNEL_MEM_OPS_H_

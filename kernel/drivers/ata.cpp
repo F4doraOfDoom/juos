@@ -210,7 +210,7 @@ bool Device::read_bytes(uint8_t* output, uint32_t location, uint32_t count)
     uint8_t* buffer = new uint8_t[sectors * SECTOR_SIZE_BYTES];
     //char buffer[512] = {0};
 
-    bool success = read_sectors(buffer, lba, sectors);
+    bool success = ReadSectors(buffer, lba, sectors);
 
     int offset = (location == 0 ? 0 : location % SECTOR_SIZE_BYTES);
 
@@ -228,13 +228,13 @@ bool Device::write_bytes(const uint8_t* input, uint32_t location, uint32_t count
 
     uint8_t* buffer = new uint8_t[sectors * SECTOR_SIZE_BYTES];
     
-    read_sectors(buffer, lba, sectors);
+    ReadSectors(buffer, lba, sectors);
 
     int offset = (location == 0 ? 0 : location % SECTOR_SIZE_BYTES);
 
     memcpy(buffer + offset, input, count);
 
-    bool success = write_sectors(buffer, lba, sectors);
+    bool success = WriteSectors(buffer, lba, sectors);
 
     delete[] buffer;
 
@@ -256,7 +256,7 @@ bool Device::write_bytes(const uint8_t* input, uint32_t location, uint32_t count
                                                                                                                                                                                                                            
                                                                                                                                                                                                                     
  */
-bool Device::read_sectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
+bool Device::ReadSectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
 {
     char slavebit =0;   //0 for master device 1 for slave   sets bit 5 in 1f6
 
@@ -267,7 +267,7 @@ bool Device::read_sectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     DELAY_400_NS();
 
     SET_SECTOR_COUNT(1);
-    timer::sleep(1);
+    Timer::sleep(1);
 
     SET_LBA(LBA);
 
@@ -275,7 +275,7 @@ bool Device::read_sectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     WAIT_UNTIL_READY();
 
     COMMAND(Command::ReadSectorsWithRetry);
-    timer::sleep(1);
+    Timer::sleep(1);
     
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();
@@ -285,7 +285,7 @@ bool Device::read_sectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     return READ_BYTE(IoRegister::Status);
 }
  
-bool Device::write_sectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors)
+bool Device::WriteSectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors)
 {
     DISABLE_INTERRUPTS();
 
@@ -294,7 +294,7 @@ bool Device::write_sectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors
     DELAY_400_NS();
 
     SET_SECTOR_COUNT(1);
-    timer::sleep(1);
+    Timer::sleep(1);
 
     SET_LBA(LBA);
     
@@ -302,7 +302,7 @@ bool Device::write_sectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors
     WAIT_UNTIL_READY();
 
     COMMAND(Command::WriteSectorsWithRetry);
-    timer::sleep(1);
+    Timer::sleep(1);
     
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();

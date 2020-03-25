@@ -257,9 +257,9 @@ NAMESPACE_BEGIN(ext2)
          */
         Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor);
 
-        virtual void create_file(const char* filename) override;
+        virtual void CreateFile(const char* filename) override;
 
-        virtual void delete_file(const char* filename) override {}
+        virtual void DeleteFile(const char* filename) override {}
 
         // destructor to clean up resources
         ~Fs();
@@ -296,7 +296,7 @@ NAMESPACE_BEGIN(ext2)
         /**
          * @brief Parse SuperBlock metadata from block _sb_block_idx_s_
          * if _create_new_ is true, create a new SuperBlock using information from _descriptor_ (must not be null),
-         * and write it to block _sb_block_idx
+         * and Write it to block _sb_block_idx
          * 
          * @param sb_block_idx 
          * @param create_new 

@@ -21,14 +21,14 @@ enum class InterruptList : uint32_t
     PageFault = 14
 };
 
-NAMESPACE_BEGIN(interrupts)
+NAMESPACE_BEGIN(Interrupts)
 
     typedef void (*handler)(void*);
 
-    void initialize();
+    void Initialize();
  
     void set_handler(uint32_t interrupt_num, handler handler);
 
-NAMESPACE_END(interrupts)
+NAMESPACE_END(Interrupts)
 
 #endif //KERNEL_INTERRUPTS_H_

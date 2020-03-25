@@ -13,7 +13,7 @@
 void _pic_remap(uint8_t offset1, uint8_t offset2);
 void _set_all_interrupts();
 
-NAMESPACE_BEGIN(idt)
+NAMESPACE_BEGIN(Idt)
 
      struct EntryStruct
     {
@@ -36,7 +36,7 @@ NAMESPACE_BEGIN(idt)
     /*
         This function initializes the IDT table and writes it to the CPU
     */
-     void _init();
+     void _Init();
 
     /*
         This function configures an IDT entry by index
@@ -45,12 +45,12 @@ NAMESPACE_BEGIN(idt)
             uint16_t sel - segment selector
             uint8_t flags - IDT flags
     */
-    void edit_entry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
+    void EditEntry(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags);
 
     template <uint32_t N>
      inline void _request_isr();
 
-NAMESPACE_END(idt)
+NAMESPACE_END(Idt)
 
 /*
     Written in a different assembly file

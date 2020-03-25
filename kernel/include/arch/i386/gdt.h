@@ -6,7 +6,7 @@
 #include <kernel/dtables.h>
 #include <kernel/kdef.h>
 
-NAMESPACE_BEGIN(gdt)
+NAMESPACE_BEGIN(Gdt)
 
     enum class Segment_Access_Type : uint8_t
     {
@@ -38,7 +38,7 @@ NAMESPACE_BEGIN(gdt)
     /*
         This function initializes the GDT table and writes it to the CPU
     */
-    static void _init();
+    static void _Init();
 
     /*
         This function configures the GDT
@@ -49,10 +49,10 @@ NAMESPACE_BEGIN(gdt)
             Gsat        access  - Entry access flags
             uint8_t     gran    - granuary byte
     */
-    static void edit_entry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
+    static void EditEntry(int32_t entry, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);               
 
 
-NAMESPACE_END(gdt)
+NAMESPACE_END(Gdt)
 
 /*
     Written in a different assembly file.

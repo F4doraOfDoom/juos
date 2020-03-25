@@ -83,7 +83,7 @@ Fs::Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descrip
     delete block_group;
 }
 
-void Fs::create_file(const char* filename)
+void Fs::CreateFile(const char* filename)
 {
     auto inode_idx = _get_available_inode_idx();
     auto file_name_len = strlen(filename);
@@ -317,7 +317,7 @@ void Fs::_read_storage(uint8_t* buffer, uint32_t block, uint32_t n_blocks)
 
     for (uint32_t i = 0; i < n_sectors; i++)
     {
-        _storage_device->read_sectors(buffer + (i * SECTOR_SIZE_BYTES), sector_start + i, 0);
+        _storage_device->ReadSectors(buffer + (i * SECTOR_SIZE_BYTES), sector_start + i, 0);
     }
 }
 
@@ -328,7 +328,7 @@ void Fs::_write_storage(const uint8_t* buffer, uint32_t block, uint32_t n_blocks
 
     for (uint32_t i = 0; i < n_sectors; i++)
     {
-        _storage_device->write_sectors(buffer + (i * SECTOR_SIZE_BYTES), sector_start + i, 0);
+        _storage_device->WriteSectors(buffer + (i * SECTOR_SIZE_BYTES), sector_start + i, 0);
     }
 }
 

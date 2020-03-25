@@ -35,7 +35,7 @@ NAMESPACE_BEGIN(kernel)
          * page size - trye by default
          * @return uint32_t - pointer to allocated memory
          */
-        uint32_t allocate(size_t n, bool alligned = true);
+        uint32_t Allocate(size_t n, bool alligned = true);
 
         /**
          * @brief allocate _n_ bytes on the heap
@@ -46,7 +46,7 @@ NAMESPACE_BEGIN(kernel)
          * page size - trye by default
          * @return uint32_t - pointer to allocated memory
          */
-        uint32_t allocate_p(size_t n, uint32_t* phys, bool alligned = true);
+        uint32_t Allocate_WPointer(size_t n, uint32_t* phys, bool alligned = true);
 
     NAMESPACE_END(heap)
 

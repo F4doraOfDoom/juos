@@ -2,9 +2,9 @@
 
 using namespace kernel::scheduler;
 
-void ProcessScheduler::AddItem(Process* process) 
+void ProcessScheduler::AddItem(KernelProcess* process) 
 {
-    if (process->priority == Process::Priority::System)
+    if (process->priority == KernelProcess::Priority::System)
     {
         _system_processes.enqueue(process);
     }
@@ -50,7 +50,7 @@ void ProcessScheduler::Run(void* args)
     }
 }
 
-void ProcessScheduler::_ExecuteProcess(Process* process)
+void ProcessScheduler::_ExecuteProcess(KernelProcess* process)
 {
 #ifdef K_LOG_SCHEDULER
     LOG_SA("SCHEDULER:", "Serving process %d\n", process->pid)

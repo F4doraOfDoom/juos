@@ -7,21 +7,21 @@
 
 #include "interrupts.h"
 
-NAMESPACE_BEGIN(pic)
+NAMESPACE_BEGIN(Pic)
 
     /*
         Initializes the PIC (Programmable Interrupt Controller)
         uint32_t base - at what interrupt index do you want the PIC to begin?
             (Example: A base of 32 will map the PIC interrupts from 32 - 47) 
     */
-    void initialize(uint32_t base);
+    void Initialize(uint32_t base);
 
     /*
         Enables devices in the PIC
         uint32_t master_dev - devices to be enabled in the master PIC
         uint32_t slave_dev - devices to be enabled in the slave PIC
     */
-     inline void _enable_devices(uint8_t master_dev, uint8_t slave_dev);
+     inline void _EnableDevices(uint8_t master_dev, uint8_t slave_dev);
 
     /*
         Maps the PIC to certain offsets in the interrupt table
@@ -29,11 +29,11 @@ NAMESPACE_BEGIN(pic)
             the interrupt table
         uint8_5 slave_base - same but for the base
     */
-     inline void _pic_remap(uint8_t master_base, uint8_t slave_base);  
+     inline void _PicRemap(uint8_t master_base, uint8_t slave_base);  
 
-     inline void _add_to_int_table();  
+     inline void _AddToInterruptTable();  
 
-NAMESPACE_END(pic)
+NAMESPACE_END(Pic)
 
 // will be written in a seperate .S file
 __NO_MANGELING void irq_0();

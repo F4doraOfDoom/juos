@@ -24,7 +24,7 @@ NAMESPACE_BEGIN(kernel)
                  * @return true if read is successful (not really working though)
                  * @return false if read is unsuccessful
                  */
-                virtual bool read_sectors(uint8_t* buffer, uint32_t lba, uint32_t sectors) = 0;
+                virtual bool ReadSectors(uint8_t* buffer, uint32_t lba, uint32_t sectors) = 0;
 
                 /**
                  * @brief Write a _sectors_ count of sectors to LBA _lba_ from _buffer_
@@ -35,7 +35,7 @@ NAMESPACE_BEGIN(kernel)
                  * @return true if Write is successful(not really working though)
                  * @return false if Write is unsuccessful
                  */
-                virtual bool write_sectors(const uint8_t* buffer, uint32_t lba, uint32_t sectors) = 0;
+                virtual bool WriteSectors(const uint8_t* buffer, uint32_t lba, uint32_t sectors) = 0;
 
                 virtual ~StorageDeviceHandler() = default;
         };

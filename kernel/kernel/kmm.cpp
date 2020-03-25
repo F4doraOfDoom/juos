@@ -11,7 +11,7 @@
 
 // #define CHUNK_IS_PRESENT(chunk) bitset::test((uint32_t*)chunk->prev, IS_PRESENT_BIT)
 
-using namespace kernel::memory_manager;
+using namespace kernel::MemoryManager;
 
 #define BIGCHUNK_MIN_SPACE  (sizeof(big_chunk_t) + FASTBIN_THRESHOLD + 1)
 
@@ -35,11 +35,11 @@ static uint32_t         _fastbin_area_end   = 0;
 static heap_t*          __mapped_heap       = nullptr;
 
 
-void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t max, bool is_kernel, bool rw)
+void kernel::MemoryManager::Initialize(uint32_t start, uint32_t end, uint32_t max, bool is_kernel, bool rw)
 {
     LOG_S("MEMORY MANAGER: ", "Initializing...\n");
 
-    __fast_bin = (fast_bin_t*)heap::allocate(sizeof(fast_bin_t));
+    __fast_bin = (fast_bin_t*)heap::Allocate(sizeof(fast_bin_t));
     memset(__fast_bin, 0, sizeof(fast_bin_t));
 
     __fast_bin->start_addr = start;
@@ -53,7 +53,7 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
     _fastbin_area_end = start + reserve_memory_for_fastbins;
     //__primitive_heap += reserve_memory_for_fastbins;
 
-    __fast_bin->chunks = (fast_chunk_t*)heap::allocate(reserve_memory_for_fastbins);
+    __fast_bin->chunks = (fast_chunk_t*)heap::Allocate(reserve_memory_for_fastbins);
     __fast_bin->bin_size       = FASTBIN_MAX_SIZE;
     __fast_bin->chunk_size     = FASTBIN_THRESHOLD;
     for(uint32_t i = 0; i < __fast_bin->bin_size; i++)
@@ -65,7 +65,7 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
    LOG_SA("MEMORY MANAGER: ", "Initializing heap... start: %p, end: %p\n", start, end);
 #endif
 
-    __mapped_heap = (heap_t*)heap::allocate(sizeof(memory_manager::heap_t)); 
+    __mapped_heap = (heap_t*)heap::Allocate(sizeof(MemoryManager::heap_t)); 
     memset(__mapped_heap, 0, sizeof(heap_t));
 
     ASSERT(IS_ALIGNED(start) && IS_ALIGNED(end));
@@ -83,7 +83,7 @@ void kernel::memory_manager::initialize(uint32_t start, uint32_t end, uint32_t m
     memset(__mapped_heap->big_chunks, 0, sizeof(big_chunk_t));
 
     paging::_HeapMappingSettings heap_mapping = paging::_HeapMappingSettings{start, end};
-    kernel::paging::initialize(&heap_mapping);    
+    kernel::paging::Initialize(&heap_mapping);    
 }
 
 /**
@@ -327,7 +327,7 @@ static void __free_big(void* ptr)
     __mapped_heap->allocated_chunks--;
 }
 
-void* kernel::memory_manager::malloc(size_t size)
+void* kernel::MemoryManager::malloc(size_t size)
 {
     // treat negative requests as zero
     if (size <= 0) return nullptr;
@@ -347,7 +347,7 @@ void* kernel::memory_manager::malloc(size_t size)
     }
 }
 
-void kernel::memory_manager::free(void* ptr)
+void kernel::MemoryManager::free(void* ptr)
 {
     // we know a chunk is a fast bin if it is in the fastbin region
     if (ptr >= __mapped_heap->fast_bins && ptr <= __mapped_heap->big_chunks)

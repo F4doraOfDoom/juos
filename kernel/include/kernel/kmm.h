@@ -45,7 +45,7 @@
 
 NAMESPACE_BEGIN(kernel)
 
-    NAMESPACE_BEGIN(memory_manager)
+    NAMESPACE_BEGIN(MemoryManager)
 
         struct FastChunk
         {
@@ -86,13 +86,13 @@ NAMESPACE_BEGIN(kernel)
         typedef BigChunk    big_chunk_t;
         typedef Heap        heap_t;
 
-        void initialize(uint32_t start, uint32_t end, uint32_t size, bool is_kernel, bool rw);
+        void Initialize(uint32_t start, uint32_t end, uint32_t size, bool is_kernel, bool rw);
 
         void* malloc(uint32_t size);
 
         void free(void* p);
 
-    NAMESPACE_END(memory_manager)
+    NAMESPACE_END(MemoryManager)
 
 NAMESPACE_END(kernel)
 

@@ -7,7 +7,7 @@
 #include <kernel/kdef.h>
 #include <kernel/kcommon.h>
 
-NAMESPACE_BEGIN(pit)
+NAMESPACE_BEGIN(Pit)
 
     #define PIT_DPORT_1         0x40
     #define PIT_DPORT_2         0x41
@@ -17,8 +17,8 @@ NAMESPACE_BEGIN(pit)
     #define PIT_FREQ            1193180
     #define PIT_COMMAND_BYTE    0x36
 
-    static void _init(uint32_t clock_freq);
+    static void _Init(uint32_t clock_freq);
 
-NAMESPACE_END(pit)
+NAMESPACE_END(Pit)
 
 #endif // KERNEL_PIT_I386

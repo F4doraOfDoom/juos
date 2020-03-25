@@ -1,6 +1,6 @@
 #include <arch/i386/interrupts.h>
 
-interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
+Interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 
 static void _go_to_interrupt(const registers32_t& registers)
 {
@@ -18,21 +18,21 @@ static void _go_to_interrupt(const registers32_t& registers)
     }
 }
 
-void interrupts::initialize()
+void Interrupts::Initialize()
 {
     LOG_S("INTERRUPTS: ", "Initializing...\n");
     for(int i = 0; i < I386_INTERRUPTS; i++)
     {
-        interrupt_handlers[i] = interrupts::handler{nullptr};
+        interrupt_handlers[i] = Interrupts::handler{nullptr};
     }
 }
 
-void interrupts::add_to_idt(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags)
+void Interrupts::AddToIdt(int32_t entry, uint32_t base, uint16_t sel, uint8_t flags)
 {
-    idt::edit_entry(entry, base, sel, flags);
+    Idt::EditEntry(entry, base, sel, flags);
 }
 
-void interrupts::set_handler(uint32_t interrupt_num, interrupts::handler handler)
+void Interrupts::set_handler(uint32_t interrupt_num, Interrupts::handler handler)
 {
     interrupt_handlers[interrupt_num]= handler;
 }
