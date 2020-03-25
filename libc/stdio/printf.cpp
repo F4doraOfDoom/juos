@@ -6,7 +6,7 @@
 #ifdef __is_libk
     #include <kernel/tty.h>
     #include <kernel/klog.h>
-    extern void tty::set_color(unsigned int fg, unsigned int bg);
+    extern void Tty::SetColor(unsigned int fg, unsigned int bg);
 #else
     // do sys calls?
 #endif
@@ -150,7 +150,7 @@ int printf(const char* __restrict format, ...)
                     unsigned int fg = format[2];
                     unsigned int bg = format[3];
 
-                    tty::set_color(fg, bg);
+                    Tty::SetColor(fg, bg);
 
                     format += 3;
                 }

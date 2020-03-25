@@ -51,7 +51,7 @@ __NO_MANGELING void kernel_main(void) {
 	 * everything else... 
 	 *
 	 */
-	tty::initialize();
+	Tty::Initialize();
 	gdt::initialize();
 	idt::initialize();
 	interrupts::initialize();

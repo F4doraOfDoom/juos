@@ -20,7 +20,7 @@ static size_t terminal_column;
 static uint8_t terminal_color;
 static uint16_t* terminal_buffer;
 
-void tty::initialize(void) 
+void Tty::Initialize(void) 
 {
 	terminal_row = 0;
 	terminal_column = 0;
@@ -38,13 +38,13 @@ void tty::initialize(void)
 	}
 } 
 
-void tty::set_color(unsigned int fg, unsigned int bg)
+void Tty::SetColor(unsigned int fg, unsigned int bg)
 {
 	//LOG_A("TTY: setting terminal colors: %d, %d\n", fg, bg);
 	terminal_color = _vga_entry_color((vga_color)fg, (vga_color)bg);
 }
  
-void tty::putchar(char c) 
+void Tty::Putchar(char c) 
 {
 	unsigned char uc = c;
 
@@ -70,23 +70,23 @@ void tty::putchar(char c)
 	}
 	if (terminal_row == VGA_HEIGHT)
 	{
-		tty::clean();
+		Tty::Clean();
 		terminal_row = 0;
 	}
 }
 
-void tty::write(const char* data, size_t size) 
+void Tty::Write(const char* data, size_t size) 
 {
 	for (size_t i = 0; i < size; i++)
-		putchar(data[i]);
+		Putchar(data[i]);
 }
  
-void tty::writestring(const char* data) 
+void Tty::WriteString(const char* data) 
 {
-	write(data, strlen(data));
+	Write(data, strlen(data));
 }
 
-void tty::clean()
+void Tty::Clean()
 {
 	for (size_t i = 0; i < VGA_WIDTH; i++)
 	{
