@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <kernel/klog.h>
+#include <kernel/hardware.h>
 
 #include "interrupts.h"
 #include "kconstants.h"
@@ -161,6 +162,13 @@ NAMESPACE_BEGIN(kernel)
         void Initialize(_HeapMappingSettings* _heap_mapping);
 
         uint32_t map_region(uint32_t start, uint32_t end, MemoryAlloctor allocator,  page_directory_t* dir = nullptr);
+
+        /**
+         * @brief Set the current_directory object
+         * 
+         * @param directory 
+         */
+        void SetDirectory(PageDirectory* directory);
 
         // creates a new page directory with mappings _mappings_
         // meant to be used only once the memory manager is initialized

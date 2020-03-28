@@ -92,6 +92,15 @@ uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, MemoryAlloctor
     return pages_created;
 }
 
+void kernel::paging::SetDirectory(PageDirectory* directory)
+{
+    DisableHardwareInterrupts();
+
+    memcpy(current_directory, directory, sizeof(PageDirectory));
+
+    EnableHardwareInterrupts();
+}
+
 void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
 {
     LOG_S("PAGING: ", "Initializing...\n");
@@ -131,7 +140,8 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
 
     Interrupts::set_handler(14, page_fault_handler);
 
-    _load_page_directory((uint32_t*)&kernel_directory->table_addresses);
+    SetDirectory(kernel_directory);
+    _load_page_directory((uint32_t*)&current_directory->table_addresses);
     _enable_paging();
 }
 
