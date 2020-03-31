@@ -32,8 +32,17 @@ const KernelProcess* Processing::Start::Process(const String& name, Processing::
 
     auto new_process = new KernelProcess(proc->func_ptr, priority);
 
-    paging::_HeapMappingSettings proc_mappings {0xA0000000, 0xA0100000};
-    new_process->directory = paging::create_directory(&proc_mappings);
+    Vector<paging::_HeapMappingSettings> proc_mappings;
+    proc_mappings.push_back({0xA0000000, 0xA0010000}); // stack
+    proc_mappings.push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
+    proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
+    
+    new_process->directory = paging::create_directory(proc_mappings);
+
+    new_process->stack_begin = (void*)0xA0000000;
+    new_process->heap_begin = (void*)K_HEAP_START;
+    new_process->data_begin = (void*)0xD0000000;
+    new_process->registers.eip = (uint32_t)proc->func_ptr;
 
     _scheduler->AddItem(new_process);
 

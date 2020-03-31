@@ -35,8 +35,8 @@ void loop()
 {
 	while (true)
 	{
-		// kernel::data_structures::String str("Im looping!\n");
-		// printf("%s\n", str.getText());
+		//kernel::data_structures::String str("Im looping!\n");
+		//printf("loop\n");
 		asm volatile("nop");
 	}
 }
@@ -65,6 +65,8 @@ __NO_MANGELING void kernel_main(void) {
 	);
 
 	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+
+	Interrupts::set_handler(1, [](auto) {});
 
 	auto proc_scheduler = new scheduler::ProcessScheduler();
 	Timer::add_callable_function(scheduler::run_process_scheduler, proc_scheduler);

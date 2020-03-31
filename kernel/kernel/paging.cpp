@@ -94,11 +94,12 @@ uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, MemoryAlloctor
 
 void kernel::paging::SetDirectory(PageDirectory* directory)
 {
-    DisableHardwareInterrupts();
+   // DisableHardwareInterrupts();
 
+    // assuming interrupts are already disabled
     memcpy(current_directory, directory, sizeof(PageDirectory));
 
-    EnableHardwareInterrupts();
+    // EnableHardwareInterrupts();
 }
 
 void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
@@ -145,7 +146,7 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     _enable_paging();
 }
 
-PageDirectory* kernel::paging::create_directory(_HeapMappingSettings* mappings)
+PageDirectory* kernel::paging::create_directory(Vector<_HeapMappingSettings>& proc_mappings)
 {
 #ifdef K_LOG_PAGING
     LOG_S("PAGING: ", "Creating new page directory...\n")
@@ -159,7 +160,7 @@ PageDirectory* kernel::paging::create_directory(_HeapMappingSettings* mappings)
         new_directory->table_addresses[i]   = current_directory->table_addresses[i];
     }
 
-    if (mappings)
+    for (const auto& mappings : proc_mappings)
     {
 #ifdef K_LOG_PAGING
         LOG_SA("PAGING: ", "Mappings are %d->%d\n", mapping->begin, mapping->end);
@@ -168,7 +169,7 @@ PageDirectory* kernel::paging::create_directory(_HeapMappingSettings* mappings)
             return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
         };
     
-        map_region(mappings->begin, mappings->end, allocator, new_directory);
+        map_region(mappings.begin, mappings.end, allocator, new_directory);
     }
 
     return new_directory;

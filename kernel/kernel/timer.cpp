@@ -45,7 +45,7 @@ uint64_t Timer::current_time()
     return __tick_counter;
 }
 
-void Timer::__tick_handler(void*)
+void Timer::__tick_handler(void* reg)
 {
     Timer::__tick_counter++;
 
@@ -59,7 +59,7 @@ void Timer::__tick_handler(void*)
 
     for (const auto func_args : _functions_to_call)
     {
-        func_args.func(func_args.args);
+        func_args.func(static_cast<RegistersStruct_x86_32*>(reg), func_args.args);
     }
 //#ifdef K_LOG
 //     if (timer::__tick_counter & 1000 == 0)

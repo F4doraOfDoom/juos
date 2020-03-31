@@ -54,7 +54,7 @@ NAMESPACE_BEGIN(kernel)
             bool _keep_running = true;
         };
 
-        void run_process_scheduler(void* args);
+        void run_process_scheduler(RegistersStruct_x86_32* regs, void* args);
         
     NAMESPACE_END(scheduler)
 

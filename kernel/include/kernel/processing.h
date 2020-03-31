@@ -16,6 +16,7 @@
 
 #include <kernel/kdef.h>
 #include <kernel/timer.h>
+#include <kernel/kmm.h>
 #include <kernel/scheduler_interface.h>
 
 #include <kernel/paging.h>
@@ -24,6 +25,8 @@
 
 #include <move.hpp>
 #include <algorithms.hpp>
+
+#include <kernel/kstructs.h>
 
 using kernel::data_structures::Vector;
 
@@ -80,6 +83,14 @@ NAMESPACE_BEGIN(kernel)
             Priority                        priority;
             Vector<Thread>                  active_threads;
             kernel::paging::PageDirectory*  directory = nullptr;
+            // stack and heap pointers
+            void*                           stack_begin = nullptr;
+            void*                           heap_begin = nullptr;
+            void*                           data_begin = nullptr;
+            #if 1 // implement some way to detect architecture
+            RegistersStruct_x86_32          registers;
+            bool                            registers_set = false;
+            #endif 
 
         private:
             static ID _pid_seq;

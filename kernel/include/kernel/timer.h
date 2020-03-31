@@ -68,7 +68,8 @@ NAMESPACE_BEGIN(Timer)
      */
     void __tick_handler(void*);
 
-    using CallableFunc = void (*)(void*);
+    // first is registers, second is function args
+    using CallableFunc = void (*)(RegistersStruct_x86_32*, void*);
 
     /**
      * @brief Add a function to be called every tick

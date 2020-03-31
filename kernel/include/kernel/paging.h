@@ -24,6 +24,9 @@
 #include "kuseful.h"
 #include "kdef.h"
 
+#include <kernel/data_structures/vector.hpp>
+using kernel::data_structures::Vector;
+
 #define PAGING_LOG_CREATION         1
 #define PAGING_LOG_MAPPING          1
 
@@ -172,7 +175,7 @@ NAMESPACE_BEGIN(kernel)
 
         // creates a new page directory with mappings _mappings_
         // meant to be used only once the memory manager is initialized
-        PageDirectory* create_directory(_HeapMappingSettings* mappings);
+        PageDirectory* create_directory(Vector<_HeapMappingSettings>& mappings);
 
         void page_fault_handler(void*);
 
