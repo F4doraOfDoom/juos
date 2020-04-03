@@ -30,7 +30,7 @@ NAMESPACE_BEGIN(kernel)
              * 
              * @param args 
              */
-            void Run(void* args);
+            void Run(RegistersStruct_x86_32* regs, void* args);
 
             /**
              * @brief Make the schedualer stop

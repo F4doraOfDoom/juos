@@ -22,8 +22,21 @@ void ProcessScheduler::AddItem(KernelProcess* process)
     }
 }
 
-void ProcessScheduler::Run(void* args)
+void ProcessScheduler::Run(RegistersStruct_x86_32* regs, void* args)
 {
+    // usually we use a linked list in order to manage process list.
+    // since i use a queue, we need to pop it and push it back
+    auto run_and_set_back = [&](auto& queue) {
+        auto proc = queue.dequeue();
+        _ExecuteProcess(proc);
+        proc->times_ran++;
+
+        if (!proc->IsFinished())
+        {
+            queue.enqueue(proc);
+        }
+    };
+
     constexpr unsigned SERVE_SYSTEM_THRESHOLD = 5;
     static unsigned int served_system = 0;
 
@@ -33,7 +46,10 @@ void ProcessScheduler::Run(void* args)
     }
 
     _keep_running = true;
-    
+
+    // update current process registers
+    _CurrentProcess->registers = *regs;
+
     // are there any important processes to run?
     // we want to give a high priority of execution to system processes, 
     // but if we only serve system processes all of the time, then we 
@@ -44,14 +60,15 @@ void ProcessScheduler::Run(void* args)
     // process and the counter gets reset.
     if (!_system_processes.isempty() && served_system < SERVE_SYSTEM_THRESHOLD)
     {
-        _ExecuteProcess(_system_processes.dequeue());
+        run_and_set_back(_system_processes);
+
         served_system++;
     }
     else 
     {
         if (!_regular_processes.isempty())
         {
-            _ExecuteProcess(_regular_processes.dequeue());
+            run_and_set_back(_regular_processes);
         }
         else
         {
@@ -62,31 +79,42 @@ void ProcessScheduler::Run(void* args)
     }
 }
 
+__NO_MANGELING void _SetDirectory()
+{
+    paging::PageDirectory* directory = nullptr;
+
+    asm volatile("mov %%eax, %0"::"r"(directory));
+
+    paging::SetDirectory(directory);
+}
+
+static struct {
+    uint32_t eip, esp, ebp;
+    paging::PageDirectory directory;
+} _temp_saved_data;
+
 static uint32_t _ContextSwitch(KernelProcess* process)
 {
-    // save the previous execution point of the process for restoration
-    uint32_t saved_ip = process->registers.eip;
+    _temp_saved_data.eip = process->registers.eip;
+    _temp_saved_data.esp = process->registers.esp;
+    _temp_saved_data.ebp = process->registers.ebp;
+    _temp_saved_data.directory = *process->directory;
 
-    // set the execution point to the current line
-    process->registers.eip = (uint32_t)__builtin_return_address(0);
+    //memcpy(paging::current_directory, &_temp_dir, sizeof(paging::PageDirectory));
+    paging::SetDirectory(&_temp_saved_data.directory);
 
-    // restore process registers...
-    //asm volatile("push %0; pop %%ds" :"=r"(process->registers.ds)); // data segment
-    asm volatile("mov %0, %%ebx" :"=r"(process->registers.ebx));
-    asm volatile("mov %0, %%edx" :"=r"(process->registers.edx));
-    asm volatile("mov %0, %%ecx" :"=r"(process->registers.ecx));
-    asm volatile("mov %0, %%eax" :"=r"(process->registers.eax));
-    asm volatile("mov %0, %%edi" :"=r"(process->registers.edi));
-    asm volatile("mov %0, %%esi" :"=r"(process->registers.esi));
-    // asm volatile("mov %0, %%ebp" :"=r"(process->registers.ebp));
-    // asm volatile("mov %0, %%cs" :"=r"(process->registers.cs));
-    // asm volatile("mov %0, %%ss" :"=r"(process->registers.ss));
-    asm volatile("push %0; popf" :"=r"(process->registers.eflags));
+    asm volatile("         \
+        cli;                 \
+        mov %0, %%ecx;       \
+        mov %1, %%esp;       \
+        mov %2, %%ebp;       " :: "r"(_temp_saved_data.eip), "r"(_temp_saved_data.esp), "r"(_temp_saved_data.ebp));
 
-    // response process pages
-    kernel::paging::SetDirectory(process->directory);
-
-    return saved_ip;
+    asm volatile("\
+        mov $0x12345, %eax; \
+        sti;                 \
+        jmp *%ecx           "); 
+   
+    return 0;
 }
 
 void ProcessScheduler::_ExecuteProcess(KernelProcess* process)
@@ -96,35 +124,28 @@ void ProcessScheduler::_ExecuteProcess(KernelProcess* process)
 #endif
     _CurrentProcess = process;
 
-    DisableHardwareInterrupts();
+    //RegistersStruct_x86_32 saved_regs = process->registers;
 
-    if (process->registers_set == false)
-    {
-        // we need to set up the registers
-        process->registers.esp = (uint32_t)process->stack_begin;
-        process->registers.ebp = (uint32_t)process->stack_begin;
-        process->registers.ds  = (uint32_t)process->data_begin;
-    }
-
-     _ContextSwitch(process);
-
-    EnableHardwareInterrupts();
-
-    // jump to the last execution point 
-    // asm volatile("jmp %0\n" ::"r"(saved_ip));
-    
-    //EnableHardwareInterrupts();
+    _ContextSwitch(process);
 }
 
 void scheduler::run_process_scheduler(RegistersStruct_x86_32* regs, void* args)
 {
-    // save the last registers
-    if (_CurrentProcess)
-    {
-        _CurrentProcess->registers_set = true;
-        memcpy(&_CurrentProcess->registers, regs, sizeof(_CurrentProcess->registers));
-    }
+    // // save the last registers
+    // if (_CurrentProcess)
+    // {
+    //     _CurrentProcess->registers_set = true;
+    //     memcpy(&_CurrentProcess->registers, regs, sizeof(_CurrentProcess->registers));
+    // }
+
+    DisableHardwareInterrupts();
+    
+    // switch back to kernel address space
+    paging::SetDirectory(paging::GetKernelDirectory());
 
     auto scheduler = static_cast<ProcessScheduler*>(args);
-    scheduler->Run(nullptr);
+    // currently args = nullptr becuase we're not passing any args
+    scheduler->Run(regs, nullptr);
+
+    EnableHardwareInterrupts();
 }

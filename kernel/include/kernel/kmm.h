@@ -30,7 +30,7 @@
 #define MM_LOG_DUMPS                4
 
 #define K_HEAP_START         0xC0000000
-#define K_HEAP_INITIAL_SIZE  0x100000
+#define K_HEAP_INITIAL_SIZE  0x1000000
 #define K_HEAP_INDEX_SIZE    0x20000
 #define K_HEAP_MIN_SIZE      0x70000
 

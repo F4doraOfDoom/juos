@@ -33,11 +33,11 @@ void BREAKPOINT() {
 
 void loop()
 {
+	static uint32_t counter = 0;
 	while (true)
 	{
 		//kernel::data_structures::String str("Im looping!\n");
-		//printf("loop\n");
-		asm volatile("nop");
+		printf("loop %d\n", counter++);
 	}
 }
 
@@ -69,18 +69,15 @@ __NO_MANGELING void kernel_main(void) {
 	Interrupts::set_handler(1, [](auto) {});
 
 	auto proc_scheduler = new scheduler::ProcessScheduler();
-	Timer::add_callable_function(scheduler::run_process_scheduler, proc_scheduler);
-
-	Processing::Initialize(proc_scheduler);
+	Processing::Initialize(scheduler::run_process_scheduler, proc_scheduler);
 	
 	Processing::RegisterProcess("loop1", (void*)loop);
 	Processing::RegisterProcess("loop2", (void*)loop);
 	Processing::RegisterProcess("loop3", (void*)loop);
 
 	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-
+	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
 
 	printf("Hello paging!\n");
 	

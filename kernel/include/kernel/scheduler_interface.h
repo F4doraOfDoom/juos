@@ -11,7 +11,7 @@ NAMESPACE_BEGIN(kernel)
         class IScheduler
         {
         public:
-            virtual void Run(void* args) = 0;
+            virtual void Run(RegistersStruct_x86_32* regs, void* args) = 0;
 
             virtual void AddItem(ItemType* item) = 0;
         };

@@ -177,12 +177,16 @@ NAMESPACE_BEGIN(kernel)
         // meant to be used only once the memory manager is initialized
         PageDirectory* create_directory(Vector<_HeapMappingSettings>& mappings);
 
+        PageDirectory* GetKernelDirectory();
+
         void page_fault_handler(void*);
+
 
     NAMESPACE_END(paging)
 
 NAMESPACE_END(kernel)
 
+extern kernel::paging::PageDirectory* paging_current_directory;
 
 // implemented by arch
 __NO_MANGELING void _load_page_directory(uint32_t*);

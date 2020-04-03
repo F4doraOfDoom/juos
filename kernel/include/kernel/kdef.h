@@ -24,6 +24,8 @@
 
 #define __NO_MANGELING          extern "C"
 
+
+
 #define GO_PANIC(message, ...)                  \
         printf("KERNEL PANIC!\n"); \
         printf(message, __VA_ARGS__);                       \

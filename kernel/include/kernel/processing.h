@@ -75,6 +75,17 @@ NAMESPACE_BEGIN(kernel)
                 // the time each process gets to run is equal to
                 // its priority on a scale of 1-5, times 10
                 slice_size = ((uint64_t)priority + 1) * 10;
+                _is_finished = false;
+            }
+
+            bool IsFinished() const
+            {
+                return _is_finished;
+            }
+
+            void Finish()
+            {
+                _is_finished = true;
             }
 
             ID                              pid = (_pid_seq++);
@@ -87,13 +98,17 @@ NAMESPACE_BEGIN(kernel)
             void*                           stack_begin = nullptr;
             void*                           heap_begin = nullptr;
             void*                           data_begin = nullptr;
+            // counter for how many times the process has been task switched
+            uint64_t                        times_ran = 0;
+
             #if 1 // implement some way to detect architecture
             RegistersStruct_x86_32          registers;
             bool                            registers_set = false;
             #endif 
 
         private:
-            static ID _pid_seq;
+            bool        _is_finished; 
+            static ID   _pid_seq;
         };
 
         /**
@@ -135,12 +150,13 @@ NAMESPACE_BEGIN(kernel)
         
 
         using ProcessScheduler = scheduler::IScheduler<KernelProcess>*;
+        using SchedulerCallback = void (*)(RegistersStruct_x86_32*, void*);
         /**
          * @brief Initializes the paging system
          * 
          * @param scheduler a pointer to an object that implements the IScheduler interface
          */
-        void Initialize(ProcessScheduler scheduler);
+        void Initialize(SchedulerCallback, ProcessScheduler scheduler);
 
     NAMESPACE_END(Processing)
 

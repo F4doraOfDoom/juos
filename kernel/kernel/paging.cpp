@@ -1,14 +1,17 @@
 #include <kernel/paging.h>
 #include <kernel/kmm.h>
 
+
 using namespace kernel::paging;
 
+PageDirectory* paging_current_directory = nullptr;
+
 extern uint32_t __primitive_heap; // defined in kheap.cpp
+static PageDirectory* __kernel_directory;
 static uint32_t __kernel_size;
 static uint32_t __base_kernel_tables_size;
 
 FrameTable          frame_table;
-page_directory_t*   current_directory   = nullptr;
 uint32_t*           physical_pages      = nullptr;
 
 // void PageTable::set_page_idx(uint32_t    idx,
@@ -85,7 +88,7 @@ uint32_t kernel::paging::map_region(uint32_t start, uint32_t end, MemoryAlloctor
 {
     if (!dir)
     {
-        dir = current_directory;
+        dir = paging_current_directory;
     }
 
     uint32_t pages_created = _map_virt_to_phys(start, end, dir, allocator);
@@ -97,7 +100,7 @@ void kernel::paging::SetDirectory(PageDirectory* directory)
    // DisableHardwareInterrupts();
 
     // assuming interrupts are already disabled
-    memcpy(current_directory, directory, sizeof(PageDirectory));
+    memcpy(paging_current_directory, directory, sizeof(PageDirectory));
 
     // EnableHardwareInterrupts();
 }
@@ -108,8 +111,9 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
 
     auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE * 10;
     
-    page_directory_t* kernel_directory = (page_directory_t*)heap::Allocate(sizeof(page_directory_t));
-    memset((char*)kernel_directory, '\0', sizeof(page_directory_t));
+    paging_current_directory = (PageDirectory*)heap::Allocate(sizeof(page_directory_t));
+    __kernel_directory = (PageDirectory*)heap::Allocate(sizeof(page_directory_t));
+    memset((char*)__kernel_directory, '\0', sizeof(page_directory_t));
 
     frame_table = FrameTable(number_of_frames);    
 
@@ -121,7 +125,7 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     auto allocator = [](uint32_t size, void* args) {
         return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
     };
-    auto pages_created = map_region(0, K_MAPPED_REGION, allocator, kernel_directory);
+    auto pages_created = map_region(0, K_MAPPED_REGION, allocator, __kernel_directory);
 
     uint32_t num_tables = pages_created / PAGE_TABLE_SIZE;
     __base_kernel_tables_size = (num_tables == 0 ? 1 : num_tables);
@@ -130,20 +134,25 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     {
         // map the kernel's heap
         uint32_t heap_end = K_HEAP_START + K_HEAP_INITIAL_SIZE;
-        pages_created += map_region(K_HEAP_START, heap_end, allocator, kernel_directory);
+        pages_created += map_region(K_HEAP_START, heap_end, allocator, __kernel_directory);
     }
 
 #if CHECK_LOG_LEVEL(K_LOG_PAGING, PAGING_LOG_CREATION)
     LOG_SA("PAGING: ", "Created %d pages.\n", pages_created);
 #endif
 
-    current_directory = kernel_directory;
+    *paging_current_directory = *__kernel_directory;
 
     Interrupts::set_handler(14, page_fault_handler);
 
-    SetDirectory(kernel_directory);
-    _load_page_directory((uint32_t*)&current_directory->table_addresses);
+    SetDirectory(__kernel_directory);
+    _load_page_directory((uint32_t*)&paging_current_directory->table_addresses);
     _enable_paging();
+}
+
+PageDirectory* kernel::paging::GetKernelDirectory()
+{
+    return __kernel_directory;   
 }
 
 PageDirectory* kernel::paging::create_directory(Vector<_HeapMappingSettings>& proc_mappings)
@@ -156,14 +165,14 @@ PageDirectory* kernel::paging::create_directory(Vector<_HeapMappingSettings>& pr
     // we want to have a kernel that is mapped 1-1
     for (uint32_t i = 0; i < __base_kernel_tables_size; i++)
     {
-        new_directory->tables[i]            = current_directory->tables[i];
-        new_directory->table_addresses[i]   = current_directory->table_addresses[i];
+        new_directory->tables[i]            = paging_current_directory->tables[i];
+        new_directory->table_addresses[i]   = paging_current_directory->table_addresses[i];
     }
 
     for (const auto& mappings : proc_mappings)
     {
 #ifdef K_LOG_PAGING
-        LOG_SA("PAGING: ", "Mappings are %d->%d\n", mapping->begin, mapping->end);
+        LOG_SA("PAGING: ", "Mappings are %d->%d\n", mappings.begin, mappings.end);
 #endif
         auto allocator = [](uint32_t size, void* args) {
             return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
@@ -188,7 +197,6 @@ void kernel::paging::page_fault_handler(void* regs_void)
     bool us         = regs->err_code & 0x4;
     bool reserved   = regs->err_code & 0x8;
     bool ifetch     = regs->err_code & 0x10;
-
 
     GO_PANIC("PAGE FAULT!\n" 
     "Faulting address: %x\n"
