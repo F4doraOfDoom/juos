@@ -1,4 +1,5 @@
 #include <kernel/timer.h>
+#include <kernel/processing.h>
 
 struct FuncArgPair
 {
@@ -26,13 +27,13 @@ void Timer::start(uint32_t clock_freq)
 
 void Timer::sleep(uint32_t slices)
 {
-    __thread_sleep_info.is_asleep = true;
-    __thread_sleep_info.ticks_left = slices;
+    // __thread_sleep_info.is_asleep = true;
+    // __thread_sleep_info.ticks_left = slices;
 
-    while (__thread_sleep_info.is_asleep)
-    {
-        __asm volatile("hlt;");
-    }
+    // while (__thread_sleep_info.is_asleep)
+    // {
+    //     __asm volatile("hlt;");
+    // }
 }
 
 void Timer::add_callable_function(CallableFunc func, void* args)
@@ -45,22 +46,30 @@ uint64_t Timer::current_time()
     return __tick_counter;
 }
 
+static Processing::Context _current_context;
 void Timer::__tick_handler(void* reg)
 {
-    Timer::__tick_counter++;
+    using namespace kernel;
+    // TODO: Reimplement sleeping for multiprocessing
+    // if (__thread_sleep_info.is_asleep)
+    // {
+    //     if (--__thread_sleep_info.ticks_left <= 0)
+    //     {
+    //         __thread_sleep_info.is_asleep = false;
+    //     }
+    // }
 
-    if (__thread_sleep_info.is_asleep)
-    {
-        if (--__thread_sleep_info.ticks_left <= 0)
-        {
-            __thread_sleep_info.is_asleep = false;
-        }
-    }
+    Processing::GetCurrentContext(&_current_context);
 
+    // restore kernel address space
+    paging::SetDirectory(paging::GetKernelDirectory());
+
+    // handle timer callbacks
     for (const auto func_args : _functions_to_call)
     {
         func_args.func(static_cast<RegistersStruct_x86_32*>(reg), func_args.args);
     }
+
 //#ifdef K_LOG
 //     if (timer::__tick_counter & 1000 == 0)
 //     {

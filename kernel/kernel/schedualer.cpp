@@ -28,11 +28,10 @@ void ProcessScheduler::Run(RegistersStruct_x86_32* regs, void* args)
     // since i use a queue, we need to pop it and push it back
     auto run_and_set_back = [&](auto& queue) {
         auto proc = queue.dequeue();
-        _ExecuteProcess(proc);
-        proc->times_ran++;
-
         if (!proc->IsFinished())
         {
+            _ExecuteProcess(proc);
+            proc->times_ran++;
             queue.enqueue(proc);
         }
     };
@@ -88,26 +87,29 @@ __NO_MANGELING void _SetDirectory()
     paging::SetDirectory(directory);
 }
 
-static struct {
-    uint32_t eip, esp, ebp;
-    paging::PageDirectory directory;
-} _temp_saved_data;
+// we're using a global variable to store the context
+// becase its mapped in all address spaces
+Processing::Context _temp_context;
+Processing::Context _last_context;
 
 static uint32_t _ContextSwitch(KernelProcess* process)
 {
-    _temp_saved_data.eip = process->registers.eip;
-    _temp_saved_data.esp = process->registers.esp;
-    _temp_saved_data.ebp = process->registers.ebp;
-    _temp_saved_data.directory = *process->directory;
+    // saving the context of the last running process
+    Processing::GetCurrentContext(&_last_context);
+
+    _temp_context.eip = process->registers.eip;
+    _temp_context.esp = process->registers.esp;
+    _temp_context.ebp = process->registers.ebp;
+    _temp_context.directory = *process->directory;
 
     //memcpy(paging::current_directory, &_temp_dir, sizeof(paging::PageDirectory));
-    paging::SetDirectory(&_temp_saved_data.directory);
+    paging::SetDirectory(&_temp_context.directory);
 
     asm volatile("         \
         cli;                 \
         mov %0, %%ecx;       \
         mov %1, %%esp;       \
-        mov %2, %%ebp;       " :: "r"(_temp_saved_data.eip), "r"(_temp_saved_data.esp), "r"(_temp_saved_data.ebp));
+        mov %2, %%ebp;       " :: "r"(_temp_context.eip), "r"(_temp_context.esp), "r"(_temp_context.ebp));
 
     asm volatile("\
         mov $0x12345, %eax; \

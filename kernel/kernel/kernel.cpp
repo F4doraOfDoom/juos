@@ -25,7 +25,7 @@
 using namespace kernel;
 
 void divide_by_zero(void*);
-__NO_MANGELING void kernel_main(void);
+__NO_MANGELING void kernel_main(uint32_t);
 
 void BREAKPOINT() {
 	
@@ -41,7 +41,19 @@ void loop()
 	}
 }
 
-__NO_MANGELING void kernel_main(void) {
+void kernel_main_stage_2(void)
+{
+	LOG_S("KERNEL: ", "Initiating stage 2...\n");
+
+	printf("Hello processing!\n");
+}
+
+uint32_t __stack_top = 0;
+
+__NO_MANGELING void kernel_main(uint32_t stack_top) {
+	// the beginning of the stack is now here
+	__stack_top = stack_top;
+
 	/**
 	 * The initialization order is important 
 	 * 1. tty
@@ -69,17 +81,7 @@ __NO_MANGELING void kernel_main(void) {
 	Interrupts::set_handler(1, [](auto) {});
 
 	auto proc_scheduler = new scheduler::ProcessScheduler();
-	Processing::Initialize(scheduler::run_process_scheduler, proc_scheduler);
-	
-	Processing::RegisterProcess("loop1", (void*)loop);
-	Processing::RegisterProcess("loop2", (void*)loop);
-	Processing::RegisterProcess("loop3", (void*)loop);
-
-	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-
-	printf("Hello paging!\n");
+	Processing::Initialize(kernel_main_stage_2, scheduler::run_process_scheduler, proc_scheduler);
 	
 	for (;;)
 	{

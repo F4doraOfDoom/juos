@@ -184,7 +184,10 @@ NAMESPACE_BEGIN(kernel)
 
         template<class T>
         Vector<T>::~Vector() {
-            delete[] buffer;
+            if (_size > 0)
+            {
+                delete[] buffer;
+            }
         }
 
         template <class T>

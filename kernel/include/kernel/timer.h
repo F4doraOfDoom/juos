@@ -19,6 +19,7 @@
 #include <kernel/data_structures/vector.hpp>
 using kernel::data_structures::Vector;
 
+#include <kernel/schedualer.h>
 #include "klog.h"
 #include "interrupts.h"
 #include "kdef.h"

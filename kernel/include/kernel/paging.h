@@ -181,12 +181,17 @@ NAMESPACE_BEGIN(kernel)
 
         void page_fault_handler(void*);
 
+        auto StandartAllocator = [](uint32_t size, void* args) {
+            return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
+        };
+
 
     NAMESPACE_END(paging)
 
 NAMESPACE_END(kernel)
 
 extern kernel::paging::PageDirectory* paging_current_directory;
+extern kernel::paging::PageDirectory* paging_kernel_directory;
 
 // implemented by arch
 __NO_MANGELING void _load_page_directory(uint32_t*);

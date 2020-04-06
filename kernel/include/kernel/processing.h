@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 #include <kernel/kdef.h>
-#include <kernel/timer.h>
+//#include <kernel/timer.h>
 #include <kernel/kmm.h>
 #include <kernel/scheduler_interface.h>
 
@@ -29,6 +29,9 @@
 #include <kernel/kstructs.h>
 
 using kernel::data_structures::Vector;
+
+#define KERNEL_STACK_BEGIN      0xA0000000
+#define KERNEL_STACK_SIZE       0x01000000
 
 NAMESPACE_BEGIN(kernel)
 
@@ -54,6 +57,12 @@ NAMESPACE_BEGIN(kernel)
             const void* current_address;
         };
 
+        struct Context
+        {
+            uint32_t eip, esp, ebp;
+            paging::PageDirectory directory;    
+        };
+
         struct KernelProcess
         {
             using ID        = uint64_t;
@@ -67,16 +76,8 @@ NAMESPACE_BEGIN(kernel)
                 System
             };
 
-            KernelProcess(const void* func_ptr, Priority priority)
-            {
-                active_threads.push_back(Thread{func_ptr});
-                this->priority = priority;
-
-                // the time each process gets to run is equal to
-                // its priority on a scale of 1-5, times 10
-                slice_size = ((uint64_t)priority + 1) * 10;
-                _is_finished = false;
-            }
+            // implemented in processing.cpp
+            KernelProcess(const void* func_ptr, Priority priority);
 
             bool IsFinished() const
             {
@@ -89,7 +90,7 @@ NAMESPACE_BEGIN(kernel)
             }
 
             ID                              pid = (_pid_seq++);
-            uint64_t                        start_time = Timer::current_time();
+            uint64_t                        start_time = 0;
             uint64_t                        slice_size;
             Priority                        priority;
             Vector<Thread>                  active_threads;
@@ -118,6 +119,14 @@ NAMESPACE_BEGIN(kernel)
          * @param func - pointer to the process code
          */
         void RegisterProcess(const String& name, const void* func);
+
+        inline void GetCurrentContext(Context* context)
+        {
+            asm volatile("mov %%esp, %0":: "r"(context->esp));
+            asm volatile("mov %%ebp, %0":: "r"(context->ebp));
+            memcpy(&context->directory, paging_current_directory, sizeof(paging::PageDirectory));
+
+        }
 
         NAMESPACE_BEGIN(Start)
 
@@ -151,12 +160,13 @@ NAMESPACE_BEGIN(kernel)
 
         using ProcessScheduler = scheduler::IScheduler<KernelProcess>*;
         using SchedulerCallback = void (*)(RegistersStruct_x86_32*, void*);
+        using KernelStart = void (*)();
         /**
          * @brief Initializes the paging system
          * 
          * @param scheduler a pointer to an object that implements the IScheduler interface
          */
-        void Initialize(SchedulerCallback, ProcessScheduler scheduler);
+        void Initialize(KernelStart start, SchedulerCallback, ProcessScheduler scheduler);
 
     NAMESPACE_END(Processing)
 

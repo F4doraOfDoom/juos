@@ -122,10 +122,7 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     __kernel_size = __primitive_heap;
 
     // identity map the kernel
-    auto allocator = [](uint32_t size, void* args) {
-        return (void*)kernel::heap::Allocate_WPointer(size, (uint32_t*)args); 
-    };
-    auto pages_created = map_region(0, K_MAPPED_REGION, allocator, __kernel_directory);
+    auto pages_created = map_region(0, K_MAPPED_REGION, StandartAllocator, __kernel_directory);
 
     uint32_t num_tables = pages_created / PAGE_TABLE_SIZE;
     __base_kernel_tables_size = (num_tables == 0 ? 1 : num_tables);
@@ -134,7 +131,7 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     {
         // map the kernel's heap
         uint32_t heap_end = K_HEAP_START + K_HEAP_INITIAL_SIZE;
-        pages_created += map_region(K_HEAP_START, heap_end, allocator, __kernel_directory);
+        pages_created += map_region(K_HEAP_START, heap_end, StandartAllocator, __kernel_directory);
     }
 
 #if CHECK_LOG_LEVEL(K_LOG_PAGING, PAGING_LOG_CREATION)
