@@ -60,6 +60,8 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 	 * 2. (gdt/ idt)
 	 * 3. interrupts
 	 * 4. memory managment
+	 * 5. processing
+	 * 6. timer
 	 * everything else... 
 	 *
 	 */
@@ -76,13 +78,14 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 		true // is read-write
 	);
 
-	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	Interrupts::set_handler(1, [](auto) {});
 
 	auto proc_scheduler = new scheduler::ProcessScheduler();
 	Processing::Initialize(kernel_main_stage_2, scheduler::run_process_scheduler, proc_scheduler);
 	
+	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+
 	for (;;)
 	{
 		asm volatile (

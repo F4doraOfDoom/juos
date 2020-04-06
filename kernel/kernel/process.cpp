@@ -16,7 +16,7 @@ extern uint32_t __stack_top; // variable indicating the start of the stack
 
 // the main kernel process
 KernelProcess* _kernel_process = nullptr;
-uint64_t KernelProcess::_pid_seq = 0;
+uint32_t KernelProcess::_pid_seq = 1;
 
 KernelProcess::KernelProcess(const void* func_ptr, Priority priority)
 {
@@ -29,7 +29,23 @@ KernelProcess::KernelProcess(const void* func_ptr, Priority priority)
     _is_finished = false;
 }
 
-static KernelProcess* NewProcess(const void* start, KernelProcess::Priority priority, Vector<paging::_HeapMappingSettings>* mappings)
+void KernelProcess::ApplyContext(const Context* context)
+{
+    registers.eip = context->eip;
+    registers.esp = context->esp;
+    registers.ebp = context->ebp;
+}
+
+static void _SignalProcEnd(KernelProcess::ID proc_id, void* args)
+{
+    Processing::GetScheduler()->SignalEnd(proc_id);
+    while (true)
+    {
+        asm volatile("hlt");
+    }
+};
+
+static KernelProcess* _NewProcess(const void* start, KernelProcess::Priority priority, Vector<paging::_HeapMappingSettings>* mappings)
 {
     auto new_process = new KernelProcess(start, priority);
 
@@ -44,10 +60,17 @@ static KernelProcess* NewProcess(const void* start, KernelProcess::Priority prio
     //new_process->data_begin = (void*)0xD0000000;
 
     new_process->registers.eip = (uint32_t)start;
-    new_process->registers.esp = (uint32_t)new_process->stack_begin;
-    new_process->registers.ebp = (uint32_t)new_process->stack_begin;
+    new_process->registers.esp = (uint32_t)new_process->stack_begin + 0x1000;
+    new_process->registers.ebp = (uint32_t)new_process->stack_begin + 0x1000;
+
+    new_process->on_end = _SignalProcEnd;
 
     return new_process;
+}
+
+ProcessScheduler Processing::GetScheduler()
+{
+    return _scheduler;
 }
 
 void Processing::Initialize(KernelStart start, SchedulerCallback callback, ProcessScheduler scheduler)
@@ -55,7 +78,7 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
     _scheduler = scheduler;
 
     // we pass no mappings because we're going to use the kernel's page directory
-    _kernel_process = NewProcess((void*)start, KernelProcess::Priority::System, nullptr);
+    _kernel_process = _NewProcess((void*)start, KernelProcess::Priority::System, nullptr);
 
     // we want to use the kernel's heap
     delete _kernel_process->directory;
@@ -106,7 +129,7 @@ const KernelProcess* Processing::Start::Process(const String& name, Processing::
     proc_mappings.push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
     //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
 
-    auto new_process = NewProcess(proc->func_ptr, priority, &proc_mappings);
+    auto new_process = _NewProcess(proc->func_ptr, priority, &proc_mappings);
     
     _scheduler->AddItem(new_process);
 

@@ -65,7 +65,10 @@ NAMESPACE_BEGIN(kernel)
 
         struct KernelProcess
         {
-            using ID        = uint64_t;
+            using ID        = uint32_t;
+            // function to be called after the process ends
+            // recieves the process itself, and arguments
+            using ProcessResolver = void (*)(ID proc_id, void*); 
 
             enum class Priority
             {
@@ -79,14 +82,12 @@ NAMESPACE_BEGIN(kernel)
             // implemented in processing.cpp
             KernelProcess(const void* func_ptr, Priority priority);
 
+            void ApplyContext(const Context* context);
+
             bool IsFinished() const
             {
-                return _is_finished;
-            }
-
-            void Finish()
-            {
-                _is_finished = true;
+                // TOOD implement time based solution
+                return false;
             }
 
             ID                              pid = (_pid_seq++);
@@ -107,6 +108,8 @@ NAMESPACE_BEGIN(kernel)
             bool                            registers_set = false;
             #endif 
 
+            ProcessResolver on_end = nullptr; 
+
         private:
             bool        _is_finished; 
             static ID   _pid_seq;
@@ -122,10 +125,9 @@ NAMESPACE_BEGIN(kernel)
 
         inline void GetCurrentContext(Context* context)
         {
-            asm volatile("mov %%esp, %0":: "r"(context->esp));
-            asm volatile("mov %%ebp, %0":: "r"(context->ebp));
+            asm volatile("mov %%esp, %0": "=r"(context->esp));
+            asm volatile("mov %%ebp, %0": "=r"(context->ebp));
             memcpy(&context->directory, paging_current_directory, sizeof(paging::PageDirectory));
-
         }
 
         NAMESPACE_BEGIN(Start)
@@ -167,6 +169,8 @@ NAMESPACE_BEGIN(kernel)
          * @param scheduler a pointer to an object that implements the IScheduler interface
          */
         void Initialize(KernelStart start, SchedulerCallback, ProcessScheduler scheduler);
+
+        ProcessScheduler GetScheduler();
 
     NAMESPACE_END(Processing)
 

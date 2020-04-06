@@ -10,10 +10,16 @@ NAMESPACE_BEGIN(kernel)
         template <class ItemType>
         class IScheduler
         {
-        public:
-            virtual void Run(RegistersStruct_x86_32* regs, void* args) = 0;
+        public: 
+            // actual function for the scheduler to set a _next variable
+            virtual void CalculateNext(RegistersStruct_x86_32* regs, void* args) = 0;
+
+            virtual ItemType* GetNext() = 0;
 
             virtual void AddItem(ItemType* item) = 0;
+
+            // signal for the scheduler that the process has finished
+            virtual void SignalEnd(uint64_t pid) = 0;
         };
 
     NAMESPACE_END(scheduler)

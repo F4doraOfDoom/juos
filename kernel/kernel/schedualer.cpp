@@ -10,6 +10,11 @@ using namespace kernel::scheduler;
 
 static KernelProcess* _CurrentProcess = nullptr;
 
+KernelProcess* scheduler::GetCurrentProcess()
+{
+    return _CurrentProcess;
+}
+
 void ProcessScheduler::AddItem(KernelProcess* process) 
 {
     if (process->priority == KernelProcess::Priority::System)
@@ -22,15 +27,23 @@ void ProcessScheduler::AddItem(KernelProcess* process)
     }
 }
 
-void ProcessScheduler::Run(RegistersStruct_x86_32* regs, void* args)
+KernelProcess* ProcessScheduler::GetNext()
+{
+    return _CurrentProcess;
+}
+
+void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
 {
     // usually we use a linked list in order to manage process list.
     // since i use a queue, we need to pop it and push it back
+    KernelProcess* next_process = nullptr;
+
     auto run_and_set_back = [&](auto& queue) {
         auto proc = queue.dequeue();
         if (!proc->IsFinished())
         {
-            _ExecuteProcess(proc);
+            next_process = proc;
+            _CurrentProcess = proc;
             proc->times_ran++;
             queue.enqueue(proc);
         }
@@ -41,6 +54,7 @@ void ProcessScheduler::Run(RegistersStruct_x86_32* regs, void* args)
 
     if (_keep_running == false)
     {
+        _CurrentProcess = nullptr;
         return;
     }
 
@@ -76,6 +90,8 @@ void ProcessScheduler::Run(RegistersStruct_x86_32* regs, void* args)
 
         served_system = 0;
     }
+
+    _CurrentProcess = next_process;
 }
 
 __NO_MANGELING void _SetDirectory()
@@ -131,6 +147,14 @@ void ProcessScheduler::_ExecuteProcess(KernelProcess* process)
     _ContextSwitch(process);
 }
 
+void ProcessScheduler::SignalEnd(uint64_t pid)
+{
+    // implement some end
+#ifdef K_LOG_SCHEDULER
+    LOG_SA("SCHEDULER: ", "Finished running process %d\n", pid);
+#endif
+}
+
 void scheduler::run_process_scheduler(RegistersStruct_x86_32* regs, void* args)
 {
     // // save the last registers
@@ -140,14 +164,16 @@ void scheduler::run_process_scheduler(RegistersStruct_x86_32* regs, void* args)
     //     memcpy(&_CurrentProcess->registers, regs, sizeof(_CurrentProcess->registers));
     // }
 
-    DisableHardwareInterrupts();
+    // DisableHardwareInterrupts();
     
-    // switch back to kernel address space
-    paging::SetDirectory(paging::GetKernelDirectory());
+    // // switch back to kernel address space
+    // paging::SetDirectory(paging::GetKernelDirectory());
 
     auto scheduler = static_cast<ProcessScheduler*>(args);
     // currently args = nullptr becuase we're not passing any args
-    scheduler->Run(regs, nullptr);
+    scheduler->CalculateNext(regs, nullptr);
 
-    EnableHardwareInterrupts();
+    // EnableHardwareInterrupts();
+
+    
 }

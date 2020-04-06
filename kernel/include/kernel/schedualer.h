@@ -23,14 +23,13 @@ NAMESPACE_BEGIN(kernel)
              * 
              * @param process 
              */
-            void AddItem(KernelProcess* process);
+            virtual void AddItem(KernelProcess* process);
 
-            /**
-             * @brief This function should pass to the timer to run every tick
-             * 
-             * @param args 
-             */
-            void Run(RegistersStruct_x86_32* regs, void* args);
+            virtual KernelProcess* GetNext();
+
+            virtual void CalculateNext(RegistersStruct_x86_32* regs, void* args);
+
+            virtual void SignalEnd(uint64_t pid);
 
             /**
              * @brief Make the schedualer stop
@@ -48,11 +47,16 @@ NAMESPACE_BEGIN(kernel)
             void _ExecuteProcess(KernelProcess* process);
 
 
+
             Queue<KernelProcess*> _system_processes;
             Queue<KernelProcess*> _regular_processes;
 
             bool _keep_running = true;
         };
+
+
+
+        KernelProcess* GetCurrentProcess();
 
         void run_process_scheduler(RegistersStruct_x86_32* regs, void* args);
         
