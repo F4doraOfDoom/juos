@@ -1,5 +1,28 @@
 #include <arch/i386/interrupts.h>
 
+constexpr struct _InterruptDescription {
+    uint32_t interrupt_num;
+    const char* description;
+} interrupt_descriptions[] = {
+    {0, "Divide by zero"},
+    {1, "Single step"},
+    {2, "Non-maskable"},
+    {3, "Breakpoint"},
+    {4, "Overflow trap"},
+    {5, "Bound range exceeded"},
+    {6, "Invalid opcode"},
+    {7, "Co-processor not available"},
+    {8, "Double fault"},
+    {9, "Co-processor segment overrun"},
+    {10, "Invalid TSS"},
+    {11, "Segment not present"},
+    {12, "Stack exception"},
+    {13, "General protection exception"},
+    {14, "Page fault"},
+    {15, "Reserved"},
+    {16, "Co-processor error"}
+};
+
 Interrupts::handler interrupt_handlers[I386_INTERRUPTS] = { 0 };
 
 static void _go_to_interrupt(const registers32_t& registers)
@@ -13,7 +36,13 @@ static void _go_to_interrupt(const registers32_t& registers)
 #ifdef K_PANIC_NO_HANDLER
         GO_PANIC("Interrupt %d without any handler!\n", num); 
 #else
-        LOG_SA("INTERRUPTS:", "Interrupt %d without any handler!\n", num);
+        char* interrupt_explanation = (char*)"Unknown";
+        if (num < (sizeof(interrupt_descriptions) / sizeof(_InterruptDescription)))
+        {
+            interrupt_explanation = (char*)interrupt_descriptions[num].description;
+        }
+
+        LOG_SA("INTERRUPTS:", "Interrupt %d without any handler! (%s)\n", num, interrupt_explanation);
 #endif
     }
 }

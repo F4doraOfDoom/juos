@@ -19,7 +19,7 @@ NAMESPACE_BEGIN(kernel)
             virtual void AddItem(ItemType* item) = 0;
 
             // signal for the scheduler that the process has finished
-            virtual void SignalEnd(uint64_t pid) = 0;
+            virtual void SignalEnd(uint32_t pid) = 0;
         };
 
     NAMESPACE_END(scheduler)

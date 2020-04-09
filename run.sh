@@ -14,7 +14,7 @@ if [ "$2" = "DEBUG" ]; then
     RUN_DEBUGGER="termite -e \"$DEBUGGER_ARGS\""
 fi
 
-$EMULATOR -cdrom juos.iso $DEBUG_ARGS -hda $PROJECT_NAME.storage &
+$EMULATOR -cdrom juos.iso $DEBUG_ARGS -hda $PROJECT_NAME.storage -d cpu_reset &
 echo RUN DEBUGGER $RUN_DEBUGGER
 sleep 0.2
 eval $RUN_DEBUGGER

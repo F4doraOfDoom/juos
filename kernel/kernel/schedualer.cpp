@@ -40,7 +40,10 @@ void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
 
     auto run_and_set_back = [&](auto& queue) {
         auto proc = queue.dequeue();
-        if (!proc->IsFinished())
+#if defined(K_LOG_SCHEDULER)
+        LOG_SA("SCHEDULER: ", "Next process: %d\n", proc->pid);
+#endif
+        if (!_IsCanceled(proc->pid)) 
         {
             next_process = proc;
             _CurrentProcess = proc;
@@ -147,12 +150,14 @@ void ProcessScheduler::_ExecuteProcess(KernelProcess* process)
     _ContextSwitch(process);
 }
 
-void ProcessScheduler::SignalEnd(uint64_t pid)
+void ProcessScheduler::SignalEnd(uint32_t pid)
 {
     // implement some end
 #ifdef K_LOG_SCHEDULER
     LOG_SA("SCHEDULER: ", "Finished running process %d\n", pid);
 #endif
+
+    _canceled_processes.push_back(pid);
 }
 
 void scheduler::run_process_scheduler(RegistersStruct_x86_32* regs, void* args)

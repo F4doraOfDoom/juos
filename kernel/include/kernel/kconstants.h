@@ -15,7 +15,7 @@
 
 // this value represents the frequency (in hrtz)
 // of the kernel's clock
-#define K_INTERNAL_CLOCK_TICK_RATE 100 
+#define K_INTERNAL_CLOCK_TICK_RATE 20 
 
 // 4kb of memory
 #define K_PAGE_SIZE             0x1000 

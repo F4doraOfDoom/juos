@@ -1,6 +1,6 @@
 #include <kernel/paging.h>
 #include <kernel/kmm.h>
-
+#include <kernel/processing.h>
 
 using namespace kernel::paging;
 
@@ -60,7 +60,7 @@ static uint32_t _map_virt_to_phys(uint32_t start, uint32_t& end, page_directory_
     uint32_t pages_created = 0;
 
 #if CHECK_LOG_LEVEL(K_LOG_PAGING, PAGING_LOG_MAPPING)
-    LOG_SA("PAGING: ", "Identity mapping regions %d (%p) to %d (%p)...\n", start, start, end, end);
+    LOG_SA("PAGING: ", "Identity mapping regions %x to %x...\n", start, end);
 #endif
 
     for(uint32_t top = start; top < end; pages_created++, top += PAGE_SIZE)
@@ -195,6 +195,26 @@ void kernel::paging::page_fault_handler(void* regs_void)
     bool reserved   = regs->err_code & 0x8;
     bool ifetch     = regs->err_code & 0x10;
 
+    // page isn't present - load it
+    if (present)
+    {
+        Processing::KernelProcess* proc = nullptr;
+        auto scheduler = Processing::GetScheduler();
+
+        if (scheduler != nullptr && (proc = scheduler->GetNext()) != nullptr)
+        {
+            auto directory = proc->directory;
+            uint32_t base_fault = faulting_address & (-0x1000); // align to page
+            uint32_t top_fault = base_fault + 0x1000; // get the start and end of the page we want to aquire
+
+#ifdef K_LOG_PAGING
+            LOG_SA("PAGING:", "After page fault, mapping %x-%x for process pid %d\n", base_fault, top_fault, proc->pid);
+#endif
+            map_region(base_fault, top_fault, StandartAllocator, directory);
+
+            return;
+        }
+    }
     GO_PANIC("PAGE FAULT!\n" 
     "Faulting address: %x\n"
     "Page isnt present: %d\n"
@@ -208,4 +228,5 @@ void kernel::paging::page_fault_handler(void* regs_void)
     us,
     reserved,
     ifetch);
+
 }

@@ -56,6 +56,8 @@ void Timer::__tick_handler(void* reg)
     static uint32_t _next_id = 0;
     static uint32_t _next_run_times = 0;
 
+    DisableHardwareInterrupts();
+    
     // restore kernel address space
     paging::SetDirectory(paging::GetKernelDirectory());
  
@@ -72,9 +74,9 @@ void Timer::__tick_handler(void* reg)
     // staring schedualing next process
     auto next_process = Processing::GetScheduler()->GetNext();
 
-    DisableHardwareInterrupts();
 
-    if (next_process == nullptr)
+    // if there is no next process or current process doesn't chance
+    if (next_process == nullptr || current_process->pid == next_process->pid) 
     {
         // no reason to switch processes
         paging::SetDirectory(current_process->directory);
@@ -85,8 +87,8 @@ void Timer::__tick_handler(void* reg)
     if (current_process != nullptr)
     {
         Processing::GetCurrentContext(&_current_context);
-        _current_context.eip = (uint32_t)__builtin_return_address(0);
-
+        // non-standard gcc feature to take address of label 
+        _current_context.eip = (uint32_t)&&_current_line;
         current_process->ApplyContext(&_current_context);
     }
 
@@ -108,10 +110,10 @@ void Timer::__tick_handler(void* reg)
         // the process has never run yet
         // lets build its stack to include on_end
         asm volatile("push %0; push %1; push %2" :: "r"(_next_id), "r"(0), "r"(_next_on_end));
-
     }
-    asm volatile("mov %0, %%ecx; jmp %%ecx" :: "r"(_next_context.eip));
 
-    EnableHardwareInterrupts();
+    asm volatile("mov %0, %%ecx; sti; jmp %%ecx" :: "r"(_next_context.eip));
+_current_line:
+    asm volatile("nop");
 }
 

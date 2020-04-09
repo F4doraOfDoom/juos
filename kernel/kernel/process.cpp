@@ -38,7 +38,9 @@ void KernelProcess::ApplyContext(const Context* context)
 
 static void _SignalProcEnd(KernelProcess::ID proc_id, void* args)
 {
+    DisableHardwareInterrupts();
     Processing::GetScheduler()->SignalEnd(proc_id);
+    EnableHardwareInterrupts();
     while (true)
     {
         asm volatile("hlt");
@@ -119,6 +121,8 @@ void Processing::Start::Code(const void* code_ptr)
 
 const KernelProcess* Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)
 {
+    DisableHardwareInterrupts();
+
     auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](const RegisteredProcess& rp)
     {
         return rp.name.compare(name);
@@ -132,6 +136,8 @@ const KernelProcess* Processing::Start::Process(const String& name, Processing::
     auto new_process = _NewProcess(proc->func_ptr, priority, &proc_mappings);
     
     _scheduler->AddItem(new_process);
+
+    EnableHardwareInterrupts();
 
     return new_process;
 }

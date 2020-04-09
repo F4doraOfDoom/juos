@@ -41,11 +41,39 @@ void loop()
 	}
 }
 
-void kernel_main_stage_2(void)
+void proc1()
+{
+	while (true)
+	{
+		printf("Hello from proc 1 :)\n");
+	}
+}
+
+void proc2()
+{
+	int i = 0;
+
+	while (true)
+	{
+		printf("Hello from proc 2 :) i = %d\n", i++);
+	}
+}
+
+void kernel_stage_2(void)
 {
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
+	//int i = 0;
 
-	printf("Hello processing!\n");
+	//Processing::RegisterProcess("proc1", (void*)proc1);
+	Processing::RegisterProcess("proc2", (void*)proc2);
+
+	//Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
+
+	// while (true)
+	// {
+	// 	printf("Hello processing %d!\n", i++);
+	// }
 }
 
 uint32_t __stack_top = 0;
@@ -58,9 +86,9 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 	 * The initialization order is important 
 	 * 1. tty
 	 * 2. (gdt/ idt)
-	 * 3. interrupts
-	 * 4. memory managment
+	 * 3. memory managment
 	 * 5. processing
+	 * 4. interrupts
 	 * 6. timer
 	 * everything else... 
 	 *
@@ -68,7 +96,6 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 	Tty::Initialize();
 	Gdt::Initialize();
 	Idt::Initialize();
-	Interrupts::Initialize();
 	// after this initialization, operators new and delete can be used
 	MemoryManager::Initialize(
 		K_HEAP_START, // beginning address
@@ -78,12 +105,11 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 		true // is read-write
 	);
 
-
-	Interrupts::set_handler(1, [](auto) {});
-
 	auto proc_scheduler = new scheduler::ProcessScheduler();
-	Processing::Initialize(kernel_main_stage_2, scheduler::run_process_scheduler, proc_scheduler);
+	Processing::Initialize(kernel_stage_2, scheduler::run_process_scheduler, proc_scheduler);
 	
+	Interrupts::Initialize();
+	Interrupts::set_handler(1, [](auto) {});
 	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	for (;;)

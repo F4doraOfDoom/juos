@@ -16,7 +16,7 @@ NAMESPACE_BEGIN(kernel)
         class ProcessScheduler : public IScheduler<KernelProcess>
         {
         public:
-            ProcessScheduler() {}  
+            ProcessScheduler()  {}  
   
             /**
              * @brief Add a process to the queue
@@ -29,7 +29,7 @@ NAMESPACE_BEGIN(kernel)
 
             virtual void CalculateNext(RegistersStruct_x86_32* regs, void* args);
 
-            virtual void SignalEnd(uint64_t pid);
+            virtual void SignalEnd(uint32_t pid);
 
             /**
              * @brief Make the schedualer stop
@@ -39,6 +39,22 @@ NAMESPACE_BEGIN(kernel)
             void Stop(void* args);
 
         private:
+            bool _IsCanceled(KernelProcess::ID proc_id)
+            {
+                uint32_t index = 0;
+                for (auto canceled_id : _canceled_processes)
+                {
+                    if (proc_id == canceled_id)
+                    {
+                        // TODO: Implement vector erase
+                        _canceled_processes[index] = -1;
+                        return true;
+                    }
+                    index++;
+                }
+                return false;
+            }
+
             /**
              * @brief This function executes a process
              * 
@@ -46,10 +62,10 @@ NAMESPACE_BEGIN(kernel)
              */
             void _ExecuteProcess(KernelProcess* process);
 
-
-
             Queue<KernelProcess*> _system_processes;
             Queue<KernelProcess*> _regular_processes;
+
+            Vector<KernelProcess::ID> _canceled_processes; 
 
             bool _keep_running = true;
         };
