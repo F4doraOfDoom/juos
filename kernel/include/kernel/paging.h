@@ -48,6 +48,9 @@ using kernel::data_structures::Vector;
 #define INDEX_FROM_BIT(a)           a / (8*4)
 #define OFFSET_FROM_BIT(a)          a % (8*4)
 
+
+#define SET_DIRECTORY(directory)    asm volatile("mov %0, %%cr3" :: "r"(directory->table_addresses))
+
 NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(paging)

@@ -41,17 +41,17 @@ NAMESPACE_BEGIN(kernel)
         struct InterruptGuard
         {
             InterruptGuard() {
-                DisableHardwareInterrupts();
+                DISABLE_HARDWARE_INTERRUPTS();
             }
 
             InterruptGuard(T&& func) {
-                DisableHardwareInterrupts();
+                DISABLE_HARDWARE_INTERRUPTS();
                 func();
             }
 
             ~InterruptGuard()
             {
-                EnableHardwareInterrupts();
+                ENABLE_HARDWARE_INTERRUPTS();
             }
         };
 

@@ -38,9 +38,9 @@ void KernelProcess::ApplyContext(const Context* context)
 
 static void _SignalProcEnd(KernelProcess::ID proc_id, void* args)
 {
-    DisableHardwareInterrupts();
+    DISABLE_HARDWARE_INTERRUPTS();
     Processing::GetScheduler()->SignalEnd(proc_id);
-    EnableHardwareInterrupts();
+    ENABLE_HARDWARE_INTERRUPTS();
     while (true)
     {
         asm volatile("hlt");
@@ -90,7 +90,7 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
     paging::map_region(KERNEL_STACK_BEGIN, KERNEL_STACK_BEGIN + KERNEL_STACK_SIZE, paging::StandartAllocator, kernel_directory);
 
     // copy the old stack to the new stack
-    DisableHardwareInterrupts();
+    DISABLE_HARDWARE_INTERRUPTS();
 
     paging::SetDirectory(kernel_directory);
 
@@ -108,7 +108,7 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
     asm volatile("mov %0, %%esp" :: "r"(new_esp));
     asm volatile("mov %0, %%ebp" :: "r"(new_ebp));
 
-    EnableHardwareInterrupts();
+    ENABLE_HARDWARE_INTERRUPTS();
 
     _scheduler->AddItem(_kernel_process);
     Timer::add_callable_function(callback, scheduler);
@@ -126,7 +126,7 @@ void Processing::Start::Code(const void* code_ptr)
 
 const KernelProcess* Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)
 {
-    DisableHardwareInterrupts();
+    DISABLE_HARDWARE_INTERRUPTS();
 
     auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](const RegisteredProcess& rp)
     {
@@ -142,7 +142,7 @@ const KernelProcess* Processing::Start::Process(const String& name, Processing::
     
     _scheduler->AddItem(new_process);
 
-    EnableHardwareInterrupts();
+    ENABLE_HARDWARE_INTERRUPTS();
 
     return new_process;
 }

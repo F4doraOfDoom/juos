@@ -12,6 +12,8 @@
 #include <kernel/kallocators.hpp>
 #include <kernel/kuseful.h>
 #include <kernel/processing.h>
+#include <kernel/kio.h>
+
 #include <drivers/ata.h>
 #include <drivers/ext2.h>
 #include <kernel/schedualer.h>
@@ -43,19 +45,23 @@ void loop()
 
 void proc1()
 {
+	for(uint32_t i = 0; i < 16; i++)
+		asm volatile("nop\n");
+
 	while (true)
 	{
-		printf("Hello from proc 1 :)\n");
+		printf("a\n");
+		//SYNCED_PRINTF("Hello from process #1 :)\n");
 	}
 }
 
 void proc2()
 {
-	int i = 0;
+	//int i = 0;
 
 	while (true)
 	{
-		printf("Hello from proc 2 :) i = %d\n", i++);
+		//LOCKED_PRINTF_ARGS("Hello from proc 2 :) i = %d\n", i++);
 	}
 }
 
@@ -64,12 +70,17 @@ void kernel_stage_2(void)
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
 	//int i = 0;
 
-	//Processing::RegisterProcess("proc1", (void*)proc1);
-	Processing::RegisterProcess("proc2", (void*)proc2);
+	Processing::RegisterProcess("proc1", (void*)proc1);
+	//Processing::RegisterProcess("proc2", (void*)proc2);
 
-	//Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
 
+	while (true) 
+	{
+		printf("b\n");
+		//SYNCED_PRINTF("Hello from kernel :)\n");
+	}
 
 	auto self_pid = Processing::GetPid();
 	Processing::End::Process(self_pid);

@@ -62,11 +62,11 @@ void Timer::__tick_handler(void* reg)
     // static uint32_t _next_id = 0;
     // static uint32_t _next_run_times = 0;
 
-    DisableHardwareInterrupts();
+    DISABLE_HARDWARE_INTERRUPTS();
 
     // restore kernel address space
     auto kernel_directory = paging::GetKernelDirectory();
-    asm volatile("mov %0, %%cr3" :: "r"(kernel_directory->table_addresses));
+    SET_DIRECTORY(kernel_directory);
     //paging::SetDirectory(paging::GetKernelDirectory());
  
     auto current_process = scheduler::GetCurrentProcess();
@@ -86,7 +86,8 @@ void Timer::__tick_handler(void* reg)
     if (next_process == nullptr) 
     {
         // no reason to switch processes
-        paging::SetDirectory(current_process->directory);
+        //paging::SetDirectory(current_process->directory);
+        SET_DIRECTORY(current_process->directory);
         return;
     }
 

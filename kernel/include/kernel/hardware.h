@@ -4,9 +4,11 @@
 #include <kernel/kdef.h>
 
 // implemented in arch
-__NO_MANGELING void DisableHardwareInterrupts();
+#define DISABLE_HARDWARE_INTERRUPTS() \
+    asm volatile("cli;")
 
 // implemented in arch
-__NO_MANGELING void EnableHardwareInterrupts();
+#define ENABLE_HARDWARE_INTERRUPTS() \
+    asm volatile("sti;")
 
 #endif // KERNEL_HARDWARE_H
