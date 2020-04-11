@@ -65,7 +65,9 @@ void Timer::__tick_handler(void* reg)
     DisableHardwareInterrupts();
 
     // restore kernel address space
-    paging::SetDirectory(paging::GetKernelDirectory());
+    auto kernel_directory = paging::GetKernelDirectory();
+    asm volatile("mov %0, %%cr3" :: "r"(kernel_directory->table_addresses));
+    //paging::SetDirectory(paging::GetKernelDirectory());
  
     auto current_process = scheduler::GetCurrentProcess();
 

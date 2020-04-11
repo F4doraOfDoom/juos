@@ -62,18 +62,14 @@ void proc2()
 void kernel_stage_2(void)
 {
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
-	int i = 0;
+	//int i = 0;
 
 	//Processing::RegisterProcess("proc1", (void*)proc1);
-	//Processing::RegisterProcess("proc2", (void*)proc2);
+	Processing::RegisterProcess("proc2", (void*)proc2);
 
 	//Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
 
-	while (true)
-	{
-		printf("Hello processing %d!\n", i++);
-	}
 
 	auto self_pid = Processing::GetPid();
 	Processing::End::Process(self_pid);

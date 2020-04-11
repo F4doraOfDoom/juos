@@ -47,12 +47,13 @@ void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
         LOG_SA("SCHEDULER: ", "Next process: %d\n", proc->pid);
 #endif
             next_process = proc;
+            _CurrentProcess = proc;
             proc->times_ran++;
             queue.enqueue(proc);
         }
     };
 
-    constexpr unsigned SERVE_SYSTEM_THRESHOLD = 5;
+    constexpr unsigned SERVE_SYSTEM_THRESHOLD = 1;
     static unsigned int served_system = 0;
 
     if (_keep_running == false)
