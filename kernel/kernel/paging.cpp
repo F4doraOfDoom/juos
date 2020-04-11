@@ -101,6 +101,7 @@ void kernel::paging::SetDirectory(PageDirectory* directory)
 
     // assuming interrupts are already disabled
     memcpy(paging_current_directory, directory, sizeof(PageDirectory));
+    _load_page_directory((uint32_t*)&paging_current_directory->table_addresses);
 
     // EnableHardwareInterrupts();
 }
@@ -157,7 +158,7 @@ PageDirectory* kernel::paging::create_directory(Vector<_HeapMappingSettings>& pr
 #ifdef K_LOG_PAGING
     LOG_S("PAGING: ", "Creating new page directory...\n")
 #endif
-    PageDirectory* new_directory = new PageDirectory();
+    PageDirectory* new_directory = (PageDirectory*)heap::Allocate(sizeof(page_directory_t));
 
     // we want to have a kernel that is mapped 1-1
     for (uint32_t i = 0; i < __base_kernel_tables_size; i++)

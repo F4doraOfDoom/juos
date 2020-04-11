@@ -46,18 +46,24 @@ uint64_t Timer::current_time()
     return __tick_counter;
 }
 
+__NO_MANGELING void _SetDirectory(paging::PageDirectory* dir)
+{
+    paging::SetDirectory(dir);
+}
+
 void Timer::__tick_handler(void* reg)
 {
     using namespace kernel;
-
+ 
     static Processing::Context _current_context;
-    static Processing::Context _next_context;
-    static Processing::KernelProcess::ProcessResolver _next_on_end;
-    static uint32_t _next_id = 0;
-    static uint32_t _next_run_times = 0;
+    static uint32_t next_eip, next_times_ran;
+    // static Processing::Context _next_context;
+    // static Processing::KernelProcess::ProcessResolver _next_on_end;
+    // static uint32_t _next_id = 0;
+    // static uint32_t _next_run_times = 0;
 
     DisableHardwareInterrupts();
-    
+
     // restore kernel address space
     paging::SetDirectory(paging::GetKernelDirectory());
  
@@ -74,9 +80,8 @@ void Timer::__tick_handler(void* reg)
     // staring schedualing next process
     auto next_process = Processing::GetScheduler()->GetNext();
 
-
     // if there is no next process or current process doesn't chance
-    if (next_process == nullptr || current_process->pid == next_process->pid) 
+    if (next_process == nullptr) 
     {
         // no reason to switch processes
         paging::SetDirectory(current_process->directory);
@@ -86,34 +91,56 @@ void Timer::__tick_handler(void* reg)
     // no need to save context if a process isn't running
     if (current_process != nullptr)
     {
-        Processing::GetCurrentContext(&_current_context);
+        asm volatile("mov %%esp, %0": "=r"(_current_context.esp));
+        asm volatile("mov %%ebp, %0": "=r"(_current_context.ebp));
+
         // non-standard gcc feature to take address of label 
         _current_context.eip = (uint32_t)&&_current_line;
         current_process->ApplyContext(&_current_context);
     }
 
-    _next_context.eip = next_process->registers.eip;
-    _next_context.esp = next_process->registers.esp;
-    _next_context.ebp = next_process->registers.ebp;
-    _next_on_end    = next_process->on_end;
-    _next_id        = next_process->pid;
-    _next_run_times = next_process->times_ran;
+    // _next_context.eip = next_process->registers.eip;
+    // _next_context.esp = next_process->registers.esp;
+    // _next_context.ebp = next_process->registers.ebp;
+    // _next_on_end    = next_process->on_end;
+    // _next_id        = next_process->pid;
+    // _next_run_times = next_process->times_ran;
+    
+    next_eip        = next_process->registers.eip;
+    next_times_ran  = next_process->times_ran++; 
 
-    paging::SetDirectory(next_process->directory);
+    asm volatile("         \
+        cli;                 \
+        mov %0, %%esp;       \
+        mov %1, %%ebp;       \
+        mov %2, %%cr3;       "
+                 : :  
+                    "r"(next_process->registers.esp),
+                    "r"(next_process->registers.ebp),
+                    "r"(next_process->directory->table_addresses));
 
-
-    asm volatile("mov %0, %%esp" :: "r"(_next_context.esp));
-    asm volatile("mov %0, %%ebp" :: "r"(_next_context.ebp));
-
-    if (_next_run_times == 1)
+    // first time running
+    if (next_times_ran == 1)
     {
-        // the process has never run yet
-        // lets build its stack to include on_end
-        asm volatile("push %0; push %1; push %2" :: "r"(_next_id), "r"(0), "r"(_next_on_end));
+        asm volatile(
+            "mov %0, %%ecx;"
+            "sti;" // notice the sti here
+            "jmp %%ecx"  
+                    : :
+                        "b"(next_eip)
+        );
     }
-
-    asm volatile("mov %0, %%ecx; sti; jmp %%ecx" :: "r"(_next_context.eip));
+    else
+    {
+        asm volatile(
+            "mov %0, %%ecx;"
+            "jmp %%ecx"  
+                    : :
+                        "b"(next_eip)
+        );
+    }
+    
 _current_line:
-    asm volatile("nop");
+    return;
 }
 

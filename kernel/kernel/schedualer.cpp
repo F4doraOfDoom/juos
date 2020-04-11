@@ -34,19 +34,19 @@ KernelProcess* ProcessScheduler::GetNext()
 
 void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
 {
-    // usually we use a linked list in order to manage process list.
-    // since i use a queue, we need to pop it and push it back
     KernelProcess* next_process = nullptr;
 
+    // usually we use a linked list in order to manage process list.
+    // since i use a queue, we need to pop it and push it back
     auto run_and_set_back = [&](auto& queue) {
-        auto proc = queue.dequeue();
+        
+        if (!_IsCanceled(queue.top()->pid)) 
+        {
+            auto proc = queue.dequeue();
 #if defined(K_LOG_SCHEDULER)
         LOG_SA("SCHEDULER: ", "Next process: %d\n", proc->pid);
 #endif
-        if (!_IsCanceled(proc->pid)) 
-        {
             next_process = proc;
-            _CurrentProcess = proc;
             proc->times_ran++;
             queue.enqueue(proc);
         }
@@ -95,15 +95,6 @@ void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
     }
 
     _CurrentProcess = next_process;
-}
-
-__NO_MANGELING void _SetDirectory()
-{
-    paging::PageDirectory* directory = nullptr;
-
-    asm volatile("mov %%eax, %0"::"r"(directory));
-
-    paging::SetDirectory(directory);
 }
 
 // we're using a global variable to store the context

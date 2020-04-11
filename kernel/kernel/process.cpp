@@ -114,6 +114,11 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
     Timer::add_callable_function(callback, scheduler);
 }
 
+KernelProcess::ID Processing::GetPid()
+{
+    return _scheduler->GetNext()->pid;
+}
+
 void Processing::Start::Code(const void* code_ptr)
 {
     _set_instruction_ptr((uint32_t*)code_ptr);
@@ -140,6 +145,12 @@ const KernelProcess* Processing::Start::Process(const String& name, Processing::
     EnableHardwareInterrupts();
 
     return new_process;
+}
+
+void Processing::End::Process(KernelProcess::ID pid)
+{
+    auto proc = _scheduler->GetNext();
+    proc->on_end(proc->pid, nullptr);
 }
 
 void Processing::RegisterProcess(const String& name, const void* func)

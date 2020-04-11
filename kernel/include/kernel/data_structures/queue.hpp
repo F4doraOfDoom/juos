@@ -19,6 +19,7 @@ NAMESPACE_BEGIN(kernel)
 
                 qnode( etype e = 0 ): element( e ), next( NULL )
                 { }
+
             };
 
             qnode *first;
@@ -37,6 +38,11 @@ NAMESPACE_BEGIN(kernel)
             void enqueue( const etype x );
             etype dequeue( );
             void makeempty( );
+
+            etype top() const 
+            {
+                return first->element;
+            }
         };
 
         template <class etype>

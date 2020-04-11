@@ -37,6 +37,24 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(Processing)
 
+        template <typename T>
+        struct InterruptGuard
+        {
+            InterruptGuard() {
+                DisableHardwareInterrupts();
+            }
+
+            InterruptGuard(T&& func) {
+                DisableHardwareInterrupts();
+                func();
+            }
+
+            ~InterruptGuard()
+            {
+                EnableHardwareInterrupts();
+            }
+        };
+
         struct RegisteredProcess
         {
             RegisteredProcess() : name(""), func_ptr(nullptr) {}
@@ -62,6 +80,8 @@ NAMESPACE_BEGIN(kernel)
             uint32_t eip, esp, ebp;
             paging::PageDirectory directory;    
         };
+
+        
 
         struct KernelProcess
         {
@@ -130,6 +150,8 @@ NAMESPACE_BEGIN(kernel)
             memcpy(&context->directory, paging_current_directory, sizeof(paging::PageDirectory));
         }
 
+        KernelProcess::ID GetPid();
+
         NAMESPACE_BEGIN(Start)
 
             /**
@@ -148,7 +170,7 @@ NAMESPACE_BEGIN(kernel)
 
         NAMESPACE_END(Start)
             
-        NAMESPACE_BEGIN(end)
+        NAMESPACE_BEGIN(End)
 
             /**
              * @brief Terminate a task with id _id_
@@ -157,7 +179,7 @@ NAMESPACE_BEGIN(kernel)
              */
             void Process(KernelProcess::ID id);
 
-        NAMESPACE_END(end)
+        NAMESPACE_END(End)
         
 
         using ProcessScheduler = scheduler::IScheduler<KernelProcess>*;
