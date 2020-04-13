@@ -50,7 +50,7 @@ void proc1()
 
 	while (true)
 	{
-		printf("a\n");
+		printf("aaaaaa\n");
 		//SYNCED_PRINTF("Hello from process #1 :)\n");
 	}
 }
@@ -78,7 +78,7 @@ void kernel_stage_2(void)
 
 	while (true) 
 	{
-		printf("b\n");
+		printf("bbbbbbb\n");
 		//SYNCED_PRINTF("Hello from kernel :)\n");
 	}
 

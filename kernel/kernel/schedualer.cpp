@@ -65,7 +65,7 @@ void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
     _keep_running = true;
 
     // update current process registers
-    _CurrentProcess->registers = *regs;
+    //_CurrentProcess->registers = *regs;
 
     // are there any important processes to run?
     // we want to give a high priority of execution to system processes, 
