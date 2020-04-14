@@ -178,7 +178,12 @@ NAMESPACE_BEGIN(kernel)
 
         // creates a new page directory with mappings _mappings_
         // meant to be used only once the memory manager is initialized
-        PageDirectory* create_directory(Vector<_HeapMappingSettings>& mappings);
+        PageDirectory* CreateDirectory(Vector<_HeapMappingSettings>& mappings);
+
+        // clone the current directory
+        PageDirectory* CloneDirectory(PageDirectory* src);
+
+        PageTable* CloneTable(PageTable* src, uint32_t* address);
 
         PageDirectory* GetKernelDirectory();
 
@@ -200,5 +205,7 @@ extern kernel::paging::PageDirectory* paging_kernel_directory;
 __NO_MANGELING void _load_page_directory(uint32_t*);
 __NO_MANGELING void _enable_paging();
 //__NO_MANGELING void _disable_paging();
+
+__NO_MANGELING void _copy_page_physical(uint32_t, uint32_t); 
 
 #endif //KERNEL_PAGING_H_

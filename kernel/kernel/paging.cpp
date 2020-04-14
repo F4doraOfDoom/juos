@@ -139,7 +139,7 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     LOG_SA("PAGING: ", "Created %d pages.\n", pages_created);
 #endif
 
-    *paging_current_directory = *__kernel_directory;
+    paging_current_directory = CloneDirectory(__kernel_directory);
 
     Interrupts::set_handler(14, page_fault_handler);
 
@@ -153,7 +153,7 @@ PageDirectory* kernel::paging::GetKernelDirectory()
     return __kernel_directory;   
 }
 
-PageDirectory* kernel::paging::create_directory(Vector<_HeapMappingSettings>& proc_mappings)
+PageDirectory* kernel::paging::CreateDirectory(Vector<_HeapMappingSettings>& proc_mappings)
 {
 #ifdef K_LOG_PAGING
     LOG_S("PAGING: ", "Creating new page directory...\n")
@@ -178,6 +178,56 @@ PageDirectory* kernel::paging::create_directory(Vector<_HeapMappingSettings>& pr
         };
     
         map_region(mappings.begin, mappings.end, allocator, new_directory);
+    }
+
+    return new_directory;
+}
+
+PageTable* kernel::paging::CloneTable(PageTable* src, uint32_t* address)
+{
+    auto new_table = (PageTable*)heap::Allocate_WPointer(sizeof(PageTable), address);
+
+    memcpy(new_table, src, sizeof(PageTable));
+
+    for (uint32_t i = 0; i < PAGE_TABLE_SIZE; i++)
+    {
+        if (!src->enteries[i].frame_addr) continue;
+
+        frame_table.SetAtAddress((uint32_t)&new_table->enteries[i]);
+
+        if (src->enteries[i].is_present) new_table->enteries[i].is_present = 1;
+        if (src->enteries[i].rw)      new_table->enteries[i].rw = 1;
+        if (src->enteries[i].is_user)    new_table->enteries[i].is_user = 1;
+        if (src->enteries[i].was_accessed)new_table->enteries[i].was_accessed = 1;
+        if (src->enteries[i].was_written)   new_table->enteries[i].was_written = 1;
+    
+        _copy_page_physical(src->enteries[i].frame_addr*0x1000, new_table->enteries[i].frame_addr * 0x1000); 
+    }
+
+    return new_table;
+}
+
+PageDirectory* kernel::paging::CloneDirectory(PageDirectory* src)
+{
+    auto new_directory = (PageDirectory*)heap::Allocate(sizeof(PageDirectory));
+
+    memset(new_directory, 0, sizeof(PageDirectory));
+
+    for (uint32_t i = 0; i < PAGE_TABLE_SIZE; i++)
+    {
+        if (!src->tables[i]) continue;
+
+        if (__kernel_directory->tables[i] == src->tables[i])
+        {
+            new_directory->tables[i] = src->tables[i];
+            new_directory->table_addresses[i] = src->table_addresses[i];
+        }
+        else
+        {
+            uint32_t address;
+            new_directory->tables[i] = CloneTable(src->tables[i], &address);
+            new_directory->table_addresses[i] = address | 0x7;
+        }
     }
 
     return new_directory;

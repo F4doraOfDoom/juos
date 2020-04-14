@@ -12,6 +12,8 @@ static Vector<KernelProcess*>                 _current_processes;
 
 static ProcessScheduler _scheduler = nullptr;
 
+bool __initiated_processing = false;
+
 extern uint32_t __stack_top; // variable indicating the start of the stack
 
 // the main kernel process
@@ -54,7 +56,7 @@ static KernelProcess* _NewProcess(const void* start, KernelProcess::Priority pri
     // mappings == null -> create unmapped process
     if (mappings)
     {
-        new_process->directory = paging::create_directory(*mappings);
+        new_process->directory = paging::CreateDirectory(*mappings);
     }
 
     new_process->stack_begin = (void*)KERNEL_STACK_BEGIN;
@@ -111,7 +113,9 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
     ENABLE_HARDWARE_INTERRUPTS();
 
     _scheduler->AddItem(_kernel_process);
-    Timer::add_callable_function(callback, scheduler);
+    //Timer::add_callable_function(callback, scheduler);
+    //Interrupts::set_handler(32, scheduler::SwitchTask);
+    __initiated_processing = true;
 }
 
 KernelProcess::ID Processing::GetPid()

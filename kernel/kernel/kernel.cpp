@@ -70,15 +70,15 @@ void kernel_stage_2(void)
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
 	//int i = 0;
 
-	Processing::RegisterProcess("proc1", (void*)proc1);
-	//Processing::RegisterProcess("proc2", (void*)proc2);
+	//Processing::RegisterProcess("proc1", (void*)proc1);
+	Processing::RegisterProcess("proc2", (void*)proc2);
 
-	Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
 
 	while (true) 
 	{
-		printf("bbbbbbb\n");
+		//printf("bbbbbbb\n");
 		//SYNCED_PRINTF("Hello from kernel :)\n");
 	}
 
@@ -122,6 +122,7 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 	Interrupts::set_handler(1, [](auto) {});
 	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
+	LOG_S("KERNEL:", "Finished stage 1, waiting for stage 2...\n");
 	for (;;)
 	{
 		asm volatile (

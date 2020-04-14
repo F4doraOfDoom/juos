@@ -13,6 +13,11 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(scheduler)
 
+        struct ProcessNode
+        {
+            ProcessNode*           next        = nullptr;
+            KernelProcess*  proccess    = nullptr;
+        };
         class ProcessScheduler : public IScheduler<KernelProcess>
         {
         public:
@@ -38,6 +43,7 @@ NAMESPACE_BEGIN(kernel)
              */
             void Stop(void* args);
 
+
         private:
             bool _IsCanceled(KernelProcess::ID proc_id)
             {
@@ -55,6 +61,9 @@ NAMESPACE_BEGIN(kernel)
                 return false;
             }
 
+            // used to keep track of processes
+            
+
             /**
              * @brief This function executes a process
              * 
@@ -62,15 +71,12 @@ NAMESPACE_BEGIN(kernel)
              */
             void _ExecuteProcess(KernelProcess* process);
 
-            Queue<KernelProcess*> _system_processes;
-            Queue<KernelProcess*> _regular_processes;
-
             Vector<KernelProcess::ID> _canceled_processes; 
 
             bool _keep_running = true;
         };
 
-
+        void SwitchTask(void* regs);
 
         KernelProcess* GetCurrentProcess();
 
@@ -79,5 +85,7 @@ NAMESPACE_BEGIN(kernel)
     NAMESPACE_END(scheduler)
 
 NAMESPACE_END(kernel)
+
+__NO_MANGELING uint32_t get_ip();
 
 #endif // KERNEL_SCHEDUALER_H
