@@ -49,7 +49,7 @@ using kernel::data_structures::Vector;
 #define OFFSET_FROM_BIT(a)          a % (8*4)
 
 
-#define SET_DIRECTORY(directory)    asm volatile("mov %0, %%cr3" :: "r"(directory->table_addresses))
+#define SET_DIRECTORY(directory)    asm volatile("mov %0, %%cr3" :: "r"(directory->real_address))
 
 NAMESPACE_BEGIN(kernel)
 

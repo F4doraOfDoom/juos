@@ -84,16 +84,15 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
     _scheduler = scheduler;
 
     // we pass no mappings because we're going to use the kernel's page directory
-    _kernel_process = _NewProcess((void*)start, KernelProcess::Priority::System, nullptr);
+    _kernel_process = new KernelProcess(nullptr, KernelProcess::Priority::System); //_NewProcess((void*)start, KernelProcess::Priority::System, nullptr);
 
-    // we want to use the kernel's heap
-    delete _kernel_process->directory;
-    auto kernel_directory = paging_current_directory;
-    _kernel_process->directory = kernel_directory;
+    paging::map_region(KERNEL_STACK_BEGIN, KERNEL_STACK_BEGIN + KERNEL_STACK_SIZE, paging::StandartAllocator, paging_current_directory);
 
-    paging::map_region(KERNEL_STACK_BEGIN, KERNEL_STACK_BEGIN + KERNEL_STACK_SIZE, paging::StandartAllocator, kernel_directory);
+    _kernel_process->directory = paging_current_directory;
 
-    paging::SetDirectory(kernel_directory);
+    paging_current_directory->real_address = (uint32_t)paging_current_directory->table_addresses;
+
+    SET_DIRECTORY(paging_current_directory);
 
     // stack will be an offset from zero
     uint32_t esp = 0, ebp = 0;
