@@ -112,7 +112,6 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
 
     auto number_of_frames = K_PHYSICAL_MEM_SIZE / FRAME_SIZE * 10;
     
-    paging_current_directory = (PageDirectory*)heap::Allocate(sizeof(page_directory_t));
     __kernel_directory = (PageDirectory*)heap::Allocate(sizeof(page_directory_t));
     memset((char*)__kernel_directory, '\0', sizeof(page_directory_t));
 
@@ -139,7 +138,7 @@ void kernel::paging::Initialize(_HeapMappingSettings* heap_mapping)
     LOG_SA("PAGING: ", "Created %d pages.\n", pages_created);
 #endif
 
-    paging_current_directory = CloneDirectory(__kernel_directory);
+    paging_current_directory = __kernel_directory;
 
     Interrupts::set_handler(14, page_fault_handler);
 
@@ -183,11 +182,17 @@ PageDirectory* kernel::paging::CreateDirectory(Vector<_HeapMappingSettings>& pro
     return new_directory;
 }
 
+uint32_t kernel::paging::VirtualToPhysical(uint32_t address)
+{
+    Page* page = _get_page((uint32_t)address, paging_current_directory, false, nullptr);
+    return page->frame_addr*0x1000 + ((uint32_t)address&0xFFF);
+}
+
 PageTable* kernel::paging::CloneTable(PageTable* src, uint32_t* address)
 {
-    auto new_table = (PageTable*)heap::Allocate_WPointer(sizeof(PageTable), address);
+    auto new_table = new PageTable();
 
-    memcpy(new_table, src, sizeof(PageTable));
+    *address = VirtualToPhysical((uint32_t)new_table);
 
     for (uint32_t i = 0; i < PAGE_TABLE_SIZE; i++)
     {
@@ -209,9 +214,11 @@ PageTable* kernel::paging::CloneTable(PageTable* src, uint32_t* address)
 
 PageDirectory* kernel::paging::CloneDirectory(PageDirectory* src)
 {
-    auto new_directory = (PageDirectory*)heap::Allocate(sizeof(PageDirectory));
+    auto new_directory = new PageDirectory();
+    uint32_t real_dir_addr = VirtualToPhysical((uint32_t)new_directory);
 
-    memset(new_directory, 0, sizeof(PageDirectory));
+    uint32_t offset = (uint32_t)new_directory->table_addresses - (uint32_t)new_directory;
+    new_directory->real_address = real_dir_addr + offset;
 
     for (uint32_t i = 0; i < PAGE_TABLE_SIZE; i++)
     {

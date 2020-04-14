@@ -77,8 +77,10 @@ ProcessScheduler Processing::GetScheduler()
     return _scheduler;
 }
 
-void Processing::Initialize(KernelStart start, SchedulerCallback callback, ProcessScheduler scheduler)
+void Processing::Initialize(KernelStart start, SchedulerCallback callback, ProcessScheduler scheduler,  uint32_t old_ebp)
 {
+    DISABLE_HARDWARE_INTERRUPTS();
+
     _scheduler = scheduler;
 
     // we pass no mappings because we're going to use the kernel's page directory
@@ -86,13 +88,10 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
 
     // we want to use the kernel's heap
     delete _kernel_process->directory;
-    auto kernel_directory = paging::GetKernelDirectory();
+    auto kernel_directory = paging_current_directory;
     _kernel_process->directory = kernel_directory;
 
     paging::map_region(KERNEL_STACK_BEGIN, KERNEL_STACK_BEGIN + KERNEL_STACK_SIZE, paging::StandartAllocator, kernel_directory);
-
-    // copy the old stack to the new stack
-    DISABLE_HARDWARE_INTERRUPTS();
 
     paging::SetDirectory(kernel_directory);
 
@@ -107,15 +106,25 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
 
     memcpy((void*)new_esp, (void*)esp, __stack_top - esp);
 
-    asm volatile("mov %0, %%esp" :: "r"(new_esp));
-    asm volatile("mov %0, %%ebp" :: "r"(new_ebp));
-
-    ENABLE_HARDWARE_INTERRUPTS();
-
     _scheduler->AddItem(_kernel_process);
     //Timer::add_callable_function(callback, scheduler);
     //Interrupts::set_handler(32, scheduler::SwitchTask);
     __initiated_processing = true;
+
+    asm volatile("mov %0, %%esp" :: "r"(new_esp));
+    asm volatile("mov %0, %%ebp" :: "r"(new_ebp));
+
+    // lets change ebp on the stack
+    for (uint32_t* i = (uint32_t*)new_esp; i < (uint32_t*)__stack_top; i++)
+    {
+        if (*i == old_ebp)
+        {
+            *i = new_ebp;
+            break;
+        }
+    }
+
+    ENABLE_HARDWARE_INTERRUPTS();
 }
 
 KernelProcess::ID Processing::GetPid()
@@ -126,6 +135,43 @@ KernelProcess::ID Processing::GetPid()
 void Processing::Start::Code(const void* code_ptr)
 {
     _set_instruction_ptr((uint32_t*)code_ptr);
+}
+
+uint32_t Processing::Fork()
+{
+    asm volatile("cli");
+
+    KernelProcess* parent = _scheduler->GetNext();
+
+    auto new_process = new KernelProcess(nullptr, KernelProcess::Priority::High);
+
+    new_process->directory = paging::CloneDirectory(paging_current_directory);
+
+    new_process->registers.esp = new_process->registers.ebp = 0;
+    new_process->registers.eip = 0;
+    new_process->parent = parent;
+
+    _scheduler->AddItem(new_process);
+
+    uint32_t eip = get_ip();
+
+    auto current = _scheduler->GetNext();
+    if (current == parent)
+    {
+        // We are the parent, so set up the esp/ebp/eip for our child.
+        uint32_t esp; asm volatile("mov %%esp, %0" : "=r"(esp));
+        uint32_t ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp));
+        new_process->registers.esp = esp;
+        new_process->registers.ebp = ebp;
+        new_process->registers.eip = eip;
+        asm volatile("sti");
+        
+        return new_process->pid;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 const KernelProcess* Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)

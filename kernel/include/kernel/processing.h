@@ -110,6 +110,8 @@ NAMESPACE_BEGIN(kernel)
                 return false;
             }
 
+            KernelProcess*                  parent;
+
             ID                              pid = (_pid_seq++);
             uint64_t                        start_time = 0;
             uint64_t                        slice_size;
@@ -180,7 +182,6 @@ NAMESPACE_BEGIN(kernel)
             void Process(KernelProcess::ID id);
 
         NAMESPACE_END(End)
-        
 
         using ProcessScheduler = scheduler::IScheduler<KernelProcess>*;
         using SchedulerCallback = void (*)(RegistersStruct_x86_32*, void*);
@@ -190,9 +191,11 @@ NAMESPACE_BEGIN(kernel)
          * 
          * @param scheduler a pointer to an object that implements the IScheduler interface
          */
-        void Initialize(KernelStart start, SchedulerCallback, ProcessScheduler scheduler);
+        void Initialize(KernelStart start, SchedulerCallback, ProcessScheduler scheduler, uint32_t ebp);
 
         ProcessScheduler GetScheduler();
+
+        uint32_t Fork();
 
     NAMESPACE_END(Processing)
 

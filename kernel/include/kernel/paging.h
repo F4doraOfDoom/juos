@@ -111,6 +111,7 @@ NAMESPACE_BEGIN(kernel)
         {
             PageTable*  tables[PAGE_TABLE_SIZE] = { 0 };
             uint32_t    table_addresses[PAGE_TABLE_SIZE] = { 0 };
+            uint32_t    real_address = 0;
         };
 
         struct Frame
@@ -175,6 +176,8 @@ NAMESPACE_BEGIN(kernel)
          * @param directory 
          */
         void SetDirectory(PageDirectory* directory);
+
+        uint32_t VirtualToPhysical(uint32_t address);
 
         // creates a new page directory with mappings _mappings_
         // meant to be used only once the memory manager is initialized

@@ -116,11 +116,17 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 	);
 
 	auto proc_scheduler = new scheduler::ProcessScheduler();
-	Processing::Initialize(kernel_stage_2, scheduler::run_process_scheduler, proc_scheduler);
+	uint32_t ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp)); 
+	Processing::Initialize(kernel_stage_2, scheduler::run_process_scheduler, proc_scheduler, ebp);
 	
+	printf("Hello process!\n");
+
 	Interrupts::Initialize();
 	Interrupts::set_handler(1, [](auto) {});
 	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
+
+	uint32_t pid = Processing::Fork();
+	printf("pid %d\n", pid);
 
 	LOG_S("KERNEL:", "Finished stage 1, waiting for stage 2...\n");
 	for (;;)

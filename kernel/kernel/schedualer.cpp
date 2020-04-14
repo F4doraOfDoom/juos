@@ -44,7 +44,7 @@ void ProcessScheduler::AddItem(KernelProcess* process)
 
 KernelProcess* ProcessScheduler::GetNext()
 {
-    return nullptr;
+    return _current_process->proccess;
 }
 
 void ProcessScheduler::CalculateNext(RegistersStruct_x86_32* regs, void* args)
@@ -65,36 +65,56 @@ void ProcessScheduler::SignalEnd(uint32_t pid)
 
 void scheduler::SwitchTask(void* args)
 {
-    //SET_DIRECTORY(paging::GetKernelDirectory());
+    // If we haven't initialised tasking yet, just return.
+    if (!_current_process)
+        return;
 
-    // wasn't initiated yet
-    //if (_current_process == nullptr) return;
-
+    // Read esp, ebp now for saving later on.
     uint32_t esp, ebp, eip;
     asm volatile("mov %%esp, %0" : "=r"(esp));
     asm volatile("mov %%ebp, %0" : "=r"(ebp));
 
+    // Read the instruction pointer. We do some cunning logic here:
+    // One of two things could have happened when this function exits - 
+    //   (a) We called the function and it returned the EIP as requested.
+    //   (b) We have just switched tasks, and because the saved EIP is essentially
+    //       the instruction after read_eip(), it will seem as if read_eip has just
+    //       returned.
+    // In the second case we need to return immediately. To detect it we put a dummy
+    // value in EAX further down at the end of this function. As C returns values in EAX,
+    // it will look like the return value is this dummy value! (0x12345).
     eip = get_ip();
 
-    if (eip == 0x12345) return;
+    // Have we just switched tasks?
+    if (eip == 0x12345)
+        return;
 
-    _current_process->proccess->registers.esp = esp; 
-    _current_process->proccess->registers.ebp = ebp;
+    // No, we didn't switch tasks. Let's save some register values and switch.
     _current_process->proccess->registers.eip = eip;
-      
-
+    _current_process->proccess->registers.esp = esp;
+    _current_process->proccess->registers.ebp = ebp;
+    
+    // Get the next task to run.
     _current_process = _current_process->next;
-    if (_current_process == nullptr)
-    {
-        _current_process = _process_list;
-    }
+    // If we fell off the end of the linked list start again at the beginning.
+    if (!_current_process) _current_process = _process_list;
 
     eip = _current_process->proccess->registers.eip;
     esp = _current_process->proccess->registers.esp;
     ebp = _current_process->proccess->registers.ebp;
 
-    auto current_directory = _current_process->proccess->directory; 
-
+    // Make sure the memory manager knows we've changed page directory.
+    paging_current_directory = _current_process->proccess->directory;
+    // Here we:
+    // * Stop interrupts so we don't get interrupted.
+    // * Temporarily puts the new EIP location in ECX.
+    // * Loads the stack and base pointers from the new task struct.
+    // * Changes page directory to the physical address (physicalAddr) of the new directory.
+    // * Puts a dummy value (0x12345) in EAX so that above we can recognise that we've just
+    //   switched task.
+    // * Restarts interrupts. The STI instruction has a delay - it doesn't take effect until after
+    //   the next instruction.
+    // * Jumps to the location in ECX (remember we put the new EIP in there).
     asm volatile("         \
       cli;                 \
       mov %0, %%ecx;       \
@@ -104,7 +124,8 @@ void scheduler::SwitchTask(void* args)
       mov $0x12345, %%eax; \
       sti;                 \
       jmp *%%ecx           "
-                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(current_directory->table_addresses));}
+                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(paging_current_directory->real_address));
+}
 
 void scheduler::run_process_scheduler(RegistersStruct_x86_32* regs, void* args)
 {
