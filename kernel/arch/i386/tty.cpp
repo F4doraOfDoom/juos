@@ -3,7 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <kernel/klog.h>
- 
+#include <kernel/paging.h>
+
 #include <kernel/tty.h>
 
 #include <arch/i386/vgh.h>
@@ -88,13 +89,13 @@ void Tty::WriteString(const char* data)
 
 void Tty::Clean()
 {
-	for (size_t i = 0; i < VGA_WIDTH; i++)
-	{
-		for (size_t j = 0; j < VGA_HEIGHT; j++)
-		{
-			terminal_buffer[i + j * VGA_WIDTH] = 0;
-		}
-	}
+	// for (size_t i = 0; i < VGA_WIDTH; i++)
+	// {
+	// 	for (size_t j = 0; j < VGA_HEIGHT; j++)
+	// 	{
+	// 		terminal_buffer[i + j * VGA_WIDTH] = 0;
+	// 	}
+	// }
 }
 
 

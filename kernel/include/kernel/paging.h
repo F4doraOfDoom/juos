@@ -66,6 +66,13 @@ NAMESPACE_BEGIN(kernel)
         {
             uint32_t begin;
             uint32_t end;
+
+            enum class Type
+            {
+                STACK,
+                HEAP,
+                OTHER
+            } type;
         };
 
         /**

@@ -33,52 +33,13 @@ void BREAKPOINT() {
 	
 }
 
-void loop()
-{
-	static uint32_t counter = 0;
-	while (true)
-	{
-		//kernel::data_structures::String str("Im looping!\n");
-		printf("loop %d\n", counter++);
-	}
-}
-
-void proc1()
-{
-	for(uint32_t i = 0; i < 16; i++)
-		asm volatile("nop\n");
-
-	while (true)
-	{
-		printf("aaaaaa\n");
-		//SYNCED_PRINTF("Hello from process #1 :)\n");
-	}
-}
-
-void proc2()
-{
-	//int i = 0;
-
-	while (true)
-	{
-		//LOCKED_PRINTF_ARGS("Hello from proc 2 :) i = %d\n", i++);
-	}
-}
-
 void kernel_stage_2(void)
 {
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
-	//int i = 0;
-
-	//Processing::RegisterProcess("proc1", (void*)proc1);
-	Processing::RegisterProcess("proc2", (void*)proc2);
-
-	//Processing::Start::Process("proc1", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("proc2", Processing::KernelProcess::Priority::High);
-
-	while (true) 
+	
+	//while (true) 
 	{
-		//printf("bbbbbbb\n");
+		printf("bbbbbbb\n");
 		//SYNCED_PRINTF("Hello from kernel :)\n");
 	}
 
@@ -119,14 +80,14 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 	uint32_t ebp; asm volatile("mov %%ebp, %0" : "=r"(ebp)); 
 	Processing::Initialize(kernel_stage_2, scheduler::run_process_scheduler, proc_scheduler, ebp);
 	
-	printf("Hello process!\n");
+	printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n");
 
 	Interrupts::Initialize();
 	Interrupts::set_handler(1, [](auto) {});
 	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
-
-	uint32_t pid = Processing::Fork();
-	printf("pid %d\n", pid);
+	
+	Processing::RegisterProcess("kernel", (void*)kernel_stage_2);
+	Processing::Start::Process("kernel", Processing::KernelProcess::Priority::High);
 
 	LOG_S("KERNEL:", "Finished stage 1, waiting for stage 2...\n");
 	for (;;)

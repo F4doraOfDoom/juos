@@ -49,28 +49,28 @@ static void _SignalProcEnd(KernelProcess::ID proc_id, void* args)
     }
 };
 
-static KernelProcess* _NewProcess(const void* start, KernelProcess::Priority priority, Vector<paging::_HeapMappingSettings>* mappings)
-{
-    auto new_process = new KernelProcess(start, priority);
+// static KernelProcess* _NewProcess(const void* start, KernelProcess::Priority priority, Vector<paging::_HeapMappingSettings>* mappings)
+// {
+//     auto new_process = new KernelProcess(start, priority);
 
-    // mappings == null -> create unmapped process
-    if (mappings)
-    {
-        new_process->directory = paging::CreateDirectory(*mappings);
-    }
+//     // mappings == null -> create unmapped process
+//     if (mappings)
+//     {
+//         new_process->directory = paging::CreateDirectory(*mappings);
+//     }
 
-    new_process->stack_begin = (void*)KERNEL_STACK_BEGIN;
-    new_process->heap_begin = (void*)K_HEAP_START;
-    //new_process->data_begin = (void*)0xD0000000;
+//     new_process->stack_begin = (void*)KERNEL_STACK_BEGIN;
+//     new_process->heap_begin = (void*)K_HEAP_START;
+//     //new_process->data_begin = (void*)0xD0000000;
 
-    new_process->registers.eip = (uint32_t)start;
-    new_process->registers.esp = (uint32_t)new_process->stack_begin + 0x1000;
-    new_process->registers.ebp = (uint32_t)new_process->stack_begin + 0x1000;
+//     new_process->registers.eip = (uint32_t)start;
+//     new_process->registers.esp = (uint32_t)new_process->stack_begin + 0x1000;
+//     new_process->registers.ebp = (uint32_t)new_process->stack_begin + 0x1000;
 
-    new_process->on_end = _SignalProcEnd;
+//     new_process->on_end = _SignalProcEnd;
 
-    return new_process;
-}
+//     return new_process;
+// }
 
 ProcessScheduler Processing::GetScheduler()
 {
@@ -175,24 +175,34 @@ uint32_t Processing::Fork()
 
 const KernelProcess* Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)
 {
-    DISABLE_HARDWARE_INTERRUPTS();
+    asm volatile("cli");
 
-    auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](const RegisteredProcess& rp)
-    {
-        return rp.name.compare(name);
+    KernelProcess* parent = _scheduler->GetNext();
+
+    auto new_process = new KernelProcess(nullptr, KernelProcess::Priority::High);
+
+    Vector<paging::_HeapMappingSettings> mappings;
+    mappings.push_back({0xd0000000, 0xd0001000, paging::_HeapMappingSettings::Type::STACK});
+
+    new_process->directory = paging::CreateDirectory(mappings);
+
+    new_process->registers.esp = new_process->registers.ebp = 0;
+    new_process->registers.eip = 0;
+    new_process->parent = parent;
+
+    auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](auto& p){
+        return p.name.compare(name); 
     });
- 
-    Vector<paging::_HeapMappingSettings> proc_mappings;
-    proc_mappings.push_back({0xA0000000, 0xA0010000}); // stack
-    proc_mappings.push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
-    //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
 
-    auto new_process = _NewProcess(proc->func_ptr, priority, &proc_mappings);
-    
+    new_process->registers.esp = 0xd0000000 + 0x500;
+    new_process->registers.ebp = 0xd0000000 + 0x500;
+    new_process->registers.eip = (uint32_t)proc->func_ptr;
+    new_process->on_end = _SignalProcEnd;
+
     _scheduler->AddItem(new_process);
 
-    ENABLE_HARDWARE_INTERRUPTS();
-
+    asm volatile("sti");
+    
     return new_process;
 }
 

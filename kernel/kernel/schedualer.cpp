@@ -33,13 +33,13 @@ void ProcessScheduler::AddItem(KernelProcess* process)
     }
 
     // traverse to last
-    while (cur)
+    while (cur->next)
     {
         cur = cur->next;
     }
 
     cur->next = new ProcessNode();
-    cur->proccess = process;
+    cur->next->proccess = process;
 }
 
 KernelProcess* ProcessScheduler::GetNext()
@@ -62,6 +62,7 @@ void ProcessScheduler::SignalEnd(uint32_t pid)
     _canceled_processes.push_back(pid);
 }
 
+__ALIGNED(0x1000) paging::PageDirectory _temp_dir;
 
 void scheduler::SwitchTask(void* args)
 {
@@ -103,8 +104,9 @@ void scheduler::SwitchTask(void* args)
     esp = _current_process->proccess->registers.esp;
     ebp = _current_process->proccess->registers.ebp;
 
+    memcpy(&_temp_dir, _current_process->proccess->directory, sizeof(paging::PageDirectory));
     // Make sure the memory manager knows we've changed page directory.
-    paging_current_directory = _current_process->proccess->directory;
+    paging_current_directory = &_temp_dir;
     // Here we:
     // * Stop interrupts so we don't get interrupted.
     // * Temporarily puts the new EIP location in ECX.
@@ -124,7 +126,7 @@ void scheduler::SwitchTask(void* args)
       mov $0x12345, %%eax; \
       sti;                 \
       jmp *%%ecx           "
-                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(paging_current_directory->real_address));
+                 : : "r"(eip), "r"(esp), "r"(ebp), "r"(paging_current_directory->table_addresses));
 }
 
 void scheduler::run_process_scheduler(RegistersStruct_x86_32* regs, void* args)

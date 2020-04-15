@@ -82,7 +82,7 @@ void kernel::MemoryManager::Initialize(uint32_t start, uint32_t end, uint32_t ma
     // clear the first chunk
     memset(__mapped_heap->big_chunks, 0, sizeof(big_chunk_t));
 
-    paging::_HeapMappingSettings heap_mapping = paging::_HeapMappingSettings{start, end};
+    paging::_HeapMappingSettings heap_mapping = paging::_HeapMappingSettings{start, end, paging::_HeapMappingSettings::Type::HEAP};
     kernel::paging::Initialize(&heap_mapping);    
 }
 
