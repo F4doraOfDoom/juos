@@ -123,7 +123,7 @@ void Timer::__tick_handler(void* reg)
                     "r"(next_process->directory->table_addresses));
 
     // first time running
-    if (next_times_ran == 1)
+    if (next_times_ran > 0)
     {
         asm volatile(
             "mov %0, %%ecx;"
