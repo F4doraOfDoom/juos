@@ -35,28 +35,39 @@ void BREAKPOINT() {
 
 void loop()
 {
-	static uint32_t counter = 0;
+	uint32_t counter = 0;
 	while (true)
 	{
-		//kernel::data_structures::String str("Im looping!\n");
-		printf("loop %d\n", counter++);
+		auto pid = Processing::GetPid();
+		printf("Hello from process %d :) loop #%d\n", pid, counter++);
 	}
 }
 
 
 void kernel_stage_2(void)
 {
+	static bool loop_finished = false;
+
+	if (loop_finished) {
+		while (true) {asm volatile("hlt");}
+	}
+
+	DISABLE_HARDWARE_INTERRUPTS();
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
 	//int i = 0;
 
-	while (true) 
-	{
-		//printf("b\n");
-		SYNCED_PRINTF("Hello from kernel :)\n");
-	}
+	Processing::RegisterProcess("loop", (void*)loop);
+	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
+	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
 
 	auto self_pid = Processing::GetPid();
 	Processing::End::Process(self_pid);
+
+	ENABLE_HARDWARE_INTERRUPTS();
+
+	loop_finished = true;
 }
 
 uint32_t __stack_top = 0;

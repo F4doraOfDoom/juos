@@ -1,6 +1,8 @@
 #include <kernel/timer.h>
 #include <kernel/processing.h>
 
+extern KernelProcess _current_process_info;
+
 struct FuncArgPair
 {
     Timer::CallableFunc func;
@@ -46,10 +48,7 @@ uint64_t Timer::current_time()
     return __tick_counter;
 }
 
-__NO_MANGELING void _SetDirectory(paging::PageDirectory* dir)
-{
-    paging::SetDirectory(dir);
-}
+__NO_MANGELING uint32_t get_ip();
 
 void Timer::__tick_handler(void* reg)
 {
@@ -94,12 +93,13 @@ void Timer::__tick_handler(void* reg)
     // no need to save context if a process isn't running
     if (current_process != nullptr)
     {
-        asm volatile("mov %%esp, %0": "=r"(_current_context.esp));
-        asm volatile("mov %%ebp, %0": "=r"(_current_context.ebp));
+        asm volatile("mov %%esp, %0": "=r"(current_process->registers.esp));
+        asm volatile("mov %%ebp, %0": "=r"(current_process->registers.ebp));
+        uint32_t eip = get_ip();
 
-        // non-standard gcc feature to take address of label 
-        _current_context.eip = (uint32_t)&&_current_line;
-        current_process->ApplyContext(&_current_context);
+        if (eip == 0x12345) return;
+        
+        current_process->registers.eip = eip;
     }
 
     // _next_context.eip = next_process->registers.eip;
@@ -109,6 +109,8 @@ void Timer::__tick_handler(void* reg)
     // _next_id        = next_process->pid;
     // _next_run_times = next_process->times_ran;
     
+    _current_process_info = *next_process;
+
     next_eip        = next_process->registers.eip;
     next_times_ran  = next_process->times_ran++; 
 
@@ -127,23 +129,12 @@ void Timer::__tick_handler(void* reg)
     {
         asm volatile(
             "mov %0, %%ecx;"
+            "mov $0x12345, %%eax;"
             "sti;" // notice the sti here
             "jmp %%ecx"  
                     : :
                         "b"(next_eip)
         );
     }
-    else
-    {
-        asm volatile(
-            "mov %0, %%ecx;"
-            "jmp %%ecx"  
-                    : :
-                        "b"(next_eip)
-        );
-    }
-    
-_current_line:
-    return;
 }
 

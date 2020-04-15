@@ -7,6 +7,8 @@ using Processing::RegisteredProcess;
 using Processing::KernelProcess;
 using Processing::ProcessScheduler;
 
+KernelProcess _current_process_info(nullptr, KernelProcess::Priority::System);
+
 static Vector<RegisteredProcess>        _registered_processes;
 static Vector<KernelProcess*>                 _current_processes; 
 
@@ -38,13 +40,13 @@ void KernelProcess::ApplyContext(const Context* context)
 
 static void _SignalProcEnd(KernelProcess::ID proc_id, void* args)
 {
-    DISABLE_HARDWARE_INTERRUPTS();
+    //DISABLE_HARDWARE_INTERRUPTS();
     Processing::GetScheduler()->SignalEnd(proc_id);
-    ENABLE_HARDWARE_INTERRUPTS();
-    while (true)
-    {
-        asm volatile("hlt");
-    }
+    //ENABLE_HARDWARE_INTERRUPTS();
+    // while (true)
+    // {
+    //     asm volatile("hlt");
+    // }
 };
 
 static KernelProcess* _NewProcess(const void* start, KernelProcess::Priority priority, Vector<paging::_HeapMappingSettings>* mappings)
@@ -116,7 +118,7 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
 
 KernelProcess::ID Processing::GetPid()
 {
-    return _scheduler->GetNext()->pid;
+    return _current_process_info.pid;
 }
 
 void Processing::Start::Code(const void* code_ptr)
@@ -126,7 +128,7 @@ void Processing::Start::Code(const void* code_ptr)
 
 const KernelProcess* Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)
 {
-    DISABLE_HARDWARE_INTERRUPTS();
+    //DISABLE_HARDWARE_INTERRUPTS();
 
     auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](const RegisteredProcess& rp)
     {
@@ -142,7 +144,7 @@ const KernelProcess* Processing::Start::Process(const String& name, Processing::
     
     _scheduler->AddItem(new_process);
 
-    ENABLE_HARDWARE_INTERRUPTS();
+    //ENABLE_HARDWARE_INTERRUPTS();
 
     return new_process;
 }
