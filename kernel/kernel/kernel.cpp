@@ -31,7 +31,8 @@ using namespace kernel;
 void divide_by_zero(void*);
 __NO_MANGELING void kernel_main(uint32_t);
 
-void BREAKPOINT() {
+void BREAKPOINT() 
+{
 	
 }
 
@@ -55,10 +56,13 @@ void loop()
 	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
 	ENABLE_HARDWARE_INTERRUPTS();
 
+	char buffer[100];
+
 	while (true)
 	{
-		char c = kernel::IO::GetChar();
-		SYNCED_PRINTF_ARGS("Got chat %c\n", c);
+		printf(">>> ");
+		memset(buffer, 0, 100);
+		kernel::IO::GetString(buffer, 99);
 	}
 }
 

@@ -4,6 +4,7 @@
 #include <kernel/kdef.h>
 #include <kernel/lock.h>
 
+#include <stdint.h>
 #include <stdio.h>
 
 static DECLARE_LOCK(__print_lock);
@@ -35,6 +36,8 @@ NAMESPACE_BEGIN(kernel)
     NAMESPACE_BEGIN(IO)
 
         char GetChar();
+
+        void GetString(char* buffer, uint32_t max_len);
 
     NAMESPACE_END(IO)
 

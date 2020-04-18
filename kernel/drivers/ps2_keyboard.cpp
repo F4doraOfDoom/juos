@@ -118,7 +118,18 @@ kernel::keyboard::InputKeyType ps2::keyboard::KeyboardSource(void* args)
         LOG_SA("PS/2-KEYBOARD: ", "Recieved key: %c (%s)\n", key.value, key.explanation);
 #endif 
 
-        output_key.character = key.value;
+        switch (key.special_type)
+        {
+
+        case SpecialCharacterType::Enter:
+            output_key.character = '\n';
+        break;
+
+        default:
+            output_key.character = key.value;
+        break;
+
+        }
     }
     else
     {

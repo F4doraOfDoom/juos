@@ -18,3 +18,18 @@ char kernel::IO::GetChar()
 
     return key.character;
 }
+
+void kernel::IO::GetString(char* buffer, uint32_t max_len)
+{
+    for (uint32_t i = 0; i < max_len; i++)
+    {
+        char c = GetChar();
+
+        printf("%c", c);
+
+        if (c == '\n') return;
+
+        buffer[i] = c;
+    }
+}
+
