@@ -19,9 +19,6 @@ struct {
 void Timer::start(uint32_t clock_freq)
 {
     Interrupts::set_handler(TIMER_PORT, Timer::__tick_handler);
-    // sometimes the hardware calls this interrupt number for the clock.
-    // we ignore it by passing it an empty function
-    Interrupts::set_handler(TIMER_PORT + 1, [](void*) {} );
  
     // call the arch's intialization of time
     Timer::Initialize(clock_freq);

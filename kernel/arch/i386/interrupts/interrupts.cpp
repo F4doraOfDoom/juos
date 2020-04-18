@@ -63,7 +63,7 @@ void Interrupts::AddToIdt(int32_t entry, uint32_t base, uint16_t sel, uint8_t fl
 
 void Interrupts::set_handler(uint32_t interrupt_num, Interrupts::handler handler)
 {
-    interrupt_handlers[interrupt_num]= handler;
+    interrupt_handlers[interrupt_num] = handler;
 }
 
 void irq_handler(registers32_t registers)

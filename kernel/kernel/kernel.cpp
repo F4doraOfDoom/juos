@@ -13,10 +13,12 @@
 #include <kernel/kuseful.h>
 #include <kernel/processing.h>
 #include <kernel/kio.h>
+#include <kernel/keyboard.h>
+#include <kernel/schedualer.h>
 
 #include <drivers/ata.h>
 #include <drivers/ext2.h>
-#include <kernel/schedualer.h>
+#include <drivers/ps2.h>
 
 #include <kernel/kstdcxx.hpp>
 #include <list.hpp>
@@ -40,21 +42,21 @@ void loop2()
 	while (true)
 	{
 		auto pid = Processing::GetPid();
-		printf("Hello from process %d :) loop #%d\n", pid, counter++);
+		SYNCED_PRINTF_ARGS("Hello from process %d :) loop #%d\n", pid, counter++);
 	}
 }
 
 void loop()
 {
-	uint32_t counter = 0;
+	//uint32_t counter = 0;
 	DISABLE_HARDWARE_INTERRUPTS();
-	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
 	ENABLE_HARDWARE_INTERRUPTS();
 
 	while (true)
 	{
-		auto pid = Processing::GetPid();
-		printf("Hello from process %d :) loop #%d\n", pid, counter++);
+		// auto pid = Processing::GetPid();
+		// SYNCED_PRINTF_ARGS("Hello from process %d :) loop #%d\n", pid, counter++);
 	}
 }
 
@@ -69,15 +71,11 @@ void kernel_stage_2(void)
 
 	DISABLE_HARDWARE_INTERRUPTS();
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
-	//int i = 0;
-
+	
 	Processing::RegisterProcess("loop", (void*)loop);
 	Processing::RegisterProcess("loop2", (void*)loop2);
 	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-	//Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-
+	
 	auto self_pid = Processing::GetPid();
 	Processing::End::Process(self_pid);
 
@@ -115,11 +113,13 @@ __NO_MANGELING void kernel_main(uint32_t stack_top) {
 		true // is read-write
 	);
 
+
 	auto proc_scheduler = new scheduler::ProcessScheduler();
 	Processing::Initialize(kernel_stage_2, scheduler::run_process_scheduler, proc_scheduler);
 	
 	Interrupts::Initialize();
-	Interrupts::set_handler(1, [](auto) {});
+	//Interrupts::set_handler(1, [](auto) {});
+	keyboard::InitializeKeyboard(drivers::ps2::keyboard::KeyboardSource);	
 	Timer::start(K_INTERNAL_CLOCK_TICK_RATE);
 
 	for (;;)
