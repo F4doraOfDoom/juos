@@ -32,9 +32,11 @@ static DECLARE_LOCK(__print_lock);
 
 NAMESPACE_BEGIN(kernel)
 
-    NAMESPACE_BEGIN(Output)
+    NAMESPACE_BEGIN(IO)
 
-    NAMESPACE_END(Output)
+        char GetChar();
+
+    NAMESPACE_END(IO)
 
 NAMESPACE_END(kernel)
 

@@ -12,7 +12,13 @@ NAMESPACE_BEGIN(kernel)
 
         struct InputKeyType
         {
+            // std::queue is mad becuase it expects the type to be pointerish
+            // we create a constructor that takes a pointer to fix that
+            InputKeyType(void*) {}
+            InputKeyType() {}
+
             uint32_t character;
+            bool error = false;
         };
 
         using KeyboardCallback = InputKeyType (*)(void*);

@@ -19,6 +19,11 @@ void keyboard::KeyboardHandler(void*)
 {
     auto key = _key_source(nullptr);
 
+    if (key.error)
+    {
+        return;
+    }
+
     auto current_proc_input_buffer = Processing::GetInputBuffer();
 
     if (current_proc_input_buffer == nullptr)
@@ -26,7 +31,11 @@ void keyboard::KeyboardHandler(void*)
         return;
     }
 
+    DISABLE_HARDWARE_INTERRUPTS();
+
     current_proc_input_buffer->enqueue(key);
 
-    printf("Added key %c to buffer;\n", key.character);
+    ENABLE_HARDWARE_INTERRUPTS();
+
+    //printf("Added key %c to buffer;\n", key.character);
 }

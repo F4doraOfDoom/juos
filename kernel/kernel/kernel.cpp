@@ -57,8 +57,8 @@ void loop()
 
 	while (true)
 	{
-		// auto pid = Processing::GetPid();
-		// SYNCED_PRINTF_ARGS("Hello from process %d :) loop #%d\n", pid, counter++);
+		char c = kernel::IO::GetChar();
+		SYNCED_PRINTF_ARGS("Got chat %c\n", c);
 	}
 }
 

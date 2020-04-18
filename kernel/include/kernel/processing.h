@@ -13,14 +13,14 @@
 #define KERNEL_PROCESS_H_
 
 #include <stdint.h>
-
 #include <kernel/kdef.h>
-//#include <kernel/timer.h>
-#include <kernel/kmm.h>
-#include <kernel/scheduler_interface.h>
+#include <kernel/kstructs.h>
 
-#include <kernel/paging.h>
+#include <kernel/scheduler_interface.h>
 #include <kernel/keyboard.h>
+#include <kernel/paging.h>
+#include <kernel/lock.h>
+#include <kernel/kmm.h>
 
 #include <kernel/data_structures/string.hpp>
 #include <kernel/data_structures/vector.hpp>
@@ -29,7 +29,6 @@
 #include <move.hpp>
 #include <algorithms.hpp>
 
-#include <kernel/kstructs.h>
 
 using kernel::data_structures::Vector;
 using kernel::data_structures::Queue;
@@ -136,6 +135,7 @@ NAMESPACE_BEGIN(kernel)
             // in contrast with other propreties, the input buffer will be part of 
             // of the processes's address space
             Queue<keyboard::InputKeyType>* input_buffer = nullptr; 
+            DECLARE_LOCK(input_buffer_lock);
 
         private:
             bool        _is_finished; 
@@ -144,8 +144,9 @@ NAMESPACE_BEGIN(kernel)
 
         struct CachedProcessInfo
         {
-            KernelProcess::ID pid;
+            KernelProcess::ID               pid;
             Queue<keyboard::InputKeyType>** input_buffer_ptr = nullptr;
+            volatile int*                   input_buffer_lock_ptr = nullptr;
         };
 
 
@@ -214,6 +215,19 @@ NAMESPACE_BEGIN(kernel)
          * @return Queue<keyboard::InputKeyType>* 
          */
         Queue<keyboard::InputKeyType>* GetInputBuffer();
+
+        /**
+         * @brief Locks the current processes's input buffer with a mutex
+         * 
+         */
+        void LockInputBuffer();
+
+
+        /**
+         * @brief Unlocks the current processes's input buffer with a mutex
+         * 
+         */
+        void UnlockInputBuffer();
 
         /**
          * @brief Initiates the process, from it's own address space perspective.

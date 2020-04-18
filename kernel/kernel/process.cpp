@@ -183,6 +183,17 @@ Queue<keyboard::InputKeyType>* Processing::GetInputBuffer()
     return *_current_process_cached_info.input_buffer_ptr;
 }
 
+void Processing::LockInputBuffer()
+{
+    LOCK(*_current_process_cached_info.input_buffer_lock_ptr)
+}
+
+void Processing::UnlockInputBuffer()
+{
+    UNLOCK(*_current_process_cached_info.input_buffer_lock_ptr)
+}
+
+
 void Processing::End::Process(KernelProcess::ID pid)
 {
     auto proc = _scheduler->GetNext();

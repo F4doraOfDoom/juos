@@ -23,7 +23,7 @@ enum class SpecialCharacterType
     F_Key,
 };
 
-constexpr inline struct 
+constexpr inline struct _KeyDescriptor
 {
     uint8_t                 value;
     const char*             explanation;
@@ -105,14 +105,27 @@ constexpr inline struct
 
 kernel::keyboard::InputKeyType ps2::keyboard::KeyboardSource(void* args)
 {
+    kernel::keyboard::InputKeyType output_key;
+
     auto input = inb(ps2::DATA_PORT);
 
-    auto key = keys[input - 1]; // indexing from 1
+    // check if input is in the range of valid characters
+    if (input > 0 && input < (sizeof(keys) / sizeof(keys[0])))
+    {
+        auto key = keys[input - 1]; // indexing from 1
 
 #if defined(K_LOG_KEY_STROKES)
-    LOG_SA("PS/2-KEYBOARD: ", "Recieved key: %c (%s)\n", key.value, key.explanation);
+        LOG_SA("PS/2-KEYBOARD: ", "Recieved key: %c (%s)\n", key.value, key.explanation);
 #endif 
 
-    return {key.value};
+        output_key.character = key.value;
+    }
+    else
+    {
+        output_key.error = true;
+    }
+
+
+    return output_key;
 }
 

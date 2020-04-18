@@ -106,8 +106,9 @@ void Timer::__tick_handler(void* reg)
     // _next_id        = next_process->pid;
     // _next_run_times = next_process->times_ran;
     
-    _current_process_cached_info.pid                = next_process->pid;
-    _current_process_cached_info.input_buffer_ptr   = &next_process->input_buffer;
+    _current_process_cached_info.pid                    = next_process->pid;
+    _current_process_cached_info.input_buffer_ptr       = &next_process->input_buffer;
+    _current_process_cached_info.input_buffer_lock_ptr  = &next_process->input_buffer_lock;
 
     next_eip        = next_process->registers.eip;
     next_times_ran  = next_process->times_ran++; 
