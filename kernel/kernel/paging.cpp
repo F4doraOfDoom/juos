@@ -7,7 +7,7 @@ using namespace kernel::paging;
 PageDirectory* paging_current_directory = nullptr;
 
 extern uint32_t __primitive_heap; // defined in kheap.cpp
-static PageDirectory* __kernel_directory;
+PageDirectory* __kernel_directory;
 static uint32_t __kernel_size;
 static uint32_t __base_kernel_tables_size;
 

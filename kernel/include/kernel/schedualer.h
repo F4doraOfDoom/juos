@@ -39,6 +39,9 @@ NAMESPACE_BEGIN(kernel)
             void Stop(void* args);
 
         private:
+
+            KernelProcess* _FindProcess(Queue<KernelProcess*>& queue);
+            
             bool _IsCanceled(KernelProcess::ID proc_id)
             {
                 uint32_t index = 0;

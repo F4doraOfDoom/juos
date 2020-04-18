@@ -33,9 +33,24 @@ void BREAKPOINT() {
 	
 }
 
+void loop2()
+{
+	uint32_t counter = 0;
+
+	while (true)
+	{
+		auto pid = Processing::GetPid();
+		printf("Hello from process %d :) loop #%d\n", pid, counter++);
+	}
+}
+
 void loop()
 {
 	uint32_t counter = 0;
+	DISABLE_HARDWARE_INTERRUPTS();
+	Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
+	ENABLE_HARDWARE_INTERRUPTS();
+
 	while (true)
 	{
 		auto pid = Processing::GetPid();
@@ -57,10 +72,11 @@ void kernel_stage_2(void)
 	//int i = 0;
 
 	Processing::RegisterProcess("loop", (void*)loop);
+	Processing::RegisterProcess("loop2", (void*)loop2);
 	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
-	Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
+	//Processing::Start::Process("loop", Processing::KernelProcess::Priority::High);
 
 	auto self_pid = Processing::GetPid();
 	Processing::End::Process(self_pid);

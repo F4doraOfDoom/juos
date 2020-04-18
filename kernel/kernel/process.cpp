@@ -9,6 +9,7 @@ using Processing::ProcessScheduler;
 
 KernelProcess _current_process_info(nullptr, KernelProcess::Priority::System);
 
+extern paging::PageDirectory* __kernel_directory;
 static Vector<RegisteredProcess>        _registered_processes;
 static Vector<KernelProcess*>                 _current_processes; 
 
@@ -126,27 +127,53 @@ void Processing::Start::Code(const void* code_ptr)
     _set_instruction_ptr((uint32_t*)code_ptr);
 }
 
-const KernelProcess* Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)
+KernelProcess::ID Processing::Start::Process(const String& name, Processing::KernelProcess::Priority priority)
 {
     //DISABLE_HARDWARE_INTERRUPTS();
 
+    static uint32_t             _current_directory;
+    static KernelProcess::ID    _new_proc_id;
+    static char                 _proc_name_buffer[128];
+
+    _current_directory = 0;
+    memset(_proc_name_buffer, 0, sizeof(_proc_name_buffer));
+    memcpy(_proc_name_buffer, name.c_str(), sizeof(_proc_name_buffer));
+
+    // if the process is not the kernel, we're going to need to switch to the kernel
+    if (_current_process_info.pid != 0)
+    {
+        asm volatile("mov %%cr3, %0" : "=r"(_current_directory));
+        asm volatile("mov %0, %%cr3" :: "r"(__kernel_directory->table_addresses));
+    }
+
     auto proc = std::find_if(_registered_processes.begin(), _registered_processes.end(), [&](const RegisteredProcess& rp)
     {
-        return rp.name.compare(name);
+        return rp.name.compare(_proc_name_buffer);
     });
  
-    Vector<paging::_HeapMappingSettings> proc_mappings;
-    proc_mappings.push_back({0xA0000000, 0xA0010000}); // stack
-    proc_mappings.push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
-    //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
+    // new scope because we want _proc_mappings_ to be destroyed before switching directories
+    {
+        Vector<paging::_HeapMappingSettings> proc_mappings;
+        proc_mappings.push_back({0xA0000000, 0xA0010000}); // stack
+        proc_mappings.push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
+        //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
 
-    auto new_process = _NewProcess(proc->func_ptr, priority, &proc_mappings);
+        auto new_process = _NewProcess(proc->func_ptr, priority, &proc_mappings);
+        _new_proc_id = new_process->pid;
+
+        _scheduler->AddItem(new_process);
+    }
     
-    _scheduler->AddItem(new_process);
+
+    // now return the current directory
+    if (_current_process_info.pid != 0)
+    {
+        asm volatile("mov %0, %%cr3" :: "r"(_current_directory));
+    }
 
     //ENABLE_HARDWARE_INTERRUPTS();
 
-    return new_process;
+    return _new_proc_id;
 }
 
 void Processing::End::Process(KernelProcess::ID pid)

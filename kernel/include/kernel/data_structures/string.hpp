@@ -46,6 +46,11 @@ NAMESPACE_BEGIN(kernel)
                     return it;
                 }
 
+                const char* c_str() const
+                {
+                    return data;
+                }
+
                 It<char> end()
                 {
                     It<char> it(data + size);

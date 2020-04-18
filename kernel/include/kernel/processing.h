@@ -166,7 +166,7 @@ NAMESPACE_BEGIN(kernel)
              * @param name 
              * @return observer pointer to the process struct
              */
-            const KernelProcess* Process(const String& name, KernelProcess::Priority priority);
+            KernelProcess::ID Process(const String& name, KernelProcess::Priority priority);
 
         NAMESPACE_END(Start)
             
