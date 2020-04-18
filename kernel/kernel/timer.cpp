@@ -1,7 +1,7 @@
 #include <kernel/timer.h>
 #include <kernel/processing.h>
 
-extern KernelProcess _current_process_info;
+extern  Processing::CachedProcessInfo _current_process_cached_info;
 
 struct FuncArgPair
 {
@@ -106,7 +106,8 @@ void Timer::__tick_handler(void* reg)
     // _next_id        = next_process->pid;
     // _next_run_times = next_process->times_ran;
     
-    _current_process_info = *next_process;
+    _current_process_cached_info.pid                = next_process->pid;
+    _current_process_cached_info.input_buffer_ptr   = &next_process->input_buffer;
 
     next_eip        = next_process->registers.eip;
     next_times_ran  = next_process->times_ran++; 

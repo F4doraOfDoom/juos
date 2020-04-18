@@ -1,4 +1,5 @@
 #include <kernel/keyboard.h>
+#include <kernel/processing.h>
 #include <kernel/kcommon.h>
 
 using namespace kernel;
@@ -16,6 +17,16 @@ void keyboard::InitializeKeyboard(KeyboardCallback source)
 
 void keyboard::KeyboardHandler(void*)
 {
-    printf("Key pressed!\n");
-    _key_source(nullptr);
+    auto key = _key_source(nullptr);
+
+    auto current_proc_input_buffer = Processing::GetInputBuffer();
+
+    if (current_proc_input_buffer == nullptr)
+    {
+        return;
+    }
+
+    current_proc_input_buffer->enqueue(key);
+
+    printf("Added key %c to buffer;\n", key.character);
 }

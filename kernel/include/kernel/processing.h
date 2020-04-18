@@ -20,8 +20,11 @@
 #include <kernel/scheduler_interface.h>
 
 #include <kernel/paging.h>
-#include <kernel/data_structures/vector.hpp>
+#include <kernel/keyboard.h>
+
 #include <kernel/data_structures/string.hpp>
+#include <kernel/data_structures/vector.hpp>
+#include <kernel/data_structures/queue.hpp>
 
 #include <move.hpp>
 #include <algorithms.hpp>
@@ -29,6 +32,7 @@
 #include <kernel/kstructs.h>
 
 using kernel::data_structures::Vector;
+using kernel::data_structures::Queue;
 
 #define KERNEL_STACK_BEGIN      0xA0000000
 #define KERNEL_STACK_SIZE       0x01000000
@@ -80,7 +84,6 @@ NAMESPACE_BEGIN(kernel)
             uint32_t eip, esp, ebp;
             paging::PageDirectory directory;    
         };
-
         
 
         struct KernelProcess
@@ -122,7 +125,7 @@ NAMESPACE_BEGIN(kernel)
             void*                           data_begin = nullptr;
             // counter for how many times the process has been task switched
             uint64_t                        times_ran = 0;
-
+ 
             #if 1 // implement some way to detect architecture
             RegistersStruct_x86_32          registers;
             bool                            registers_set = false;
@@ -130,10 +133,21 @@ NAMESPACE_BEGIN(kernel)
 
             ProcessResolver on_end = nullptr; 
 
+            // in contrast with other propreties, the input buffer will be part of 
+            // of the processes's address space
+            Queue<keyboard::InputKeyType>* input_buffer = nullptr; 
+
         private:
             bool        _is_finished; 
             static ID   _pid_seq;
         };
+
+        struct CachedProcessInfo
+        {
+            KernelProcess::ID pid;
+            Queue<keyboard::InputKeyType>** input_buffer_ptr = nullptr;
+        };
+
 
         /**
          * @brief Add a process to the known processes list
@@ -193,6 +207,19 @@ NAMESPACE_BEGIN(kernel)
         void Initialize(KernelStart start, SchedulerCallback, ProcessScheduler scheduler);
 
         ProcessScheduler GetScheduler();
+
+        /**
+         * @brief Get the Input Buffer of the current process
+         * 
+         * @return Queue<keyboard::InputKeyType>* 
+         */
+        Queue<keyboard::InputKeyType>* GetInputBuffer();
+
+        /**
+         * @brief Initiates the process, from it's own address space perspective.
+         * 
+         */
+        void SelfProcessInit();
 
     NAMESPACE_END(Processing)
 

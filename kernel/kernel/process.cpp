@@ -6,8 +6,10 @@ using namespace kernel;
 using Processing::RegisteredProcess;
 using Processing::KernelProcess;
 using Processing::ProcessScheduler;
+using Processing::CachedProcessInfo;
 
-KernelProcess _current_process_info(nullptr, KernelProcess::Priority::System);
+CachedProcessInfo _current_process_cached_info;
+
 
 extern paging::PageDirectory* __kernel_directory;
 static Vector<RegisteredProcess>        _registered_processes;
@@ -119,7 +121,7 @@ void Processing::Initialize(KernelStart start, SchedulerCallback callback, Proce
 
 KernelProcess::ID Processing::GetPid()
 {
-    return _current_process_info.pid;
+    return _current_process_cached_info.pid;
 }
 
 void Processing::Start::Code(const void* code_ptr)
@@ -140,7 +142,7 @@ KernelProcess::ID Processing::Start::Process(const String& name, Processing::Ker
     memcpy(_proc_name_buffer, name.c_str(), sizeof(_proc_name_buffer));
 
     // if the process is not the kernel, we're going to need to switch to the kernel
-    if (_current_process_info.pid != 0)
+    if (_current_process_cached_info.pid != 0)
     {
         asm volatile("mov %%cr3, %0" : "=r"(_current_directory));
         asm volatile("mov %0, %%cr3" :: "r"(__kernel_directory->table_addresses));
@@ -166,7 +168,7 @@ KernelProcess::ID Processing::Start::Process(const String& name, Processing::Ker
     
 
     // now return the current directory
-    if (_current_process_info.pid != 0)
+    if (_current_process_cached_info.pid != 0)
     {
         asm volatile("mov %0, %%cr3" :: "r"(_current_directory));
     }
@@ -176,10 +178,20 @@ KernelProcess::ID Processing::Start::Process(const String& name, Processing::Ker
     return _new_proc_id;
 }
 
+Queue<keyboard::InputKeyType>* Processing::GetInputBuffer()
+{
+    return *_current_process_cached_info.input_buffer_ptr;
+}
+
 void Processing::End::Process(KernelProcess::ID pid)
 {
     auto proc = _scheduler->GetNext();
     proc->on_end(proc->pid, nullptr);
+}
+
+void Processing::SelfProcessInit()
+{
+    *_current_process_cached_info.input_buffer_ptr = new Queue<keyboard::InputKeyType>();
 }
 
 void Processing::RegisterProcess(const String& name, const void* func)

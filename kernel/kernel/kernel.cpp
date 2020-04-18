@@ -48,6 +48,8 @@ void loop2()
 
 void loop()
 {
+	Processing::SelfProcessInit();
+
 	//uint32_t counter = 0;
 	DISABLE_HARDWARE_INTERRUPTS();
 	//Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
@@ -63,6 +65,8 @@ void loop()
 
 void kernel_stage_2(void)
 {
+	Processing::SelfProcessInit();
+
 	static bool loop_finished = false;
 
 	if (loop_finished) {
