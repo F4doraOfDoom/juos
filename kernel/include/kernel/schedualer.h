@@ -49,8 +49,6 @@ NAMESPACE_BEGIN(kernel)
                 {
                     if (proc_id == canceled_id)
                     {
-                        // TODO: Implement vector erase
-                        _canceled_processes[index] = -1;
                         return true;
                     }
                     index++;

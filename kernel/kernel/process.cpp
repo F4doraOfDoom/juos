@@ -68,7 +68,7 @@ static void _SignalProcEnd(KernelProcess::ID proc_id, void* args)
     //ENABLE_HARDWARE_INTERRUPTS();
     // while (true)
     // {
-    //     asm volatile("hlt");
+       //  asm volatile("hlt");
     // }
 };
 
@@ -218,8 +218,25 @@ void Processing::UnlockInputBuffer()
 
 void Processing::End::Process(KernelProcess::ID pid)
 {
-    auto proc = _scheduler->GetNext();
-    proc->on_end(proc->pid, nullptr);
+    static uint32_t temp_dir = 0, temp_pid = 0;
+    temp_dir = 0;
+
+    temp_pid = pid;
+
+    // we need to switch into kernel context
+    if (_current_process_cached_info.pid != 1)
+    {
+        asm volatile ("mov %%cr3, %0" : "=r"(temp_dir));
+        asm volatile ("mov %0, %%cr3" :: "r"(__kernel_directory->table_addresses));
+    }
+
+    _scheduler->SignalEnd(temp_pid);
+
+    // we need to switch into kernel context
+    if (_current_process_cached_info.pid != 1)
+    {
+        asm volatile ("mov %0, %%cr3" :: "r"(temp_dir));
+    }
 }
 
 void Processing::SelfProcessInit()

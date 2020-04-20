@@ -42,8 +42,8 @@ KernelProcess* ProcessScheduler::_FindProcess(Queue<KernelProcess*>& queue)
 
         if (_IsCanceled(proc->pid))
         {
-            auto canceled = queue.dequeue();
-            delete canceled;
+            queue.dequeue();
+            //delete canceled;
             continue;
         }
 
