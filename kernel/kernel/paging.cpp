@@ -232,3 +232,16 @@ void kernel::paging::page_fault_handler(void* regs_void)
     ifetch);
 
 }
+
+PageDirectory::~PageDirectory()
+{
+    for (uint32_t i = 0; i < PAGE_TABLE_SIZE; i++)
+    {
+        for (uint32_t j = 0; j < PAGE_TABLE_SIZE; j++)
+        {
+            auto page = &tables[i]->enteries[j];
+            auto page_idx = page->frame_addr;
+            frame_table.FreeAtIndex(page_idx);
+        }
+    }
+}

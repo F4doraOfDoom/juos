@@ -25,13 +25,33 @@ uint32_t KernelProcess::_pid_seq = 1;
 
 KernelProcess::KernelProcess(const void* func_ptr, Priority priority)
 {
-    active_threads.push_back(Thread{func_ptr});
     this->priority = priority;
 
     // the time each process gets to run is equal to
     // its priority on a scale of 1-5, times 10
     slice_size = ((uint64_t)priority + 1) * 10;
     _is_finished = false;
+}
+
+KernelProcess::~KernelProcess()
+{
+    // if it has special mappings
+    if (self_mappings)
+    {
+        delete self_mappings;
+    }
+
+    // if it has an input buffer 
+    if (input_buffer)
+    {
+        delete input_buffer;
+    }
+
+    // we don't want to destroy the kernel's directory
+    if (pid > 1)
+    {
+        delete directory;
+    }
 }
 
 void KernelProcess::ApplyContext(const Context* context)
@@ -71,6 +91,8 @@ static KernelProcess* _NewProcess(const void* start, KernelProcess::Priority pri
     new_process->registers.ebp = (uint32_t)new_process->stack_begin + 0x1000;
 
     new_process->on_end = _SignalProcEnd;
+
+    new_process->self_mappings = mappings;
 
     return new_process;
 }
@@ -153,18 +175,18 @@ KernelProcess::ID Processing::Start::Process(const String& name, Processing::Ker
         return rp.name.compare(_proc_name_buffer);
     });
  
-    // new scope because we want _proc_mappings_ to be destroyed before switching directories
-    {
-        Vector<paging::_HeapMappingSettings> proc_mappings;
-        proc_mappings.push_back({0xA0000000, 0xA0010000}); // stack
-        proc_mappings.push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
-        //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
+    
+    auto proc_mappings = new Vector<paging::_HeapMappingSettings>();
+    proc_mappings->push_back({0xA0000000, 0xA0010000}); // stack
+    proc_mappings->push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
+    //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
 
-        auto new_process = _NewProcess(proc->func_ptr, priority, &proc_mappings);
-        _new_proc_id = new_process->pid;
+    auto new_process = _NewProcess(proc->func_ptr, priority, proc_mappings);
 
-        _scheduler->AddItem(new_process);
-    }
+    _new_proc_id = new_process->pid;
+
+    _scheduler->AddItem(new_process);
+
     
 
     // now return the current directory

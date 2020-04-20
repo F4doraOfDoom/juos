@@ -29,6 +29,11 @@ void FrameTable::SetAtIndex(uint32_t idx)
     this->frames[idx].is_taken = true;
 }
 
+void FrameTable::FreeAtIndex(uint32_t idx)
+{
+    this->frames[idx].is_taken = false;
+}
+
 kernel::paging::frame_table_t::FrameTable(uint32_t length)
 {
     this->length = length;

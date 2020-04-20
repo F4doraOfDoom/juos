@@ -111,6 +111,9 @@ NAMESPACE_BEGIN(kernel)
         {
             PageTable*  tables[PAGE_TABLE_SIZE] = { 0 };
             uint32_t    table_addresses[PAGE_TABLE_SIZE] = { 0 };
+
+            // defined in paging.cpp
+            ~PageDirectory();
         };
 
         struct Frame
@@ -145,6 +148,8 @@ NAMESPACE_BEGIN(kernel)
             frame_table_result_t FindFirst();
 
             void SetAtIndex(uint32_t idx);
+            void FreeAtIndex(uint32_t idx);
+
             void SetAtAddress(uint32_t addr);
 
             Frame*      frames = nullptr;

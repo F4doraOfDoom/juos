@@ -103,6 +103,7 @@ NAMESPACE_BEGIN(kernel)
 
             // implemented in processing.cpp
             KernelProcess(const void* func_ptr, Priority priority);
+            ~KernelProcess();
 
             void ApplyContext(const Context* context);
 
@@ -116,7 +117,6 @@ NAMESPACE_BEGIN(kernel)
             uint64_t                        start_time = 0;
             uint64_t                        slice_size;
             Priority                        priority;
-            Vector<Thread>                  active_threads;
             kernel::paging::PageDirectory*  directory = nullptr;
             // stack and heap pointers
             void*                           stack_begin = nullptr;
@@ -130,6 +130,10 @@ NAMESPACE_BEGIN(kernel)
             bool                            registers_set = false;
             #endif 
 
+            // needed to release pages later when process is over
+            Vector<paging::_HeapMappingSettings>* self_mappings;
+
+            // function that is run on the end of the process
             ProcessResolver on_end = nullptr; 
 
             // in contrast with other propreties, the input buffer will be part of 
