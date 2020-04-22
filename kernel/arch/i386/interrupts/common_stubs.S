@@ -7,7 +7,7 @@
         cli 
         push 0
         push \num
-        jmp isr_basic_caller
+        jmp isr_common_stub
 .endm
 
 .macro irq num, mapped
@@ -16,12 +16,12 @@
     irq_\num:
         push 0
         push \mapped
-        jmp irq_basic_caller
+        jmp irq_common_stub
 .endm
 
-.global isr_basic_caller
-.type isr_basic_caller, @function
-isr_basic_caller:
+.global isr_common_stub
+.type isr_common_stub, @function
+isr_common_stub:
     pusha 
 
     mov eax, ds
@@ -46,9 +46,9 @@ isr_basic_caller:
     sti
     iret
 
-.global irq_basic_caller
-.type irq_basic_caller, @function
-irq_basic_caller:
+.global irq_common_stub
+.type irq_common_stub, @function
+irq_common_stub:
     pusha 
     
     mov ax, ds

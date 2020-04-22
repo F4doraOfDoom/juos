@@ -2,13 +2,13 @@
 
 #ifdef __is_libk
     #include <kernel/tty.h>
-    extern void tty::putchar(char c);
+    extern void Tty::Putchar(char c);
 #endif 
 
 int putchar(const int c)
 {
     #ifdef __is_libk
-        tty::putchar(c);
+        Tty::Putchar(c);
     #else
         // some syscall
         volatile char x = c;

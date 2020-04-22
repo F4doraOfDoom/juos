@@ -1,11 +1,13 @@
-#include <include/pit.h>
+#include <arch/i386/pit.h>
+#include <kernel/klog.h>
 
-void timer::initialize(uint32_t clock_freq)
+void Timer::Initialize(uint32_t clock_freq)
 {
-    pit::_init(clock_freq);
+    LOG_SA("TIMER: ", "Initializing... Frequency: %d\n", clock_freq);
+    Pit::_Init(clock_freq);
 }
 
-void pit::_init(uint32_t clock_freq)
+void Pit::_Init(uint32_t clock_freq)
 {
     uint32_t divisor = PIT_FREQ / clock_freq;
 
