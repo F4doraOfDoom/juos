@@ -21,15 +21,32 @@ char kernel::IO::GetChar()
 
 void kernel::IO::GetString(char* buffer, uint32_t max_len)
 {
-    for (uint32_t i = 0; i < max_len; i++)
+    for (uint32_t i = 0; i < max_len;)
     {
         char c = GetChar();
 
-        printf("%c", c);
+        switch (c)
+        {
+            case '\n':
+                putchar('\n');
+                return;
+            break;
 
-        if (c == '\n') return;
+            case '\b':
+                if (i > 0)
+                {
+                    putchar('\b');
+                    i--;
+                }
+            break;
 
-        buffer[i] = c;
+            default:
+                putchar(c);
+                buffer[i] = c;
+                i++;
+            break;
+        }
+        
     }
 }
 

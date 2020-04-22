@@ -55,6 +55,11 @@ void Tty::Putchar(char c)
 			terminal_row++;
 		break;
 
+		case '\b':
+			terminal_column--;
+			_terminal_putentryat(0, _VgaEntryColor(VGA_COLOR_BLACK, VGA_COLOR_BLACK), terminal_column, terminal_row);
+		break;
+
 		default:
 			_terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
 			// move the cursor to new position

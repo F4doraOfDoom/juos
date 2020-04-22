@@ -125,6 +125,10 @@ kernel::keyboard::InputKeyType ps2::keyboard::KeyboardSource(void* args)
             output_key.character = '\n';
         break;
 
+        case SpecialCharacterType::Backspace:
+            output_key.character = '\b';
+        break;
+
         default:
             output_key.character = key.value;
         break;
