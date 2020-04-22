@@ -25,8 +25,18 @@ NAMESPACE_BEGIN(Interrupts)
 
     typedef void (*handler)(void*);
 
+    /**
+     * @brief Iniaitlize the interrupt system
+     * 
+     */
     void Initialize();
  
+    /**
+     * @brief Set the handler _handler_ for interrupt # _interrupt_num_
+     * 
+     * @param interrupt_num 
+     * @param handler 
+     */
     void set_handler(uint32_t interrupt_num, handler handler);
 
 NAMESPACE_END(Interrupts)

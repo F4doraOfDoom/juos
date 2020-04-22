@@ -23,8 +23,17 @@ NAMESPACE_BEGIN(kernel)
 
         using KeyboardCallback = InputKeyType (*)(void*);
 
+        /**
+         * @brief Initialize the keyboard
+         * 
+         * @param source 
+         */
         void InitializeKeyboard(KeyboardCallback source);
 
+        /**
+         * @brief Keyboard interrupt handler
+         * 
+         */
         void KeyboardHandler(void*);
 
     NAMESPACE_END(keyboard)

@@ -1,3 +1,15 @@
+/**
+ * @file mem_operators.hpp
+ * @author Jonathan Uklisty
+ * @brief This file defined operators new and delete for c++. 
+ * The operators use kmm's malloc and free
+ * @version 0.1
+ * @date 2020-04-22
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
+
 #ifndef KERNEL_MEM_OPS_H_
 #define KERNEL_MEM_OPS_H_
 

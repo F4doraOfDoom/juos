@@ -15,6 +15,12 @@ NAMESPACE_BEGIN(drivers)
         
         NAMESPACE_BEGIN(keyboard)
 
+            /**
+             * @brief PS/2 Keyboard handler function
+             * 
+             * @param args 
+             * @return kernel::keyboard::InputKeyType 
+             */
             kernel::keyboard::InputKeyType KeyboardSource(void* args);
 
         NAMESPACE_END(keyboard)

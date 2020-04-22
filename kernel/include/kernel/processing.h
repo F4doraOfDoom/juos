@@ -105,14 +105,14 @@ NAMESPACE_BEGIN(kernel)
             KernelProcess(const void* func_ptr, Priority priority);
             ~KernelProcess();
 
+            /**
+             * @brief Depracated 
+             * 
+             * @param context 
+             */
             void ApplyContext(const Context* context);
 
-            bool IsFinished() const
-            {
-                // TOOD implement time based solution
-                return false;
-            }
-
+        
             ID                              pid = (_pid_seq++);
             uint64_t                        start_time = 0;
             uint64_t                        slice_size;
@@ -162,6 +162,11 @@ NAMESPACE_BEGIN(kernel)
          */
         void RegisterProcess(const String& name, const void* func);
 
+        /**
+         * @brief Get the Current execution context
+         * 
+         * @param context 
+         */
         inline void GetCurrentContext(Context* context)
         {
             asm volatile("mov %%esp, %0": "=r"(context->esp));
@@ -169,6 +174,11 @@ NAMESPACE_BEGIN(kernel)
             memcpy(&context->directory, paging_current_directory, sizeof(paging::PageDirectory));
         }
 
+        /**
+         * @brief Get the Pid of the current running processs
+         * 
+         * @return KernelProcess::ID 
+         */
         KernelProcess::ID GetPid();
 
         NAMESPACE_BEGIN(Start)
@@ -211,6 +221,11 @@ NAMESPACE_BEGIN(kernel)
          */
         void Initialize(KernelStart start, SchedulerCallback, ProcessScheduler scheduler);
 
+        /**
+         * @brief Get the Scheduler object
+         * 
+         * @return ProcessScheduler 
+         */
         ProcessScheduler GetScheduler();
 
         /**

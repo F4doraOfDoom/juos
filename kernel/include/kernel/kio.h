@@ -1,3 +1,14 @@
+/**
+ * @file kio.h
+ * @author Jonathan Uklisty
+ * @brief Header file for IO operations
+ * @version 0.1
+ * @date 2020-04-22
+ * 
+ * @copyright Copyright (c) 2020
+ * 
+ */
+
 #ifndef KERNEL_IO_H
 #define KERNEL_IO_H
 
@@ -35,8 +46,19 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(IO)
 
+        /**
+         * @brief Get the character from stdio
+         * 
+         * @return char 
+         */
         char GetChar();
 
+        /**
+         * @brief Get a string from stdio into _buffer_
+         * 
+         * @param buffer 
+         * @param max_len - max size of the buffer
+         */
         void GetString(char* buffer, uint32_t max_len);
 
     NAMESPACE_END(IO)

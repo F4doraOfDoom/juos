@@ -86,10 +86,31 @@ NAMESPACE_BEGIN(kernel)
         typedef BigChunk    big_chunk_t;
         typedef Heap        heap_t;
 
+        /**
+         * @brief Initialize the  memory manager to use the heap from _start_ to _end_,
+         * with it's max size begin _size_
+         * 
+         * @param start 
+         * @param end 
+         * @param size 
+         * @param is_kernel - is this memory manager the kernel's?
+         * @param rw - is the heap both read and write?
+         */
         void Initialize(uint32_t start, uint32_t end, uint32_t size, bool is_kernel, bool rw);
 
+        /**
+         * @brief Allocate a memory chunk of size _size_
+         * 
+         * @param size 
+         * @return void* 
+         */
         void* malloc(uint32_t size);
 
+        /**
+         * @brief Free a memory chunk allocated by malloc
+         * 
+         * @param p 
+         */
         void free(void* p);
 
     NAMESPACE_END(MemoryManager)

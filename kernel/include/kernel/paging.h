@@ -172,6 +172,16 @@ NAMESPACE_BEGIN(kernel)
          */
         void Initialize(_HeapMappingSettings* _heap_mapping);
 
+        /**
+         * @brief Map the region between _start_ and _end_ in the paging directory _dir_
+         * using the memory allocator _allocator_
+         * 
+         * @param start 
+         * @param end 
+         * @param allocator 
+         * @param dir 
+         * @return uint32_t 
+         */
         uint32_t map_region(uint32_t start, uint32_t end, MemoryAlloctor allocator,  page_directory_t* dir = nullptr);
 
         /**
@@ -185,8 +195,17 @@ NAMESPACE_BEGIN(kernel)
         // meant to be used only once the memory manager is initialized
         PageDirectory* create_directory(Vector<_HeapMappingSettings>& mappings);
 
+        /**
+         * @brief Get the Kernel Directory object
+         * 
+         * @return PageDirectory* 
+         */
         PageDirectory* GetKernelDirectory();
 
+        /**
+         * @brief Function to handle page faults
+         * 
+         */
         void page_fault_handler(void*);
 
         auto StandartAllocator = [](uint32_t size, void* args) {
@@ -198,7 +217,10 @@ NAMESPACE_BEGIN(kernel)
 
 NAMESPACE_END(kernel)
 
+// the current paging directory
 extern kernel::paging::PageDirectory* paging_current_directory;
+
+// the kernel's paging directory
 extern kernel::paging::PageDirectory* paging_kernel_directory;
 
 // implemented by arch

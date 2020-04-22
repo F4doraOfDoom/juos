@@ -60,21 +60,44 @@ NAMESPACE_BEGIN(kernel)
         typedef const Type&         const_reference;
         typedef Type*               pointer; 
 
+        /**
+         * @brief Allocate _n_ objects of size Type
+         * 
+         * @param n 
+         * @return pointer 
+         */
         static pointer allocate(uint32_t n)
         {
             return new Type[n];
         }
 
+        /**
+         * @brief Deallocate a pointer pointing to _n_ objects of type Type
+         * 
+         * @param p 
+         * @param n 
+         */
         static void deallocate(pointer p, size_t n)
         {
             delete p;
         }
 
+        /**
+         * @brief construct an object of type Type in pointer _p_ with args _v_
+         * 
+         * @param p 
+         * @param v 
+         */
         static void construct(pointer p, const_reference v)
         {
             *p = Type(v);
         }
 
+        /**
+         * @brief Destroy an object of type Type in pointer _p_
+         * 
+         * @param p 
+         */
         static void destroy(pointer p)
         {
             p->~Type();

@@ -15,9 +15,14 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(Concurrency)
 
+    // Mutex object
     class Lock
     {
     public:
+        /**
+         * @brief Aquire the mutex object
+         * 
+         */
         void Aquire()
         {
             asm volatile(
@@ -34,6 +39,10 @@ NAMESPACE_BEGIN(kernel)
             );        
         }
 
+        /**
+         * @brief Release the mutex object
+         * 
+         */
         void Release()
         {
             asm volatile(

@@ -11,14 +11,34 @@ NAMESPACE_BEGIN(kernel)
         class IScheduler
         {
         public: 
-            // actual function for the scheduler to set a _next variable
+            /**
+             * @brief This function should be called when context switching. 
+             * Upon calling it, the scheduler should set it's next process. 
+             * 
+             * @param regs - registers when context switching
+             * @param args - optional arguments
+             */
             virtual void CalculateNext(RegistersStruct_x86_32* regs, void* args) = 0;
 
+            /**
+             * @brief Get the Next process
+             * 
+             * @return ItemType* 
+             */
             virtual ItemType* GetNext() = 0;
 
+            /**
+             * @brief Add a process to the process list
+             * 
+             * @param item 
+             */
             virtual void AddItem(ItemType* item) = 0;
 
-            // signal for the scheduler that the process has finished
+            /**
+             * @brief Tell the scheduler that process _pid_ has finished.
+             * 
+             * @param pid 
+             */
             virtual void SignalEnd(uint32_t pid) = 0;
         };
 
