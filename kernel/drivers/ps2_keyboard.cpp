@@ -129,6 +129,17 @@ kernel::keyboard::InputKeyType ps2::keyboard::KeyboardSource(void* args)
             output_key.character = '\b';
         break;
 
+        // unsupported keys
+        case SpecialCharacterType::LeftShift:
+        case SpecialCharacterType::RightShift:
+        case SpecialCharacterType::LeftAlt:
+        case SpecialCharacterType::CapsLock:
+        case SpecialCharacterType::F_Key:
+        case SpecialCharacterType::Tab:
+        case SpecialCharacterType::LeftControl:
+            output_key.error = true;
+        break;
+
         default:
             output_key.character = key.value;
         break;
