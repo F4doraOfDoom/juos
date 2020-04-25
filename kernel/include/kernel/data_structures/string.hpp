@@ -51,6 +51,18 @@ NAMESPACE_BEGIN(kernel)
                     return data;
                 }
 
+
+                void operator+=(char c) 
+                {
+                    auto index = size++;
+                    auto new_buffer = new char[size];
+                    memcpy(new_buffer, this->data, size);
+                    delete this->data;
+                    
+                    new_buffer[index] = c;
+                    this->data = new_buffer;    
+                }
+
                 It<char> end()
                 {
                     It<char> it(data + size);
@@ -73,7 +85,7 @@ NAMESPACE_BEGIN(kernel)
         */
         String(const char* data) {
             size_t size = strlen(data);
-
+            
             this->data = new char[size];
             this->size = size;
 
@@ -81,6 +93,8 @@ NAMESPACE_BEGIN(kernel)
                 strncpy(this->data, data, size);
             }
         }
+
+        String() : String("") {}
 
         /**
         * Copy Constructor

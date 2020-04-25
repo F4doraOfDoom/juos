@@ -16,6 +16,8 @@ public:
 
     virtual void DeleteFile(const char* filename) = 0;
 
+    virtual void MakeNewFs() = 0;
+
     virtual ~FsHandler() = default;
 };
 

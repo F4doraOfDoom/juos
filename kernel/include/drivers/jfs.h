@@ -3,9 +3,12 @@
 
 #include <kernel/kdef.h>
 #include <kernel/storage.h>
+#include <kernel/klog.h>
 #include <kernel/vfs.h>
 
 #include <kernel/data_structures/vector.hpp>
+
+#include <string.h>
 
 using kernel::FsHandler;
 using kernel::data_structures::Vector;
@@ -70,6 +73,9 @@ NAMESPACE_BEGIN(drivers)
 
         struct FileInode
         {
+            // until we implement directories
+            char                name[FILE_NAME_SIZE] = { 0 };
+
             // base inode attributes
             InodeBase           base;
 
@@ -88,11 +94,16 @@ NAMESPACE_BEGIN(drivers)
 
             virtual void CreateFile(const char* filename);
 
+            void MakeNewFs();
+
             virtual void DeleteFile(const char* filename);
+
+            virtual ~JuosFileSystem();
 
         private:
             kernel::StorageDeviceHandler*   _storage_handler;
-            Vector<InodeBase*>              _inodes;          
+            Vector<InodeBase*>  *           _inodes; 
+            FsMeta                          _fs_meta;         
         };
 
     NAMESPACE_END(jfs)

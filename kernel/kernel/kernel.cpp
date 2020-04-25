@@ -15,6 +15,7 @@
 #include <kernel/kio.h>
 #include <kernel/keyboard.h>
 #include <kernel/schedualer.h>
+#include <kernel/josh.h>
 
 #include <drivers/ata.h>
 #include <drivers/ext2.h>
@@ -50,44 +51,6 @@ void loop2()
 	}
 }
 
-void shell()
-{
-	Processing::SelfProcessInit();
-
-	//uint32_t counter = 0;
-
-	char buffer[100];
-	uint32_t processes_running = 0;
-
-	Processing::KernelProcess::ID last_pid;
-
-	while (true)
-	{
-		printf("(%d processes) >>> ", processes_running);
-		memset(buffer, 0, 100);
-		kernel::IO::GetString(buffer, 99);
-
-		String str(buffer);
-		if (str.compare("START"))
-		{
-			DISABLE_HARDWARE_INTERRUPTS();
-			last_pid = Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
-			ENABLE_HARDWARE_INTERRUPTS();
-
-			printf("Launched procesess pid #%d\n", last_pid);
-			processes_running++;
-		}
-		else if (str.compare("END"))
-		{
-			DISABLE_HARDWARE_INTERRUPTS();
-			Processing::End::Process(last_pid);
-			ENABLE_HARDWARE_INTERRUPTS();
-
-			printf("Stopped proccess %d\n", last_pid);
-			processes_running--;
-		}
-	}
-}
 
 
 void kernel_stage_2(void)
@@ -103,7 +66,7 @@ void kernel_stage_2(void)
 	DISABLE_HARDWARE_INTERRUPTS();
 	LOG_S("KERNEL: ", "Initiating stage 2...\n");
 	
-	Processing::RegisterProcess("shell", (void*)shell);
+	Processing::RegisterProcess("shell", (void*)shell::ShellMain);
 	Processing::RegisterProcess("loop2", (void*)loop2);
 	Processing::Start::Process("shell", Processing::KernelProcess::Priority::High);
 	
