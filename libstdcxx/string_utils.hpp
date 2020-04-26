@@ -7,6 +7,7 @@
 #include <kernel/data_structures/vector.hpp>
 using StringType    = kernel::data_structures::String;
 using ListType      = kernel::data_structures::Vector<StringType>;
+using VecType       = kernel::data_structures::Vector<char>;
 
 NAMESPACE_BEGIN(std)
 
@@ -15,18 +16,18 @@ NAMESPACE_BEGIN(std)
         ListType split(const StringType& string, char delimiter)
         {
             ListType list;
-            StringType cur_str("");
+            VecType cur_str;
 
             for (auto ch : const_cast<StringType&>(string))
             {
                 if (ch == delimiter)
                 {
                     list.push_back(cur_str);
-                    cur_str = StringType("");
+                    cur_str = VecType();
                 }
                 else
                 {
-                    cur_str += ch;
+                    cur_str.push_back(ch);
                 }
             }
             

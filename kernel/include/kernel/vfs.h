@@ -2,6 +2,9 @@
 #define KERNEL_VFS_H_
 
 #include <kernel/kdef.h>
+#include <kernel/data_structures/string.hpp>
+
+using kernel::data_structures::String;
 
 NAMESPACE_BEGIN(kernel)
 
@@ -12,9 +15,13 @@ NAMESPACE_BEGIN(kernel)
 class FsHandler
 {
 public:
+    virtual void CreateFile(const String& filename) = 0;
+
     virtual void CreateFile(const char* filename) = 0;
 
     virtual void DeleteFile(const char* filename) = 0;
+
+    virtual void DeleteFile(const String& filename) = 0;
 
     virtual void MakeNewFs() = 0;
 

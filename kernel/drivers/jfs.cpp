@@ -26,9 +26,9 @@ JuosFileSystem::JuosFileSystem(kernel::StorageDeviceHandler* storage_handler)
     _inodes = new Vector<InodeBase*>();
 }
 
-void JuosFileSystem::CreateFile(const char* name)
+void JuosFileSystem::CreateFile(const String& name)
 {
-    if (strlen(name) > FILE_NAME_SIZE)
+    if (name.getLength() > FILE_NAME_SIZE)
     {
 #if defined(K_LOG_JFS)
         LOG_SA("JFS: ", "Filename %s exceedes max size (%d)\n", name, FILE_NAME_SIZE);
@@ -39,10 +39,32 @@ void JuosFileSystem::CreateFile(const char* name)
     auto file_inode = new FileInode();
     file_inode->base.type = InodeType::File;
 
+    auto new_sector = _FindFirstAvailableSector();
+
+    file_inode->base.self_sector = new_sector.next_sector;
+
     _inodes->push_back(reinterpret_cast<InodeBase*>(file_inode));
 }
 
-void JuosFileSystem::DeleteFile(const char* name)
+JuosFileSystem::_FindFirstResponse JuosFileSystem::_FindFirstAvailableSector()
+{
+    JuosFileSystem::_FindFirstResponse res;
+    res.next_sector = _fs_meta.start_block;
+    res.prev_inode = nullptr;
+
+    for (const auto& inode : *_inodes)
+    {
+        if (inode->next != UNUSED_INODE)
+        {
+            res.next_sector = inode->self_sector;
+            res.prev_inode  = inode;
+        }
+    }
+
+    return res;
+}
+
+void JuosFileSystem::DeleteFile(const String& name)
 {
 
 }

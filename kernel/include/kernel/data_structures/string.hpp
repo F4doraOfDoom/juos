@@ -2,6 +2,9 @@
 
 #include <kernel/kdef.h>
 #include <string.h>
+#include <kernel/data_structures/vector.hpp>
+
+using kernel::data_structures::Vector;
 
 NAMESPACE_BEGIN(kernel)
 
@@ -54,13 +57,10 @@ NAMESPACE_BEGIN(kernel)
 
                 void operator+=(char c) 
                 {
-                    auto index = size++;
-                    auto new_buffer = new char[size];
-                    memcpy(new_buffer, this->data, size);
-                    delete this->data;
-                    
-                    new_buffer[index] = c;
-                    this->data = new_buffer;    
+                    char arr[2];
+                    arr[0] = c;
+                    arr[1] = '\0';
+                    this->add(arr);  
                 }
 
                 It<char> end()
@@ -78,6 +78,12 @@ NAMESPACE_BEGIN(kernel)
                     data[i] = '\0';
                 }
             }
+        }
+
+        String(const Vector<char>& vec)
+        {
+            *this = String(vec.size() + 1);
+            memcpy(this->data, const_cast<Vector<char>&>(vec).begin(), vec.size());
         }
 
         /**

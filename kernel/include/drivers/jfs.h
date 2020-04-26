@@ -5,6 +5,7 @@
 #include <kernel/storage.h>
 #include <kernel/klog.h>
 #include <kernel/vfs.h>
+#include <kernel/josh.h>
 
 #include <kernel/data_structures/vector.hpp>
 
@@ -20,6 +21,8 @@ NAMESPACE_BEGIN(drivers)
         MACRO(INODE_MAGIC, 0xbabecafe);
         MACRO(META_MAGIC, 0xdeadbabe);
         MACRO(FILE_NAME_SIZE, 16);
+        MACRO(UNUSED_INODE, -1);
+        MACRO(LAST_INODE, 0);
 
         enum class InodeType
         {
@@ -27,6 +30,13 @@ NAMESPACE_BEGIN(drivers)
 
             File = 0xa,
             Directory,
+        };
+
+        enum class InodeState
+        {
+            Undefined, 
+
+            Unused = 0xc,
         };
 
         struct FsMeta
@@ -44,6 +54,8 @@ NAMESPACE_BEGIN(drivers)
             uint32_t            version_minor = 1;
         };
 
+        
+
         /**
          * @brief The basic fields shared by every inode
          * 
@@ -57,8 +69,13 @@ NAMESPACE_BEGIN(drivers)
             InodeType           type = InodeType::Undefined;   
 
             // sector # of the next inode       
-            // if value is -1, block is considered unused
-            uint64_t            next = (uint64_t)-1;
+            // if value is 0, there is no next block
+            uint64_t            next = LAST_INODE;
+
+            // the sector in which this inode is present
+            uint64_t            self_sector = 0;            
+
+            InodeState          state = InodeState::Unused;
 
             // size in sectors
             uint64_t            size = 0;
@@ -92,15 +109,32 @@ NAMESPACE_BEGIN(drivers)
         public:
             JuosFileSystem(kernel::StorageDeviceHandler* storage_handler);
 
-            virtual void CreateFile(const char* filename);
+            virtual void CreateFile(const String& filename) override;
 
-            void MakeNewFs();
+            virtual void CreateFile(const char* filename) override 
+            {
+                CreateFile(String(filename));
+            };
 
-            virtual void DeleteFile(const char* filename);
+            virtual void DeleteFile(const String& filename) override;
+
+            virtual void DeleteFile(const char* filename) override
+            {
+                DeleteFile(String(filename));
+            }
+
+            void MakeNewFs() override;
 
             virtual ~JuosFileSystem();
 
         private:
+            struct _FindFirstResponse {
+                uint32_t            next_sector;
+                const InodeBase*    prev_inode;
+            };
+
+            _FindFirstResponse _FindFirstAvailableSector();
+
             kernel::StorageDeviceHandler*   _storage_handler;
             Vector<InodeBase*>  *           _inodes; 
             FsMeta                          _fs_meta;         

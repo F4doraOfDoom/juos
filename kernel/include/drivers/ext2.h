@@ -257,9 +257,16 @@ NAMESPACE_BEGIN(ext2)
          */
         Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor);
 
+        virtual void CreateFile(const String& filename) override {}
+
         virtual void CreateFile(const char* filename) override;
 
-        virtual void DeleteFile(const char* filename) override {}
+        virtual void DeleteFile(const String& filename) override {}
+
+        virtual void DeleteFile(const char* filename) override 
+        {
+            DeleteFile(String(filename));
+        }
 
         // destructor to clean up resources
         ~Fs();

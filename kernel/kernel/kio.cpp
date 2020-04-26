@@ -19,6 +19,20 @@ char kernel::IO::GetChar()
     return key.character;
 }
 
+void kernel::IO::Flush()
+{
+    Processing::LockInputBuffer();
+
+    auto input_buffer = Processing::GetInputBuffer();
+
+    while (!input_buffer->isempty())
+    {
+        input_buffer->dequeue();
+    }
+
+    Processing::UnlockInputBuffer();
+}
+
 void kernel::IO::GetString(char* buffer, uint32_t max_len)
 {
     for (uint32_t i = 0; i < max_len;)
@@ -38,6 +52,10 @@ void kernel::IO::GetString(char* buffer, uint32_t max_len)
                     putchar('\b');
                     i--;
                 }
+            break;
+
+            case kernel::IO::EOT:
+                return;
             break;
 
             default:

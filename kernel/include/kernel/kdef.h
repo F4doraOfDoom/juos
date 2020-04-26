@@ -20,7 +20,7 @@
 #define AND     &&  
 
 #define MACRO(name, val)            constexpr uint32_t name = val
-#define MACRO_T(type, name, val)    consexptr type name = val
+#define MACRO_T(type, name, val)    constexpr type name = val
 
 #define __NO_MANGELING          extern "C"
 

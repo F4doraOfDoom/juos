@@ -15,28 +15,34 @@ Processing::KernelProcess::ID last_pid;
 kernel::StorageDeviceHandler* fs_storage = nullptr;
 drivers::jfs::JuosFileSystem* fs = nullptr; 
 
-static void StartProcess(Vector<String>&)
-{
+ DECLARE_SHELL_COMMAND(StartProcess, 1);
+
+ IMPL_SHELL_COMMAND(StartProcess,
     DISABLE_HARDWARE_INTERRUPTS();
     last_pid = Processing::Start::Process("loop2", Processing::KernelProcess::Priority::High);
     ENABLE_HARDWARE_INTERRUPTS();
 
     printf("Launched procesess pid #%d\n", last_pid);
     processes_running++;
-};
 
-static void EndProcess(Vector<String>&)
-{
+    return CMD_SUCCESS;
+)
+
+
+ DECLARE_SHELL_COMMAND(EndProcess, 1);
+ IMPL_SHELL_COMMAND(EndProcess, 
     DISABLE_HARDWARE_INTERRUPTS();
 	Processing::End::Process(last_pid);
 	ENABLE_HARDWARE_INTERRUPTS();
 
 	printf("Stopped proccess %d\n", last_pid);
 	processes_running--;
-};
 
-static void MakeFs(Vector<String>& args)
-{
+    return CMD_SUCCESS;
+)
+
+ DECLARE_SHELL_COMMAND(MakeFs, 1);
+ IMPL_SHELL_COMMAND(MakeFs, 
     if (fs) 
     {
         printf("Deleting old fs...\n");
@@ -49,27 +55,53 @@ static void MakeFs(Vector<String>& args)
     fs->MakeNewFs();
 
     printf("Made new fs\n");
-}
+    
+    return CMD_SUCCESS;
+);
 
-// gets arguments
-using Command = void (*)(Vector<String>&);
+ DECLARE_SHELL_COMMAND(MakeFile, 2);
+ IMPL_SHELL_COMMAND(MakeFile, 
+    if (fs)
+    {
+        fs->CreateFile(args[1]);
+        return CMD_SUCCESS;
+    }
+    else
+    {
+        printf("No file system found.\n");
+        return CMD_FAILURE;
+    }
+)
 
 struct CommandMap
 {
-    const char*         command;
-    Command             func;
+    const char*                 command;
+    shell::ShellCommandType     func;
 } command_map[] = {
     {"START", StartProcess},
     {"END", EndProcess},
-    {"MAKEFS", MakeFs}
+    {"MAKEFS", MakeFs},
+    {"TOUCH", MakeFile}
 };
 
+auto shell_banner = " \
+                $&\x1\x0                WELCOME TO                 $&\xF\x0\n\
+                $&\x2\x0    /$$$$$ /$$   /$$  /$$$$$$   /$$$$$$    $&\xF\x0\n\
+                $&\x3\x0   |__  $$| $$  | $$ /$$__  $$ /$$__  $$   $&\xF\x0\n\
+                $&\x4\x0      | $$| $$  | $$| $$  \\ $$| $$  \\__/ $&\xF\x0\n\
+                $&\x5\x0      | $$| $$  | $$| $$  | $$|  $$$$$$    $&\xF\x0\n\
+                $&\x6\x0 /$$  | $$| $$  | $$| $$  | $$ \\____  $$  $&\xF\x0\n\
+                $&\x7\x0| $$  | $$| $$  | $$| $$  | $$ /$$  \\ $$  $&\xF\x0\n\
+                $&\x8\x0|  $$$$$$/|  $$$$$$/|  $$$$$$/|  $$$$$$/   $&\xF\x0\n\
+                $&\x9\x0 \\______/  \\______/  \\______/  \\______/$&\xF\x0\n\
+$&\xF\x0";
 
 void shell::ShellMain()
 {
     Processing::SelfProcessInit();
 
 	//uint32_t counter = 0;
+    printf(shell_banner);
 
 	char buffer[100];
 
@@ -79,15 +111,44 @@ void shell::ShellMain()
 		memset(buffer, 0, 100);
 		kernel::IO::GetString(buffer, 99);
 
-		String str(buffer);
-        auto args = std::string::split(str, ' ');
-		for (uint32_t i = 0; i < 3; i++)
+        auto args = std::string::split(buffer, ' ');
+        bool found_command = false;
+		for (uint32_t i = 0; i < 4; i++)
         {
-            if (args[0].compare(command_map[i].command))
+            auto command_name = command_map[i].command;
+            if (args[0].compare(command_name))
             {
-                command_map[i].func(args);
+                auto ret = command_map[i].func(args);
+                
+                switch (ret.status)
+                {
+                    case shell::CmdResult::Status::SUCCESS:
+                        // Say nothing for success
+                    break;
+
+                    case shell::CmdResult::Status::FAILURE:
+                        printf("$&\x0\x4%s - Unknown fail.$&\xF\x0\n", command_name);
+                    break;
+
+                    case shell::CmdResult::Status::ARGS_FAIL:
+                        printf("$&\x0\x4%s - Not enough args supplied.$&\xF\x0\n", command_name);
+                    break;
+
+                    default:
+                        printf("%s - Returned unknown code (%d)\n", command_name, ret.status);
+                    break;
+                }
+
+                found_command = true;
                 break;
             }
         }
+
+        if (!found_command)
+        {
+            printf("$&\x0\x4 Command %s not found.$&\xF\x0\n", args[0].c_str());
+        }
+
+        kernel::IO::Flush();
 	}
 }

@@ -36,6 +36,7 @@ static void _go_to_interrupt(const registers32_t& registers)
 #ifdef K_PANIC_NO_HANDLER
         GO_PANIC("Interrupt %d without any handler!\n", num); 
 #else
+    #ifdef K_LOG_GENERAL
         char* interrupt_explanation = (char*)"Unknown";
         if (num < (sizeof(interrupt_descriptions) / sizeof(_InterruptDescription)))
         {
@@ -43,6 +44,7 @@ static void _go_to_interrupt(const registers32_t& registers)
         }
 
         LOG_SA("INTERRUPTS:", "Interrupt %d without any handler! (%s)\n", num, interrupt_explanation);
+    #endif
 #endif
     }
 }

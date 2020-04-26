@@ -46,6 +46,9 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(IO)
 
+        // End of Text
+        MACRO(EOT, 0x3);
+
         /**
          * @brief Get the character from stdio
          * 
@@ -60,6 +63,8 @@ NAMESPACE_BEGIN(kernel)
          * @param max_len - max size of the buffer
          */
         void GetString(char* buffer, uint32_t max_len);
+
+        void Flush();
 
     NAMESPACE_END(IO)
 
