@@ -73,6 +73,17 @@ drivers::jfs::JuosFileSystem* fs = nullptr;
     }
 )
 
+DECLARE_SHELL_COMMAND(Echo, 1);
+IMPL_SHELL_COMMAND(Echo, 
+    for (uint32_t i = 1; i < args.size(); i++)
+    {
+        printf("%s", args[i].getText());
+    }
+
+    printf("\n");
+    return CMD_SUCCESS;
+)
+
 struct CommandMap
 {
     const char*                 command;
@@ -81,7 +92,8 @@ struct CommandMap
     {"START", StartProcess},
     {"END", EndProcess},
     {"MAKEFS", MakeFs},
-    {"TOUCH", MakeFile}
+    {"TOUCH", MakeFile},
+    {"ECHO", Echo}
 };
 
 auto shell_banner = " \
@@ -113,7 +125,7 @@ void shell::ShellMain()
 
         auto args = std::string::split(buffer, ' ');
         bool found_command = false;
-		for (uint32_t i = 0; i < 4; i++)
+		for (uint32_t i = 0; i < 5; i++)
         {
             auto command_name = command_map[i].command;
             if (args[0].compare(command_name))
