@@ -43,15 +43,11 @@ void loop2()
 
 	while (true)
 	{
-		if (counter % 100 == 0)
-		{
-			auto pid = Processing::GetPid();
-			SYNCED_PRINTF_ARGS("Hello from process %d :) loop #%d\n", pid, counter++);
-		}
+		auto pid = Processing::GetPid();
+		SYNCED_PRINTF_ARGS("Hello from process %d :) loop #%d\n", pid, counter++);
+		Timer::Sleep(10);
 	}
 }
-
-
 
 void kernel_stage_2(void)
 {

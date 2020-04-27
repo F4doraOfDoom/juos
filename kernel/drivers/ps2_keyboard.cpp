@@ -1,27 +1,8 @@
 #include <drivers/ps2.h>
 
 using namespace drivers;
-
-enum class StrokeType
-{
-    Pressed,
-    Released
-};
-
-enum class SpecialCharacterType
-{
-    Normal,
-    Escape,
-    Backspace,
-    Tab,
-    Enter,
-    LeftControl,
-    LeftShift,
-    RightShift,
-    LeftAlt,
-    CapsLock,
-    F_Key,
-};
+using kernel::keyboard::StrokeType;
+using kernel::keyboard::SpecialCharacterType;
 
 constexpr inline struct _KeyDescriptor
 {
@@ -99,7 +80,21 @@ constexpr inline struct _KeyDescriptor
     {'8', "F8 Pressed", StrokeType::Pressed, SpecialCharacterType::F_Key},
     {'9', "F9 Pressed", StrokeType::Pressed, SpecialCharacterType::F_Key},
     {'0', "F10 Pressed", StrokeType::Pressed, SpecialCharacterType::F_Key},
-    {'-', "F11 Pressed", StrokeType::Pressed, SpecialCharacterType::F_Key},
+    {'\0', "Numlock Pressed", StrokeType::Pressed, SpecialCharacterType::Numlock},
+    {'\0', "Numlock Pressed", StrokeType::Pressed, SpecialCharacterType::Scrolllock},
+    {'7', "7 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'8', "8 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'9', "9 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'-', "- (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'4', "4 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'5', "5 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'6', "6 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'+', "+ (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'1', "1 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'2', "2 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'3', "3 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'0', "0 (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
+    {'.', ". (Keypad) Pressed", StrokeType::Pressed, SpecialCharacterType::Keypad},
 }
 ;
 
@@ -113,6 +108,8 @@ kernel::keyboard::InputKeyType ps2::keyboard::KeyboardSource(void* args)
     if (input > 0 && input < (sizeof(keys) / sizeof(keys[0])))
     {
         auto key = keys[input - 1]; // indexing from 1
+        output_key.type     = key.type;
+        output_key.special  = key.special_type;
 
 #if defined(K_LOG_KEY_STROKES)
         LOG_SA("PS/2-KEYBOARD: ", "Recieved key: %c (%s)\n", key.value, key.explanation);
@@ -150,7 +147,6 @@ kernel::keyboard::InputKeyType ps2::keyboard::KeyboardSource(void* args)
     {
         output_key.error = true;
     }
-
 
     return output_key;
 }

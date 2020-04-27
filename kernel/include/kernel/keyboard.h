@@ -10,6 +10,30 @@ NAMESPACE_BEGIN(kernel)
 
     NAMESPACE_BEGIN(keyboard)
 
+        enum class StrokeType
+        {
+            Pressed,
+            Released
+        };
+
+        enum class SpecialCharacterType
+        {
+            Normal = 0x200,
+            Escape,
+            Backspace,
+            Tab,
+            Enter,
+            LeftControl,
+            LeftShift,
+            RightShift,
+            LeftAlt,
+            CapsLock,
+            F_Key,
+            Numlock,
+            Scrolllock,
+            Keypad,
+        };
+
         struct InputKeyType
         {
             // std::queue is mad becuase it expects the type to be pointerish
@@ -17,8 +41,10 @@ NAMESPACE_BEGIN(kernel)
             InputKeyType(void*) {}
             InputKeyType() {}
 
-            uint32_t character;
-            bool error = false;
+            uint32_t                character;
+            StrokeType              type;
+            SpecialCharacterType    special;
+            bool                    error = false;
         };
 
         using KeyboardCallback = InputKeyType (*)(void*);

@@ -61,6 +61,8 @@ NAMESPACE_BEGIN(Tty)
      */
     void SetColor(unsigned int fg, unsigned int bg);
 
+    void SetCursor(int x, int y);
+
 NAMESPACE_END(Tty)
 
 #endif

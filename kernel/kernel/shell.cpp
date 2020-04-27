@@ -233,6 +233,9 @@ void shell::ShellMain()
         }
     }
 
+    // return color to white
+    printf("$&\xF\x0");
+
 	char buffer[100];
 
 	while (true)
