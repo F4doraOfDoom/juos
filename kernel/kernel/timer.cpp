@@ -40,6 +40,15 @@ void Timer::add_callable_function(CallableFunc func, void* args)
     _functions_to_call.push_back({func, args});
 }
 
+void Timer::Sleep(uint32_t cycles)
+{
+    auto start_time = current_time();
+    while (current_time() - start_time < cycles)
+    {
+        asm volatile("pause;");
+    }
+}
+
 uint64_t Timer::current_time()
 {
     return __tick_counter;
@@ -57,6 +66,8 @@ void Timer::__tick_handler(void* reg)
     // static Processing::KernelProcess::ProcessResolver _next_on_end;
     // static uint32_t _next_id = 0;
     // static uint32_t _next_run_times = 0;
+
+    __tick_counter++;
 
     DISABLE_HARDWARE_INTERRUPTS();
 

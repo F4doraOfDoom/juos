@@ -79,6 +79,8 @@ NAMESPACE_BEGIN(Timer)
      */
     void add_callable_function(CallableFunc func, void* args);
 
+    void Sleep(uint32_t cycles);
+
     // internal tick counter 
     // defined in timer.cpp
     extern uint64_t __tick_counter;

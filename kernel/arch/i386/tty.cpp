@@ -100,6 +100,8 @@ void Tty::Clean()
 			terminal_buffer[i + j * VGA_WIDTH] = 0;
 		}
 	}
+	terminal_column = 0;
+	terminal_row = 0;
 }
 
 
