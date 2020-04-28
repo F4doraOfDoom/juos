@@ -45,15 +45,21 @@ NAMESPACE_BEGIN(drivers)
             uint64_t            magic = META_MAGIC;
 
             // major version indicator 
-            uint32_t            version_major = 1;
+            uint32_t            version_major   = 1;
 
             // sector # of the first block
-            uint64_t            start_block;
+            uint64_t            start_block     = 2;
 
             // minor version indicator
-            uint32_t            version_minor = 1;
+            uint32_t            version_minor   = 1;
         };
 
+        struct FilePermissions
+        {
+            bool read;
+            bool write;
+            bool execute;
+        };
         
 
         /**
@@ -68,6 +74,11 @@ NAMESPACE_BEGIN(drivers)
             // type of the inode
             InodeType           type = InodeType::Undefined;   
 
+            // permissions
+            FilePermissions     root    {true, true, true};     // by default -- RWX
+            FilePermissions     owner   {false, true, true};    // by default -- RW
+            FilePermissions     other   {false, false, true};   // by default -- R
+
             // sector # of the next inode       
             // if value is 0, there is no next block
             uint64_t            next = LAST_INODE;
@@ -81,27 +92,17 @@ NAMESPACE_BEGIN(drivers)
             uint64_t            size = 0;
         };
 
-        struct FilePermissions
-        {
-            bool read;
-            bool write;
-            bool execute;
-        };
-
         struct FileInode
         {
-            // until we implement directories
-            char                name[FILE_NAME_SIZE] = { 0 };
-
             // base inode attributes
             InodeBase           base;
+
+            // until we implement directories
+            char                name[FILE_NAME_SIZE] = { 0 };
 
             // sector # of the directory the file is in 
             uint64_t            father;
         
-            FilePermissions     root    {true, true, true};     // by default -- RWX
-            FilePermissions     owner   {false, true, true};    // by default -- RW
-            FilePermissions     other   {false, false, true};   // by default -- R
         };
 
         class JuosFileSystem : public FsHandler
@@ -125,12 +126,16 @@ NAMESPACE_BEGIN(drivers)
 
             void MakeNewFs() override;
 
+            void ReadFs() override;
+
+            void ListFs() override;
+
             virtual ~JuosFileSystem();
 
         private:
             struct _FindFirstResponse {
                 uint32_t            next_sector;
-                const InodeBase*    prev_inode;
+                InodeBase*    prev_inode;
             };
 
             _FindFirstResponse _FindFirstAvailableSector();

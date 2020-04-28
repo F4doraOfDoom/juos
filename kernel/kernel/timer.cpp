@@ -24,17 +24,6 @@ void Timer::start(uint32_t clock_freq)
     Timer::Initialize(clock_freq);
 }
 
-void Timer::sleep(uint32_t slices)
-{
-    // __thread_sleep_info.is_asleep = true;
-    // __thread_sleep_info.ticks_left = slices;
-
-    // while (__thread_sleep_info.is_asleep)
-    // {
-    //     __asm volatile("hlt;");
-    // }
-}
-
 void Timer::add_callable_function(CallableFunc func, void* args)
 {
     _functions_to_call.push_back({func, args});

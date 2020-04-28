@@ -23,6 +23,10 @@ public:
 
     virtual void DeleteFile(const String& filename) = 0;
 
+    virtual void ReadFs() = 0;
+
+    virtual void ListFs() = 0;
+
     virtual void MakeNewFs() = 0;
 
     virtual ~FsHandler() = default;

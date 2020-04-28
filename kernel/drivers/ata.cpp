@@ -267,7 +267,7 @@ bool Device::ReadSectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     DELAY_400_NS();
 
     SET_SECTOR_COUNT(1);
-    Timer::sleep(1);
+    Timer::Sleep(1);
 
     SET_LBA(LBA);
 
@@ -275,7 +275,7 @@ bool Device::ReadSectors(uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     WAIT_UNTIL_READY();
 
     COMMAND(Command::ReadSectorsWithRetry);
-    Timer::sleep(1);
+    Timer::Sleep(1);
     
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();
@@ -294,7 +294,7 @@ bool Device::WriteSectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     DELAY_400_NS();
 
     SET_SECTOR_COUNT(1);
-    Timer::sleep(1);
+    Timer::Sleep(1);
 
     SET_LBA(LBA);
     
@@ -302,7 +302,7 @@ bool Device::WriteSectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     WAIT_UNTIL_READY();
 
     COMMAND(Command::WriteSectorsWithRetry);
-    Timer::sleep(1);
+    Timer::Sleep(1);
     
     WAIT_NO_BUSY();
     WAIT_UNTIL_READY();

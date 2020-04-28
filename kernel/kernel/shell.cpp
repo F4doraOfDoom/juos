@@ -46,16 +46,16 @@ drivers::jfs::JuosFileSystem* fs = nullptr;
  IMPL_SHELL_COMMAND(MakeFs, 
     if (fs) 
     {
-        printf("Deleting old fs...\n");
-        delete fs;
-        delete fs_storage;
+        fs->MakeNewFs();
+        printf("Made new fs\n");
+        return CMD_SUCCESS;
     }
+    else
+    {
+        return CMD_FAILURE;
+    }
+    
 
-    fs_storage = ata::create_device();
-    fs = new drivers::jfs::JuosFileSystem(fs_storage);
-    fs->MakeNewFs();
-
-    printf("Made new fs\n");
     
     return CMD_SUCCESS;
 );
@@ -64,12 +64,43 @@ drivers::jfs::JuosFileSystem* fs = nullptr;
  IMPL_SHELL_COMMAND(MakeFile, 
     if (fs)
     {
-        fs->CreateFile(args[1]);
+        for (auto it = args.begin() + 1; it < args.end(); ++it)
+        {
+            fs->CreateFile(*it);
+        }
         return CMD_SUCCESS;
     }
     else
     {
         printf("No file system found.\n");
+        return CMD_FAILURE;
+    }
+)
+
+DECLARE_SHELL_COMMAND(ReadFs, 1);
+IMPL_SHELL_COMMAND(ReadFs, 
+    if (fs)
+    {
+        fs->ReadFs();
+        return CMD_SUCCESS;
+    }
+    else
+    {
+        printf("File system not found...\n");
+        return CMD_FAILURE;
+    }
+)
+
+DECLARE_SHELL_COMMAND(ListFs, 1);
+IMPL_SHELL_COMMAND(ListFs, 
+    if (fs)
+    {
+        fs->ListFs();
+        return CMD_SUCCESS;
+    }
+    else
+    {
+        printf("File system not found...\n");
         return CMD_FAILURE;
     }
 )
@@ -85,6 +116,8 @@ IMPL_SHELL_COMMAND(Echo,
     return CMD_SUCCESS;
 )
 
+
+
 struct CommandMap
 {
     const char*                 command;
@@ -94,7 +127,9 @@ struct CommandMap
     {"END", EndProcess},
     {"MAKEFS", MakeFs},
     {"TOUCH", MakeFile},
-    {"ECHO", Echo}
+    {"ECHO", Echo},
+    {"READFS", ReadFs},
+    {"LS", ListFs}
 };
 
 auto shell_banner0 = " \
@@ -238,15 +273,18 @@ void shell::ShellMain()
 
 	char buffer[100];
 
+    fs_storage = ata::create_device();
+    fs = new drivers::jfs::JuosFileSystem(fs_storage);
+
 	while (true)
 	{
-		printf("(%d processes) >>> ", processes_running);
+        printf("$&\x0\x1(%d processes) >>>$&\xF\x0 ", processes_running);
 		memset(buffer, 0, 100);
 		kernel::IO::GetString(buffer, 99);
 
         auto args = std::string::split(buffer, ' ');
         bool found_command = false;
-		for (uint32_t i = 0; i < 5; i++)
+		for (uint32_t i = 0; i < 7; i++)
         {
             auto command_name = command_map[i].command;
             if (args[0].compare(command_name))

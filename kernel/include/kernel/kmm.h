@@ -30,12 +30,12 @@
 #define MM_LOG_DUMPS                4
 
 #define K_HEAP_START         0xC0000000
-#define K_HEAP_INITIAL_SIZE  0x1000000
+#define K_HEAP_INITIAL_SIZE  0x10000
 #define K_HEAP_INDEX_SIZE    0x20000
 #define K_HEAP_MIN_SIZE      0x70000
 
 // Malloc requests below this size will be fast bins
-#define FASTBIN_THRESHOLD       0x40
+#define FASTBIN_THRESHOLD       0x100
 // Number of fast bins available 
 #define FASTBIN_MAX_SIZE        0x64
 

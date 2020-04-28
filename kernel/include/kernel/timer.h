@@ -53,7 +53,7 @@ NAMESPACE_BEGIN(Timer)
      * 
      * @param slices - n of time slices to sleep
      */
-    void sleep(uint32_t slices);
+    void Sleep(uint32_t slices);
 
     /**
      * @brief Get the current time
@@ -78,8 +78,6 @@ NAMESPACE_BEGIN(Timer)
      * @param func 
      */
     void add_callable_function(CallableFunc func, void* args);
-
-    void Sleep(uint32_t cycles);
 
     // internal tick counter 
     // defined in timer.cpp
