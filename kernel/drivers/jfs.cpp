@@ -1,5 +1,6 @@
 #include <drivers/jfs.h>
 #include <kernel/lock.h>
+#include <algorithms.hpp>
 
 using namespace drivers::jfs;
 
@@ -56,7 +57,7 @@ void JuosFileSystem::CreateFile(const String& name)
     file_inode->base.size = 10; // default file size of 10
 
     file_inode->base.self_sector = new_sector.next_sector;
-    memcpy(file_inode->name, name.c_str(), sizeof(file_inode->name)); 
+    memcpy(file_inode->base.name, name.c_str(), sizeof(file_inode->base.name)); 
 
     _inodes->push_back(reinterpret_cast<InodeBase*>(file_inode));
     _WriteToStorage(_storage_handler, new_sector.next_sector, file_inode, sizeof(FileInode));
@@ -102,7 +103,7 @@ void JuosFileSystem::ReadFs()
             switch (inode->type)
             {
                 case InodeType::File:
-                    printf("type: file, name: %s, ", ((FileInode*)inode)->name);
+                    printf("type: file, name: %s, ", ((FileInode*)inode)->base.name);
                 break;
 
                 default:
@@ -138,8 +139,52 @@ void JuosFileSystem::ListFs()
     for (auto inode : *_inodes)
     {
         FileInode* file = (FileInode*)inode;
-        _PrintInodeFormat(file->name, true, file->base.root, file->base.owner, file->base.other, file->base.size);
+        _PrintInodeFormat(file->base.name, true, file->base.root, file->base.owner, file->base.other, file->base.size);
     }
+}
+
+bool JuosFileSystem::FileExists(const String& filename) const
+{
+    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
+        return strcmp(f->name, filename.c_str()) == 0;
+    });
+
+    return inode != nullptr;
+ }
+
+void JuosFileSystem::ReadFile(const String& filename, char* buffer, uint32_t max_size)
+{
+    // TODO refactor
+    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
+        return strcmp(f->name, filename.c_str()) == 0;
+    });
+
+    if (inode == nullptr)
+    {
+        printf("Could not find file named %s\n", filename.c_str());
+        return;
+    }
+
+    uint32_t data_location = (*inode)->self_sector + 1;
+    _ReadFromStorage(_storage_handler, data_location, buffer, max_size);
+}
+
+void JuosFileSystem::WriteFile(const String& filename, const String& text)
+{
+    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
+        return strcmp(f->name, filename.c_str()) == 0;
+    });
+
+    if (inode == nullptr)
+    {
+        printf("Could not find file named %s\n", filename.c_str());
+        return;
+    }
+
+    uint32_t data_begin = (*inode)->self_sector + 1;
+    _WriteToStorage(_storage_handler, data_begin, (void*)text.c_str(), text.getLength());
+
+    printf("Wrote %d bytes to file %s (sector %d)\n", text.getLength(), text.c_str(), data_begin);
 }
 
 JuosFileSystem::_FindFirstResponse JuosFileSystem::_FindFirstAvailableSector()

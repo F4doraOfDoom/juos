@@ -50,6 +50,15 @@ inline uint64_t ALIGN_VAL(uint64_t value, uint64_t alignment) {
 
 void BREAKPOINT(void);
 
+inline int MathCeil(float num)
+{
+    int inum = (int)num;
+    if (num == (float)inum) {
+        return inum;
+    }
+    return inum + 1;
+}
+
 //#define BIT_NSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)
 
 #endif //K_USEFUL_H_

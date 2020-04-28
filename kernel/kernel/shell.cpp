@@ -77,6 +77,27 @@ drivers::jfs::JuosFileSystem* fs = nullptr;
     }
 )
 
+DECLARE_SHELL_COMMAND(ReadFile, 2);
+ IMPL_SHELL_COMMAND(ReadFile, 
+    if (fs)
+    {
+        for (auto it = args.begin() + 1; it < args.end(); ++it)
+        {
+            char buffer[512];
+            memset(buffer, '\0', 512);
+
+            fs->ReadFile(*it, buffer, 511);
+            printf("%s\n", buffer);
+        }
+        return CMD_SUCCESS;
+    }
+    else
+    {
+        printf("No file system found.\n");
+        return CMD_FAILURE;
+    }
+)
+
 DECLARE_SHELL_COMMAND(ReadFs, 1);
 IMPL_SHELL_COMMAND(ReadFs, 
     if (fs)
@@ -96,6 +117,30 @@ IMPL_SHELL_COMMAND(ListFs,
     if (fs)
     {
         fs->ListFs();
+        return CMD_SUCCESS;
+    }
+    else
+    {
+        printf("File system not found...\n");
+        return CMD_FAILURE;
+    }
+)
+
+
+DECLARE_SHELL_COMMAND(EditFile, 2);
+IMPL_SHELL_COMMAND(EditFile, 
+    if (fs)
+    {
+        if (fs->FileExists(args[1]) == false)
+        {
+            return CMD_FAILURE;
+        }
+
+        printf("Enter line: ");
+        char buffer[512] = { 0 };
+        IO::GetString(buffer, 511);
+
+        fs->WriteFile(args[1], buffer);
         return CMD_SUCCESS;
     }
     else
@@ -129,7 +174,9 @@ struct CommandMap
     {"TOUCH", MakeFile},
     {"ECHO", Echo},
     {"READFS", ReadFs},
-    {"LS", ListFs}
+    {"LS", ListFs},
+    {"EDIT", EditFile},
+    {"CAT", ReadFile}
 };
 
 auto shell_banner0 = " \
@@ -284,7 +331,7 @@ void shell::ShellMain()
 
         auto args = std::string::split(buffer, ' ');
         bool found_command = false;
-		for (uint32_t i = 0; i < 7; i++)
+		for (uint32_t i = 0; i < 9; i++)
         {
             auto command_name = command_map[i].command;
             if (args[0].compare(command_name))

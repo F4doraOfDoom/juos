@@ -70,6 +70,9 @@ NAMESPACE_BEGIN(drivers)
         {
             // for vertification that the inode exists
             const uint32_t      magic = INODE_MAGIC;
+            
+            // until we implement directories
+            char                name[FILE_NAME_SIZE] = { 0 };
 
             // type of the inode
             InodeType           type = InodeType::Undefined;   
@@ -97,8 +100,6 @@ NAMESPACE_BEGIN(drivers)
             // base inode attributes
             InodeBase           base;
 
-            // until we implement directories
-            char                name[FILE_NAME_SIZE] = { 0 };
 
             // sector # of the directory the file is in 
             uint64_t            father;
@@ -116,6 +117,12 @@ NAMESPACE_BEGIN(drivers)
             {
                 CreateFile(String(filename));
             };
+
+            virtual void WriteFile(const String& filename, const String& text) override;
+
+            virtual bool FileExists(const String& filename) const override;
+
+            virtual void ReadFile(const String& filename, char* buffer, uint32_t max_size);
 
             virtual void DeleteFile(const String& filename) override;
 
