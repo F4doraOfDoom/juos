@@ -19,6 +19,8 @@ public:
 
     virtual void CreateFile(const char* filename) = 0;
 
+    virtual void CreateDirectory(const String& path) = 0;
+
     virtual void DeleteFile(const char* filename) = 0;
 
     virtual void DeleteFile(const String& filename) = 0;

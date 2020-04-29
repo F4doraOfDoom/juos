@@ -32,12 +32,13 @@ NAMESPACE_BEGIN(drivers)
             Directory,
         };
 
-        enum class InodeState
+        enum class InodeState : uint32_t
         {
             Undefined, 
 
             Unused = 0xc,
-        };
+            Used
+        } __PACKED;
 
         struct FsMeta
         {
@@ -52,14 +53,14 @@ NAMESPACE_BEGIN(drivers)
 
             // minor version indicator
             uint32_t            version_minor   = 1;
-        };
+        } __PACKED;
 
         struct FilePermissions
         {
             bool read;
             bool write;
             bool execute;
-        };
+        } __PACKED;
         
 
         /**
@@ -84,26 +85,40 @@ NAMESPACE_BEGIN(drivers)
 
             // sector # of the next inode       
             // if value is 0, there is no next block
-            uint64_t            next = LAST_INODE;
+            uint32_t            next = LAST_INODE;
 
             // the sector in which this inode is present
-            uint64_t            self_sector = 0;            
+            uint32_t            self_sector = 0;            
 
             InodeState          state = InodeState::Unused;
 
-            // size in sectors
-            uint64_t            size = 0;
-        };
+            // how many sectors the inode takes
+            uint32_t            disk_size = 0;
+
+            // how many bytes the data takes
+            uint32_t            data_size = 0;
+
+            // we don't know the size of the real inode, because it could be one of multiple types,
+            // (i.e. file or directory). This field remembers the real size of the inode.
+            uint32_t            struct_size = 0;
+        } __PACKED;
 
         struct FileInode
         {
             // base inode attributes
             InodeBase           base;
 
-
             // sector # of the directory the file is in 
             uint64_t            father;
-        
+        } __PACKED;
+
+        struct DirectoryInode
+        {
+            // base inode attributes
+            InodeBase           base;
+
+            // sector # of the directory the directory is in 
+            uint64_t            father;            
         };
 
         class JuosFileSystem : public FsHandler
@@ -117,6 +132,8 @@ NAMESPACE_BEGIN(drivers)
             {
                 CreateFile(String(filename));
             };
+
+            virtual void CreateDirectory(const String& path) override {}
 
             virtual void WriteFile(const String& filename, const String& text) override;
 

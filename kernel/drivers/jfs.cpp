@@ -53,8 +53,11 @@ void JuosFileSystem::CreateFile(const String& name)
 
     auto new_sector = _FindFirstAvailableSector();
 
-    file_inode->base.next = 0;
-    file_inode->base.size = 10; // default file size of 10
+    file_inode->base.next           = 0;
+    file_inode->base.disk_size      = 10; // default file size of 10
+    file_inode->base.struct_size    = sizeof(FileInode);
+    file_inode->base.data_size      = 0;
+    file_inode->base.state          = InodeState::Used; 
 
     file_inode->base.self_sector = new_sector.next_sector;
     memcpy(file_inode->base.name, name.c_str(), sizeof(file_inode->base.name)); 
@@ -69,9 +72,24 @@ void JuosFileSystem::CreateFile(const String& name)
         new_sector.prev_inode->next = new_sector.next_sector;
         _WriteToStorage(_storage_handler, new_sector.prev_inode->self_sector, new_sector.prev_inode, sizeof(FileInode));
     }
-    
 
     printf("Wrote new file %s at sector %d\n", name.c_str(), new_sector.next_sector);
+}
+
+void JuosFileSystem::DeleteFile(const String& filename)
+{
+    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
+        return strcmp(f->name, filename.c_str()) == 0;
+    });
+
+    if (inode == nullptr)
+    {
+        printf("Could not find file named %s\n", filename.c_str());
+        return;
+    }
+
+    (*inode)->state = InodeState::Unused;
+    _WriteToStorage(_storage_handler, (*inode)->self_sector, *inode, (*inode)->struct_size);
 }
 
 void JuosFileSystem::ReadFs(bool delete_cache)
@@ -119,25 +137,38 @@ void JuosFileSystem::ReadFs(bool delete_cache)
 
         if (inode->magic == INODE_MAGIC)
         {
-            printf("Found inode at sector: %d, ", inode->self_sector);
-            switch (inode->type)
+            printf("Found inode at sector: %d, struct size %d, data size %d, ", inode->self_sector, inode->struct_size, inode->data_size);
+            switch (inode->state)
             {
-                case InodeType::File:
-                    printf("type: file, name: %s, ", ((FileInode*)inode)->base.name);
-                    if (delete_cache)
+
+                case InodeState::Unused:
+                    printf("type: unused, ");
+                break;
+
+                case InodeState::Used:
+                    switch (inode->type)
                     {
-                        _inodes->push_back((InodeBase*)new FileInode(*(FileInode*)inode));
+                        case InodeType::File:
+                            printf("type: file, name: %s, ", ((FileInode*)inode)->base.name);
+                            if (delete_cache)
+                            {
+                                _inodes->push_back((InodeBase*)new FileInode(*(FileInode*)inode));
+                            }
+                        break;
+
+                        default:
+                            printf("type: unknown, ");
+                        break;
                     }
                 break;
 
                 default:
-                    printf("type: unknown, ");
+                    printf("unknown inode state %d, ", inode->state);
                 break;
-
             }
 
-            uint32_t next = inode->self_sector + inode->size + 1; 
-            printf("size: %d; Trying next: %d\n", inode->size, next);
+            uint32_t next = inode->next; 
+            printf("size: %d; Trying next: %d\n", inode->disk_size, next);
             next_inode_sector = next;
         }
         else
@@ -163,7 +194,7 @@ void JuosFileSystem::ListFs()
     for (auto inode : *_inodes)
     {
         FileInode* file = (FileInode*)inode;
-        _PrintInodeFormat(file->base.name, true, file->base.root, file->base.owner, file->base.other, file->base.size);
+        _PrintInodeFormat(file->base.name, true, file->base.root, file->base.owner, file->base.other, file->base.disk_size);
     }
 }
 
@@ -205,10 +236,14 @@ void JuosFileSystem::WriteFile(const String& filename, const String& text)
         return;
     }
 
-    uint32_t data_begin = (*inode)->self_sector + 1;
+    uint32_t data_begin = (*inode)->self_sector + 1; 
     _WriteToStorage(_storage_handler, data_begin, (void*)text.c_str(), text.getLength());
 
-    printf("Wrote %d bytes to file %s (sector %d)\n", text.getLength(), text.c_str(), data_begin);
+    // update inode's size
+    (*inode)->data_size = text.getLength();
+    _WriteToStorage(_storage_handler, (*inode)->self_sector, *inode, (*inode)->struct_size);
+
+    printf("Wrote %d bytes to file %s (sector %d)\n", text.getLength(), (*inode)->name, data_begin);
 }
 
 JuosFileSystem::_FindFirstResponse JuosFileSystem::_FindFirstAvailableSector()
@@ -219,9 +254,9 @@ JuosFileSystem::_FindFirstResponse JuosFileSystem::_FindFirstAvailableSector()
 
     for (const auto& inode : *_inodes)
     {
-        if (inode->next == 0)
+        if (inode->next == 0 || inode->state == InodeState::Unused)
         {
-            res.next_sector = inode->self_sector + inode->size + 1;
+            res.next_sector = inode->self_sector + inode->disk_size + 1;
             res.prev_inode  = inode;
         }
     }
@@ -229,10 +264,6 @@ JuosFileSystem::_FindFirstResponse JuosFileSystem::_FindFirstAvailableSector()
     return res;
 }
 
-void JuosFileSystem::DeleteFile(const String& name)
-{
-
-}
 
 void JuosFileSystem::MakeNewFs()
 {
