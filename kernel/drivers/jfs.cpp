@@ -66,8 +66,8 @@ void JuosFileSystem::CreateFile(const String& name)
     if (new_sector.prev_inode)
     {
         printf("Updating previous inode at sector %d\n", new_sector.prev_inode->self_sector);
-        //new_sector.prev_inode->next = new_sector.next_sector;
-        //_WriteToStorage(_storage_handler, new_sector.prev_inode->self_sector, new_sector.prev_inode, sizeof(FileInode));
+        new_sector.prev_inode->next = new_sector.next_sector;
+        _WriteToStorage(_storage_handler, new_sector.prev_inode->self_sector, new_sector.prev_inode, sizeof(FileInode));
     }
     
 

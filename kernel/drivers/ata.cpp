@@ -140,7 +140,8 @@ inline void SET_LBA(uint32_t lba)
 
 static DeviceInfoResult _get_device_info(Bus bus);
 
-Device* ata::create_device()
+template <>
+Device* ata::create_device<Device>()
 {
 #ifdef K_LOG_GENERAL
     LOG_S("ATA Driver: ", "Initializing...\n");
@@ -312,6 +313,8 @@ bool Device::WriteSectors(const uint8_t* buffer, uint32_t LBA, uint32_t sectors)
     rep_outsw(0x1f0, buffer, 256);
 
     COMMAND(Command::CacheFlush);
+
+    WAIT_NO_BUSY();
 
     return READ_BYTE(IoRegister::Status);
 }

@@ -102,7 +102,7 @@ NAMESPACE_BEGIN(ata)
         } flags;
 
         uint8_t value;
-    };
+    } __PACKED;
 
     struct PRDT {
         uint32_t buffer_phys;
@@ -223,7 +223,8 @@ NAMESPACE_BEGIN(ata)
      * @brief Initialize the ATA driver
      * 
      */
-    [[nodiscard]] Device* create_device();
+    template <class AtaDeviceType>
+    [[nodiscard]] AtaDeviceType* create_device();
 
     /**
      * @brief Will poll the buses to see if there are any ata devices

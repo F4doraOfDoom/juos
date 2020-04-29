@@ -320,7 +320,7 @@ void shell::ShellMain()
 
 	char buffer[100];
 
-    fs_storage = ata::create_device();
+    fs_storage = ata::create_device<ata::Device>();
     fs = new drivers::jfs::JuosFileSystem(fs_storage);
 
 	while (true)
