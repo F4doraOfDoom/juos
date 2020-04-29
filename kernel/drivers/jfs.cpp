@@ -74,9 +74,29 @@ void JuosFileSystem::CreateFile(const String& name)
     printf("Wrote new file %s at sector %d\n", name.c_str(), new_sector.next_sector);
 }
 
-void JuosFileSystem::ReadFs()
+void JuosFileSystem::ReadFs(bool delete_cache)
 {
     FsMeta meta;
+
+    if (delete_cache) 
+    {
+        if (_inodes)
+        {
+            for (auto inode : *_inodes)
+            {
+                switch (inode->type)
+                {
+                    case InodeType::File:
+                        delete (FileInode*)inode;
+                    break;
+
+                    default:
+                        printf("Unknown inode type %d. Cant delete!\n", inode->type);
+                    break;
+                }
+            }
+        }
+    }
 
     _ReadFromStorage(this->_storage_handler, 1, &meta, sizeof(FsMeta));
 
@@ -104,6 +124,10 @@ void JuosFileSystem::ReadFs()
             {
                 case InodeType::File:
                     printf("type: file, name: %s, ", ((FileInode*)inode)->base.name);
+                    if (delete_cache)
+                    {
+                        _inodes->push_back((InodeBase*)new FileInode(*(FileInode*)inode));
+                    }
                 break;
 
                 default:

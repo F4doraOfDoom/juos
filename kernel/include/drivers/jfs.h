@@ -133,7 +133,7 @@ NAMESPACE_BEGIN(drivers)
 
             void MakeNewFs() override;
 
-            void ReadFs() override;
+            void ReadFs(bool delete_cache) override;
 
             void ListFs() override;
 

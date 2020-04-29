@@ -102,7 +102,11 @@ DECLARE_SHELL_COMMAND(ReadFs, 1);
 IMPL_SHELL_COMMAND(ReadFs, 
     if (fs)
     {
-        fs->ReadFs();
+        bool should_override = false;
+
+        if (args.size() > 1) should_override = args[1].compare("OVERRIDE");
+
+        fs->ReadFs(should_override);
         return CMD_SUCCESS;
     }
     else

@@ -29,7 +29,7 @@ public:
 
     virtual bool FileExists(const String& filename) const = 0;
 
-    virtual void ReadFs() = 0;
+    virtual void ReadFs(bool delete_cache) = 0;
 
     virtual void ListFs() = 0;
 
