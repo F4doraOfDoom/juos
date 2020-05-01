@@ -177,7 +177,7 @@ KernelProcess::ID Processing::Start::Process(const String& name, Processing::Ker
  
     
     auto proc_mappings = new Vector<paging::_HeapMappingSettings>();
-    proc_mappings->push_back({0xA0000000, 0xA0001000}); // stack
+    proc_mappings->push_back({0xA0000000, 0xA0010000}); // stack
     proc_mappings->push_back({K_HEAP_START, K_HEAP_START + K_HEAP_INITIAL_SIZE}); // heap
     //proc_mappings.push_back({0xD0000000, 0xD0010000}); // data
 
@@ -186,8 +186,6 @@ KernelProcess::ID Processing::Start::Process(const String& name, Processing::Ker
     _new_proc_id = new_process->pid;
 
     _scheduler->AddItem(new_process);
-
-    
 
     // now return the current directory
     if (_current_process_cached_info.pid != 0)

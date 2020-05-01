@@ -153,6 +153,83 @@ void JuosFileSystem::_ListDirectoryChildren(uint32_t dir_sector)
     }
 }
 
+static DirectoryData _ReadDirectory(kernel::StorageDeviceHandler* storage, uint32_t dir_data_sector)
+{
+    char buffer[SECTOR_SIZE] = { 0 };
+
+    _ReadFromStorage(storage, dir_data_sector, buffer, SECTOR_SIZE);
+
+    DirectoryData* dir_data = (DirectoryData*)buffer;   
+
+    return *dir_data;
+}
+
+void _TreeInt(kernel::StorageDeviceHandler* storage, uint32_t current_sector, const String& prev_name, uint32_t depth)
+{
+    char buffer[SECTOR_SIZE] = { 0 };
+    DirectoryData dir_data;
+
+    _ReadFromStorage(storage, current_sector, buffer, SECTOR_SIZE);
+
+    InodeBase* inode = (InodeBase*)buffer;
+
+    for (uint32_t i = 0; i < depth; i++)
+    {
+        printf("-");
+    }
+
+    switch (inode->type)
+    {
+        case InodeType::Directory:
+            dir_data = _ReadDirectory(storage, inode->self_sector + 1);
+
+            printf("%s\n", prev_name.c_str());
+            for (uint32_t i = 0; i < 32; i++)
+            {
+                auto child = dir_data.children[i];
+                if (child.sector)
+                {
+                    if (child.is_dir)
+                    {
+                        _TreeInt(storage, child.sector, child.child_name, depth++);
+                    }
+                    else
+                    {
+                        for (uint32_t i = 0; i < depth + 1; i++)
+                        {
+                            printf("-");
+                        }
+
+                        printf("%s\n", child.child_name);
+                    }
+                }
+            }
+        break;
+
+        case InodeType::File:
+            printf("%s\n", prev_name.c_str());
+        break;
+
+        default:
+            printf("TREE: Unrecognized file type.\n");
+        break;
+    }
+}
+
+void JuosFileSystem::Tree(const Path& path)
+{
+    auto dir_base = _FindDirectory(path);
+
+    if (dir_base == nullptr)
+    {
+        printf("Could not find path %d.\n", path.ToString().c_str());
+    }
+
+    _TreeInt(_storage_handler, dir_base->self_sector, "/", 0);
+}
+
+
+
 void JuosFileSystem::ReadFs(bool delete_cache)
 {
     FsMeta meta;

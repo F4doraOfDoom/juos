@@ -156,6 +156,8 @@ NAMESPACE_BEGIN(drivers)
 
             void ReadFs(bool delete_cache) override;
 
+            void Tree(const Path& path) override;
+
             void ListFs(const Path& path) override;
 
             virtual ~JuosFileSystem();

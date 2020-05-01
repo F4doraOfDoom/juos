@@ -58,6 +58,8 @@ NAMESPACE_BEGIN(kernel)
 
             virtual void ListFs(const Path& path) = 0;
 
+            virtual void Tree(const Path& path) = 0;
+
             virtual void MakeNewFs() = 0;
 
             virtual ~FsHandler() = default;
