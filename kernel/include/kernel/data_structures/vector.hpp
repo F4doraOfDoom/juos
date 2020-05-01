@@ -30,6 +30,7 @@ NAMESPACE_BEGIN(kernel)
             Vector();
             Vector(unsigned int size);
             Vector(unsigned int size, const T & initial);
+            Vector(Iterator begin, Iterator end);
             Vector(const Vector<T>& v);
             ~Vector();
 
@@ -80,6 +81,15 @@ NAMESPACE_BEGIN(kernel)
             Log = ceil(log((double) size) / log(2.0));
             _capacity = 1 << Log;
             buffer = new T[_capacity];
+        }
+
+        template<class T>
+        Vector<T>::Vector(Iterator begin, Iterator end) : Vector() 
+        {
+            for (auto it = begin; it < end; ++it)
+            {
+                this->push_back(*it);
+            }
         }
 
         template <class T>

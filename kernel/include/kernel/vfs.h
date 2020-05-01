@@ -3,42 +3,67 @@
 
 #include <kernel/kdef.h>
 #include <kernel/data_structures/string.hpp>
+#include <kernel/data_structures/vector.hpp>
 
 using kernel::data_structures::String;
+using kernel::data_structures::Vector;
 
 NAMESPACE_BEGIN(kernel)
 
-/** 
- * @brief All implementations of a file system must provide a class
- * that implements this interface, as it is used by the VFS.
- */
-class FsHandler
-{
-public:
-    virtual void CreateFile(const String& filename) = 0;
+    NAMESPACE_BEGIN(vfs)
 
-    virtual void CreateFile(const char* filename) = 0;
+        struct Path
+        {
+            // the components that make up a path
+            mutable Vector<String> components;
 
-    virtual void CreateDirectory(const String& path) = 0;
+            bool current_directory;
 
-    virtual void DeleteFile(const char* filename) = 0;
+            bool previous_directory;
 
-    virtual void DeleteFile(const String& filename) = 0;
+            String ToString() const
+            {
+                String path("/");
 
-    virtual void WriteFile(const String& filename, const String& text) = 0;
+                for (auto c : components)
+                {
+                    path.add(c);
+                    path.add("/");
+                }
 
-    virtual void ReadFile(const String& filename, char* buffer, uint32_t max_size) = 0;
+                return path;
+            }
+        };
 
-    virtual bool FileExists(const String& filename) const = 0;
+        /** 
+         * @brief All implementations of a file system must provide a class
+         * that implements this interface, as it is used by the VFS.
+         */
+        class FsHandler
+        {
+        public:
+            virtual void CreateFile(const String& filename, const Path& path) = 0;
 
-    virtual void ReadFs(bool delete_cache) = 0;
+            virtual void CreateDirectory(const String& name, const Path& path) = 0;
 
-    virtual void ListFs() = 0;
+            virtual void DeleteFile(const String& filename, const Path& path) = 0;
 
-    virtual void MakeNewFs() = 0;
+            virtual void WriteFile(const String& filename, const Path& path, const String& text) = 0;
 
-    virtual ~FsHandler() = default;
-};
+            virtual void ReadFile(const String& filename, const Path& path, char* buffer, uint32_t max_size) = 0;
+
+            virtual bool FileExists(const String& filename, const Path& path) const = 0;
+
+            virtual void ReadFs(bool delete_cache) = 0;
+
+            virtual void ListFs(const Path& path) = 0;
+
+            virtual void MakeNewFs() = 0;
+
+            virtual ~FsHandler() = default;
+        };
+
+    NAMESPACE_END(vfs)
 
 NAMESPACE_END(kernel)
 

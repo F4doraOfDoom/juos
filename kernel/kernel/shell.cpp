@@ -66,7 +66,8 @@ drivers::jfs::JuosFileSystem* fs = nullptr;
     {
         for (auto it = args.begin() + 1; it < args.end(); ++it)
         {
-            fs->CreateFile(*it);
+            auto path_components = std::string::split(*it, '/');
+            fs->CreateFile(path_components.back(), kernel::vfs::Path{Vector<String>(path_components.begin(), path_components.end() - 1), false, false});
         }
         return CMD_SUCCESS;
     }
@@ -86,7 +87,7 @@ DECLARE_SHELL_COMMAND(ReadFile, 2);
             char buffer[512];
             memset(buffer, '\0', 512);
 
-            fs->ReadFile(*it, buffer, 511);
+            fs->ReadFile(*it, {},  buffer, 511);
             printf("%s\n", buffer);
         }
         return CMD_SUCCESS;
@@ -122,7 +123,7 @@ IMPL_SHELL_COMMAND(DeleteFile,
     {
         for (auto it = args.begin() + 1; it < args.end(); ++it)
         {
-            fs->DeleteFile(*it);
+            fs->DeleteFile(*it, {});
         }
         return CMD_SUCCESS;
     }
@@ -137,7 +138,7 @@ DECLARE_SHELL_COMMAND(ListFs, 1);
 IMPL_SHELL_COMMAND(ListFs, 
     if (fs)
     {
-        fs->ListFs();
+        fs->ListFs({});
         return CMD_SUCCESS;
     }
     else
@@ -152,7 +153,7 @@ DECLARE_SHELL_COMMAND(EditFile, 2);
 IMPL_SHELL_COMMAND(EditFile, 
     if (fs)
     {
-        if (fs->FileExists(args[1]) == false)
+        if (fs->FileExists(args[1], {}) == false)
         {
             return CMD_FAILURE;
         }
@@ -161,7 +162,7 @@ IMPL_SHELL_COMMAND(EditFile,
         char buffer[512] = { 0 };
         IO::GetString(buffer, 511);
 
-        fs->WriteFile(args[1], buffer);
+        fs->WriteFile(args[1], {}, buffer);
         return CMD_SUCCESS;
     }
     else

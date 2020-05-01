@@ -38,13 +38,44 @@ JuosFileSystem::JuosFileSystem(kernel::StorageDeviceHandler* storage_handler)
     _inodes = new Vector<InodeBase*>();
 }
 
-void JuosFileSystem::CreateFile(const String& name)
+void JuosFileSystem::_AddItemToDirectory(uint32_t dir_data_begin_sec, const String& inode_name, uint32_t inode_sector)
+{
+    char buffer[SECTOR_SIZE] = { 0 };
+
+    _ReadFromStorage(_storage_handler, dir_data_begin_sec, buffer, sizeof(buffer));
+
+    DirectoryData* dir_data = (DirectoryData*)buffer;
+
+    for (uint32_t i = 0; i < 32; i++)
+    {
+        // if unused
+        if (dir_data->children[i].sector == 0)
+        {
+            strncpy(dir_data->children[i].child_name, inode_name.c_str(), inode_name.getLength());
+            dir_data->children[i].sector = inode_sector;
+            break;
+        }
+    }
+
+    _WriteToStorage(_storage_handler, dir_data_begin_sec, buffer, sizeof(buffer));
+}
+
+void JuosFileSystem::CreateFile(const String& name, const Path& path)
 {
     if (name.getLength() > FILE_NAME_SIZE)
     {
 #if defined(K_LOG_JFS)
         LOG_SA("JFS: ", "Filename %s exceedes max size (%d)\n", name, FILE_NAME_SIZE);
 #endif
+        return;
+    }
+
+    //assert path exists
+    auto base_dir = _FindDirectory(path);
+
+    if (base_dir == nullptr)
+    {
+        printf("Path %s not found.\n", path.ToString().c_str());
         return;
     }
 
@@ -59,6 +90,7 @@ void JuosFileSystem::CreateFile(const String& name)
     file_inode->base.struct_size    = sizeof(FileInode);
     file_inode->base.data_size      = 0;
     file_inode->base.state          = InodeState::Used; 
+    file_inode->father              = base_dir->self_sector;
 
     file_inode->base.self_sector = new_sector.next_sector; 
     memcpy(file_inode->base.name, name.c_str(), sizeof(file_inode->base.name)); 
@@ -80,10 +112,13 @@ void JuosFileSystem::CreateFile(const String& name)
         _WriteToStorage(_storage_handler, new_sector.prev_inode->self_sector, new_sector.prev_inode, sizeof(FileInode));
     }
 
+    // update the current directory
+    _AddItemToDirectory(base_dir->self_sector + 1, name, new_sector.next_sector);
+
     printf("Wrote new file %s at sector %d\n", name.c_str(), new_sector.next_sector);
 }
 
-void JuosFileSystem::DeleteFile(const String& filename)
+void JuosFileSystem::DeleteFile(const String& filename, const Path& path)
 {
     auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
         return strcmp(f->name, filename.c_str()) == 0;
@@ -97,6 +132,25 @@ void JuosFileSystem::DeleteFile(const String& filename)
 
     (*inode)->state = InodeState::Unused;
     _WriteToStorage(_storage_handler, (*inode)->self_sector, *inode, (*inode)->struct_size);
+}
+
+
+void JuosFileSystem::_ListDirectoryChildren(uint32_t dir_sector)
+{
+    char buffer[SECTOR_SIZE] = { 0 };
+
+    _ReadFromStorage(_storage_handler, dir_sector, buffer, SECTOR_SIZE);
+
+    DirectoryData* dir_data = (DirectoryData*)buffer;
+
+    for (uint32_t i = 0; i < 32; i++)
+    {
+        auto child = dir_data->children[i];
+        if (child.sector)
+        {
+            printf("%s at %d %s ", child.child_name, child.sector, child.is_dir ? "(dir)" : "");
+        }
+    }
 }
 
 void JuosFileSystem::ReadFs(bool delete_cache)
@@ -160,7 +214,19 @@ void JuosFileSystem::ReadFs(bool delete_cache)
                     switch (inode->type)
                     {
                         case InodeType::File:
-                            printf("type: file, name: %s, ", ((FileInode*)inode)->base.name);
+                            printf("type: file, name: %s, father: %d, ", ((FileInode*)inode)->base.name, ((FileInode*)inode)->father);
+                            if (delete_cache)
+                            {
+                                _inodes->push_back((InodeBase*)new FileInode(*(FileInode*)inode));
+                            }
+                        break;
+
+                        case InodeType::Directory:
+                            printf("type: directory, name: %s, ", ((FileInode*)inode)->base.name);
+                            printf("files = ");
+                            _ListDirectoryChildren(inode->self_sector + 1);
+                            printf("), ");
+
                             if (delete_cache)
                             {
                                 _inodes->push_back((InodeBase*)new FileInode(*(FileInode*)inode));
@@ -199,17 +265,17 @@ void _PrintInodeFormat(const char* name, bool is_file, FilePermissions root, Fil
     printf("    %s%s\n", name, unused ? " (unused)" : "");
 }
 
-void JuosFileSystem::ListFs()
+void JuosFileSystem::ListFs(const Path& path)
 {
     printf("Permissions:        Size:       Name:\n");
     for (auto inode : *_inodes)
     {
         FileInode* file = (FileInode*)inode;
-        _PrintInodeFormat(file->base.name, true, file->base.root, file->base.owner, file->base.other, file->base.disk_size, file->base.state == InodeState::Unused);
+        _PrintInodeFormat(file->base.name, inode->type == InodeType::File, file->base.root, file->base.owner, file->base.other, file->base.disk_size, file->base.state == InodeState::Unused);
     }
 }
 
-bool JuosFileSystem::FileExists(const String& filename) const
+bool JuosFileSystem::FileExists(const String& filename, const Path& path) const
 {
     auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
         return strcmp(f->name, filename.c_str()) == 0;
@@ -218,7 +284,7 @@ bool JuosFileSystem::FileExists(const String& filename) const
     return inode != nullptr;
  }
 
-void JuosFileSystem::ReadFile(const String& filename, char* buffer, uint32_t max_size)
+void JuosFileSystem::ReadFile(const String& filename, const Path& path, char* buffer, uint32_t max_size)
 {
     // TODO refactor
     auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
@@ -235,7 +301,131 @@ void JuosFileSystem::ReadFile(const String& filename, char* buffer, uint32_t max
     _ReadFromStorage(_storage_handler, data_location, buffer, max_size);
 }
 
-void JuosFileSystem::WriteFile(const String& filename, const String& text)
+void JuosFileSystem::CreateDirectory(const String& dirname, const Path& path)
+{
+if (dirname.getLength() > FILE_NAME_SIZE)
+    {
+#if defined(K_LOG_JFS)
+        LOG_SA("JFS: ", "Directory %s exceedes max size (%d)\n", name, FILE_NAME_SIZE);
+#endif
+        return;
+    }
+
+    auto new_sector = _FindFirstAvailableSector();
+
+    auto dir_inode = new_sector.is_end ? new DirectoryInode() : 
+                (new_sector.prev_inode->type == InodeType::Directory ? (DirectoryInode*)new_sector.prev_inode : new DirectoryInode());
+
+    dir_inode->base.next           = new_sector.is_end ? 0 : new_sector.previous_next;
+    dir_inode->base.type           = InodeType::Directory;
+    dir_inode->base.disk_size      = 10; // default file size of 10
+    dir_inode->base.struct_size    = sizeof(FileInode);
+    dir_inode->base.data_size      = 0;
+    dir_inode->base.state          = InodeState::Used; 
+
+    dir_inode->base.self_sector = new_sector.next_sector; 
+    memcpy(dir_inode->base.name, dirname.c_str(), sizeof(dir_inode->base.name)); 
+
+    // if the new inode is not on the end of the linked list, we will be reusing the inode 
+    // used by the previous file, so no need to push it back into the inode list 
+    if (new_sector.is_end)
+    {
+        _inodes->push_back(reinterpret_cast<InodeBase*>(dir_inode));
+    }
+
+    _WriteToStorage(_storage_handler, new_sector.next_sector, dir_inode, sizeof(FileInode));
+
+    // now update previous inode in linked list
+    if (new_sector.prev_inode && new_sector.is_end)
+    {
+        printf("Updating previous inode at sector %d\n", new_sector.prev_inode->self_sector);
+        new_sector.prev_inode->next = new_sector.next_sector;
+        _WriteToStorage(_storage_handler, new_sector.prev_inode->self_sector, new_sector.prev_inode, sizeof(FileInode));
+    }
+
+    printf("Wrote new file %s at sector %d\n", dirname.c_str(), new_sector.next_sector);
+
+}
+
+InodeBase* JuosFileSystem::_GetCachedInodeBySector(uint32_t sector)
+{
+    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
+        return f->self_sector == sector;
+    });   
+
+    if (inode)
+    {
+        return *inode;
+    }
+
+    return nullptr;
+}
+
+InodeBase* JuosFileSystem::_FindDirectory(const Path& path)
+{
+    auto current_path = Path(path);
+    auto current_inode = (*_inodes)[0]; // get the root of the file system tree
+
+    if ((*_inodes).size() == 0)
+    {
+        return nullptr;
+    }
+
+    if (path.components.back().compare("ROOT"))
+    {
+        return current_inode;
+    }
+
+    if (current_inode->type == InodeType::Directory)
+    {
+        char buffer[512] = { 0 };
+        _ReadFromStorage(_storage_handler, current_inode->self_sector + 1, buffer, 512);
+
+        DirectoryData* directory_data = (DirectoryData*)buffer;
+        
+        for (uint32_t i = 0; i < 32; i++)
+        {
+            auto child = directory_data->children[i];
+
+            if (child.is_dir)
+            {
+                // recurse
+                if (strcmp(child.child_name, current_path.components[0].c_str()) == 0)
+                {
+                    return _FindDirectory(Path{Vector<String>(const_cast<Path&>(path).components.begin() + 1, const_cast<Path&>(path).components.begin() + 1), path.current_directory, path.previous_directory});
+                }
+            }
+            // else
+            // {
+            //     if (strcmp(child.child_name, name.c_str()) == 0)
+            //     {
+            //         // the file exists; get it from the cache
+            //         return _GetCachedInodeBySector(child.sector);
+            //     }
+
+            // }
+        }
+    }
+
+    return nullptr;
+}
+
+InodeBase* JuosFileSystem::_GetCachedInodeByName(const String& filename)
+{
+    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
+        return strcmp(f->name, filename.c_str()) == 0;
+    });
+
+    if (inode)
+    {
+        return *inode;
+    }
+
+    return nullptr;
+}
+
+
+void JuosFileSystem::WriteFile(const String& filename, const Path& path, const String& text)
 {
     auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
         return strcmp(f->name, filename.c_str()) == 0;
@@ -304,6 +494,8 @@ void JuosFileSystem::MakeNewFs()
     }
 
     _inodes = new Vector<InodeBase*>();
+
+    CreateDirectory("ROOT", {});
 }
 
 JuosFileSystem::~JuosFileSystem()

@@ -11,6 +11,7 @@
 #include <kernel/kuseful.h>
 #include <kernel/klog.h>
 
+using kernel::vfs::Path;
 
 NAMESPACE_BEGIN(ext2)
 
@@ -239,7 +240,7 @@ NAMESPACE_BEGIN(ext2)
         uint32_t super_block_idx;
     };
 
-    class Fs : public kernel::FsHandler
+    class Fs : public kernel::vfs::FsHandler
     {
     public:
         
@@ -257,16 +258,9 @@ NAMESPACE_BEGIN(ext2)
          */
         Fs(kernel::StorageDeviceHandler* storage_device, const FsDescriptor& descriptor);
 
-        virtual void CreateFile(const String& filename) override {}
+        virtual void CreateFile(const String& filename, const Path&) override {}
 
-        virtual void CreateFile(const char* filename) override;
-
-        virtual void DeleteFile(const String& filename) override {}
-
-        virtual void DeleteFile(const char* filename) override 
-        {
-            DeleteFile(String(filename));
-        }
+        virtual void DeleteFile(const String& filename, const Path&) override {}
 
         // destructor to clean up resources
         ~Fs();

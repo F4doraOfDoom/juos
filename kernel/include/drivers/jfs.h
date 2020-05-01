@@ -11,7 +11,8 @@
 
 #include <string.h>
 
-using kernel::FsHandler;
+using kernel::vfs::FsHandler;
+using kernel::vfs::Path;
 using kernel::data_structures::Vector;
 
 NAMESPACE_BEGIN(drivers)
@@ -20,7 +21,7 @@ NAMESPACE_BEGIN(drivers)
 
         MACRO(INODE_MAGIC, 0xbabecafe);
         MACRO(META_MAGIC, 0xdeadbabe);
-        MACRO(FILE_NAME_SIZE, 16);
+        MACRO(FILE_NAME_SIZE, 11);
         MACRO(UNUSED_INODE, -1);
         MACRO(LAST_INODE, 0);
 
@@ -109,7 +110,7 @@ NAMESPACE_BEGIN(drivers)
             InodeBase           base;
 
             // sector # of the directory the file is in 
-            uint64_t            father;
+            uint32_t            father;
         } __PACKED;
 
         struct DirectoryInode
@@ -117,42 +118,45 @@ NAMESPACE_BEGIN(drivers)
             // base inode attributes
             InodeBase           base;
 
-            // sector # of the directory the directory is in 
-            uint64_t            father;            
-        };
+            // sector # of the directory the file is in 
+            uint32_t            father;
+        } __PACKED;
 
-        class JuosFileSystem : public FsHandler
+        struct DirectoryData
+        {
+            struct ChildLocationPair
+            {
+                char        child_name[FILE_NAME_SIZE]  = { 0 };
+                bool        is_dir                      = false;
+                uint32_t    sector                      = 0; 
+            } __PACKED;
+
+            // TODO: For now we support only 512 byte directories
+            ChildLocationPair       children[512 / sizeof(ChildLocationPair)];
+        } __PACKED;
+
+        class JuosFileSystem : public kernel::vfs::FsHandler
         {
         public:
             JuosFileSystem(kernel::StorageDeviceHandler* storage_handler);
 
-            virtual void CreateFile(const String& filename) override;
+            virtual void CreateFile(const String& filename, const Path& path) override;
 
-            virtual void CreateFile(const char* filename) override 
-            {
-                CreateFile(String(filename));
-            };
+            virtual void CreateDirectory(const String& dirname, const Path& path) override;
 
-            virtual void CreateDirectory(const String& path) override {}
+            virtual void WriteFile(const String& filename, const Path& path, const String& text) override;
 
-            virtual void WriteFile(const String& filename, const String& text) override;
+            virtual bool FileExists(const String& filename, const Path& path) const override;
 
-            virtual bool FileExists(const String& filename) const override;
+            virtual void ReadFile(const String& filename, const Path& path, char* buffer, uint32_t max_size);
 
-            virtual void ReadFile(const String& filename, char* buffer, uint32_t max_size);
-
-            virtual void DeleteFile(const String& filename) override;
-
-            virtual void DeleteFile(const char* filename) override
-            {
-                DeleteFile(String(filename));
-            }
+            virtual void DeleteFile(const String& filename, const Path& path) override;
 
             void MakeNewFs() override;
 
             void ReadFs(bool delete_cache) override;
 
-            void ListFs() override;
+            void ListFs(const Path& path) override;
 
             virtual ~JuosFileSystem();
 
@@ -163,6 +167,18 @@ NAMESPACE_BEGIN(drivers)
                 bool                is_end          = false;// is the inode at the end of the linked list?    
                 uint32_t            previous_next   = 0; // next used by the preivous inode (only relevant when $is_end is false)
             };
+
+            InodeBase* _GetCachedInodeBySector(uint32_t sector);
+
+            bool       _PathExists(const Path& path);
+
+            InodeBase* _GetCachedInodeByName(const String& name);
+
+            InodeBase* _FindDirectory(const Path& path);
+
+            void       _ListDirectoryChildren(uint32_t dir_sector);
+
+            void       _AddItemToDirectory(uint32_t dir_data_begin_sec, const String& inode_name, uint32_t inode_sector);
 
             _FindFirstResponse _FindFirstAvailableSector();
 
