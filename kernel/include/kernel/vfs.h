@@ -17,9 +17,9 @@ NAMESPACE_BEGIN(kernel)
             // the components that make up a path
             mutable Vector<String> components;
 
-            bool current_directory;
+            bool current_directory  = false;
 
-            bool previous_directory;
+            bool previous_directory = false;
 
             String ToString() const
             {

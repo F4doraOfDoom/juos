@@ -78,6 +78,24 @@ drivers::jfs::JuosFileSystem* fs = nullptr;
     }
 )
 
+ DECLARE_SHELL_COMMAND(MakeDirectory, 2);
+ IMPL_SHELL_COMMAND(MakeDirectory, 
+    if (fs)
+    {
+        for (auto it = args.begin() + 1; it < args.end(); ++it)
+        {
+            auto path_components = std::string::split(*it, '/');
+            fs->CreateDirectory(path_components.back(), kernel::vfs::Path{Vector<String>(path_components.begin(), path_components.end() - 1), false, false});
+        }
+        return CMD_SUCCESS;
+    }
+    else
+    {
+        printf("No file system found.\n");
+        return CMD_FAILURE;
+    }
+)
+
  DECLARE_SHELL_COMMAND(PrintTree, 2);
  IMPL_SHELL_COMMAND(PrintTree, 
     if (fs)
@@ -216,7 +234,8 @@ struct CommandMap
     {"EDIT", EditFile},
     {"CAT", ReadFile},
     {"RM", DeleteFile},
-    {"TREE", PrintTree}
+    {"TREE", PrintTree},
+    {"MKDIR", MakeDirectory}
 };
 
 auto shell_banner0 = " \
@@ -371,7 +390,7 @@ void shell::ShellMain()
 
         auto args = std::string::split(buffer, ' ');
         bool found_command = false;
-		for (uint32_t i = 0; i < 11; i++)
+		for (uint32_t i = 0; i < 12; i++)
         {
             auto command_name = command_map[i].command;
             if (args[0].compare(command_name))
