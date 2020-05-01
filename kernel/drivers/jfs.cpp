@@ -48,25 +48,32 @@ void JuosFileSystem::CreateFile(const String& name)
         return;
     }
 
-    auto file_inode = new FileInode();
-    file_inode->base.type = InodeType::File;
-
     auto new_sector = _FindFirstAvailableSector();
 
-    file_inode->base.next           = 0;
+    auto file_inode = new_sector.is_end ? new FileInode() : 
+                (new_sector.prev_inode->type == InodeType::File ? (FileInode*)new_sector.prev_inode : new FileInode() );
+
+    file_inode->base.next           = new_sector.is_end ? 0 : new_sector.previous_next;
+    file_inode->base.type = InodeType::File;
     file_inode->base.disk_size      = 10; // default file size of 10
     file_inode->base.struct_size    = sizeof(FileInode);
     file_inode->base.data_size      = 0;
     file_inode->base.state          = InodeState::Used; 
 
-    file_inode->base.self_sector = new_sector.next_sector;
+    file_inode->base.self_sector = new_sector.next_sector; 
     memcpy(file_inode->base.name, name.c_str(), sizeof(file_inode->base.name)); 
 
-    _inodes->push_back(reinterpret_cast<InodeBase*>(file_inode));
+    // if the new inode is not on the end of the linked list, we will be reusing the inode 
+    // used by the previous file, so no need to push it back into the inode list 
+    if (new_sector.is_end)
+    {
+        _inodes->push_back(reinterpret_cast<InodeBase*>(file_inode));
+    }
+
     _WriteToStorage(_storage_handler, new_sector.next_sector, file_inode, sizeof(FileInode));
 
     // now update previous inode in linked list
-    if (new_sector.prev_inode)
+    if (new_sector.prev_inode && new_sector.is_end)
     {
         printf("Updating previous inode at sector %d\n", new_sector.prev_inode->self_sector);
         new_sector.prev_inode->next = new_sector.next_sector;
@@ -143,6 +150,10 @@ void JuosFileSystem::ReadFs(bool delete_cache)
 
                 case InodeState::Unused:
                     printf("type: unused, ");
+                    if (delete_cache)
+                    {
+                        _inodes->push_back(new InodeBase(*inode));
+                    }
                 break;
 
                 case InodeState::Used:
@@ -178,14 +189,14 @@ void JuosFileSystem::ReadFs(bool delete_cache)
     }
 }
 
-void _PrintInodeFormat(const char* name, bool is_file, FilePermissions root, FilePermissions owner, FilePermissions other, uint32_t size)
+void _PrintInodeFormat(const char* name, bool is_file, FilePermissions root, FilePermissions owner, FilePermissions other, uint32_t size, uint32_t unused)
 {
     printf(is_file ? "-" : "d");
     printf("%c%c%c", root.execute ? 'x' : '-', root.write ? 'w' : '-', root.read ? 'r' : '-');
     printf("%c%c%c", owner.execute ? 'x' : '-', owner.write ? 'w' : '-', owner.read ? 'r' : '-');
     printf("%c%c%c", other.execute ? 'x' : '-', other.write ? 'w' : '-', other.read ? 'r' : '-');
     printf("          %d      ", size);
-    printf("    %s\n", name);
+    printf("    %s%s\n", name, unused ? " (unused)" : "");
 }
 
 void JuosFileSystem::ListFs()
@@ -194,7 +205,7 @@ void JuosFileSystem::ListFs()
     for (auto inode : *_inodes)
     {
         FileInode* file = (FileInode*)inode;
-        _PrintInodeFormat(file->base.name, true, file->base.root, file->base.owner, file->base.other, file->base.disk_size);
+        _PrintInodeFormat(file->base.name, true, file->base.root, file->base.owner, file->base.other, file->base.disk_size, file->base.state == InodeState::Unused);
     }
 }
 
@@ -251,13 +262,23 @@ JuosFileSystem::_FindFirstResponse JuosFileSystem::_FindFirstAvailableSector()
     JuosFileSystem::_FindFirstResponse res;
     res.next_sector = _fs_meta.start_block;
     res.prev_inode = nullptr;
+    res.is_end = true;
 
     for (const auto& inode : *_inodes)
     {
-        if (inode->next == 0 || inode->state == InodeState::Unused)
+        res.prev_inode = inode;
+        if (inode->next == 0)
         {
             res.next_sector = inode->self_sector + inode->disk_size + 1;
-            res.prev_inode  = inode;
+            res.is_end = true;
+            break;
+        }
+        else if (inode->state == InodeState::Unused)
+        {
+            res.next_sector = inode->self_sector;
+            res.is_end = false;
+            res.previous_next = inode->next;
+            break;
         }
     }
 

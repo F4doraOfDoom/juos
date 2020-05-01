@@ -158,15 +158,17 @@ NAMESPACE_BEGIN(drivers)
 
         private:
             struct _FindFirstResponse {
-                uint32_t            next_sector;
-                InodeBase*    prev_inode;
+                uint32_t            next_sector     = 0;
+                InodeBase*          prev_inode      = 0;
+                bool                is_end          = false;// is the inode at the end of the linked list?    
+                uint32_t            previous_next   = 0; // next used by the preivous inode (only relevant when $is_end is false)
             };
 
             _FindFirstResponse _FindFirstAvailableSector();
 
             kernel::StorageDeviceHandler*   _storage_handler;
             Vector<InodeBase*>  *           _inodes; 
-            FsMeta                          _fs_meta;         
+            FsMeta                          _fs_meta;   
         };
 
     NAMESPACE_END(jfs)
