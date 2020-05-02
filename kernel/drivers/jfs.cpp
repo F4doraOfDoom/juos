@@ -167,22 +167,21 @@ static DirectoryData _ReadDirectory(kernel::StorageDeviceHandler* storage, uint3
 
 void _TreeInt(kernel::StorageDeviceHandler* storage, uint32_t current_sector, const String& prev_name, uint32_t depth)
 {
-    char buffer[SECTOR_SIZE] = { 0 };
     DirectoryData dir_data;
+    InodeBase inode;
 
-    _ReadFromStorage(storage, current_sector, buffer, SECTOR_SIZE);
+    _ReadFromStorage(storage, current_sector, &inode, sizeof(InodeBase));
 
-    InodeBase* inode = (InodeBase*)buffer;
 
     for (uint32_t i = 0; i < depth; i++)
     {
         printf("-");
     }
 
-    switch (inode->type)
+    switch (inode.type)
     {
         case InodeType::Directory:
-            dir_data = _ReadDirectory(storage, inode->self_sector + 1);
+            dir_data = _ReadDirectory(storage, inode.self_sector + 1);
 
             printf("%s\n", prev_name.c_str());
             for (uint32_t i = 0; i < 32; i++)
@@ -192,7 +191,7 @@ void _TreeInt(kernel::StorageDeviceHandler* storage, uint32_t current_sector, co
                 {
                     if (child.is_dir)
                     {
-                        _TreeInt(storage, child.sector, child.child_name, depth++);
+                        _TreeInt(storage, child.sector, child.child_name, depth + 1);
                     }
                     else
                     {
@@ -226,10 +225,8 @@ void JuosFileSystem::Tree(const Path& path)
         printf("Could not find path %d.\n", path.ToString().c_str());
     }
 
-    _TreeInt(_storage_handler, dir_base->self_sector, "/", 0);
+    _TreeInt(_storage_handler, dir_base->self_sector, path.components.back(), 0);
 }
-
-
 
 void JuosFileSystem::ReadFs(bool delete_cache)
 {
@@ -245,6 +242,10 @@ void JuosFileSystem::ReadFs(bool delete_cache)
                 {
                     case InodeType::File:
                         delete (FileInode*)inode;
+                    break;
+
+                    case InodeType::Directory:
+                        delete (DirectoryInode*)inode;
                     break;
 
                     default:
@@ -462,6 +463,10 @@ InodeBase* JuosFileSystem::_FindDirectoryInt(kernel::StorageDeviceHandler* stora
     {
         return nullptr;
     }
+    else if (path_index == path.components.size())
+    {
+        return _GetCachedInodeBySector(current_inode_sector);
+    }
     else
     {
         current_search = path.components[path_index];
@@ -486,13 +491,13 @@ InodeBase* JuosFileSystem::_FindDirectoryInt(kernel::StorageDeviceHandler* stora
                 // recurse
                 if (String(child.child_name).compare(current_search))
                 {
-                    if ((path_index + 1) == path.components.size())
+                    if (path_index == path.components.size())
                     {
                         return _GetCachedInodeBySector(current_inode.self_sector); 
                     }
                     else
                     {
-                        return _FindDirectoryInt(storage, path, child.sector, path_index++);
+                        return _FindDirectoryInt(storage, path, child.sector, path_index + 1);
                     }
                 }
             }
