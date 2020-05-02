@@ -121,22 +121,43 @@ void JuosFileSystem::CreateFile(const String& name, const Path& path)
 
 void JuosFileSystem::DeleteFile(const String& filename, const Path& path)
 {
-    auto inode = std::find_if(_inodes->begin(), _inodes->end(), [&](auto& f) {
-        return strcmp(f->name, filename.c_str()) == 0;
-    });
+    auto base_dir = _FindDirectory(path);
 
-    if (inode == nullptr)
+    if (base_dir == nullptr)
     {
-        printf("Could not find file named %s\n", filename.c_str());
+        printf("Path %s not found.\n", path.ToString().c_str());
         return;
     }
 
-    (*inode)->state = InodeState::Unused;
-    _WriteToStorage(_storage_handler, (*inode)->self_sector, *inode, (*inode)->struct_size);
+    auto dir_info = _GetDirectoryData(base_dir->self_sector + 1);
+
+    uint32_t inode_sector = 0;
+    for (uint32_t i = 0; i < 32; i++)
+    {
+        auto child_info = dir_info.children[i];
+        if (strcmp(child_info.child_name, filename.c_str()) == 0)
+        {
+            inode_sector = child_info.sector;
+            dir_info.children[i].sector = 0; // unused
+            break;
+        }
+    }
+
+    if (inode_sector == 0)
+    {
+        printf("Could not find file %s%s.\n", path.ToString().c_str(), filename.c_str());
+        return;
+    }
+
+    auto inode = _GetCachedInodeBySector(inode_sector);
+
+    inode->state = InodeState::Unused;
+    _WriteToStorage(_storage_handler, inode->self_sector, inode, inode->struct_size);
+
+    _WriteToStorage(_storage_handler, base_dir->self_sector + 1, &dir_info, sizeof(DirectoryData));
 }
 
-
-void JuosFileSystem::_ListDirectoryChildren(uint32_t dir_sector)
+DirectoryData JuosFileSystem::_GetDirectoryData(uint32_t dir_sector)
 {
     char buffer[SECTOR_SIZE] = { 0 };
 
@@ -144,9 +165,16 @@ void JuosFileSystem::_ListDirectoryChildren(uint32_t dir_sector)
 
     DirectoryData* dir_data = (DirectoryData*)buffer;
 
+    return *dir_data;
+}
+
+void JuosFileSystem::_ListDirectoryChildren(uint32_t dir_sector)
+{
+    auto dir_data = _GetDirectoryData(dir_sector);
+
     for (uint32_t i = 0; i < 32; i++)
     {
-        auto child = dir_data->children[i];
+        auto child = dir_data.children[i];
         if (child.sector)
         {
             printf("%s at %d %s ", child.child_name, child.sector, child.is_dir ? "(dir)" : "");

@@ -180,6 +180,8 @@ NAMESPACE_BEGIN(drivers)
 
             void       _ListDirectoryChildren(uint32_t dir_sector);
             
+            DirectoryData _GetDirectoryData(uint32_t dir_sector);
+
             InodeBase* _FindDirectoryInt(kernel::StorageDeviceHandler* storage, const Path& path, uint32_t current_inode_sector, uint32_t path_index);
 
             void       _AddItemToDirectory(uint32_t dir_data_begin_sec, const String& inode_name, uint32_t inode_sector, bool is_dir);

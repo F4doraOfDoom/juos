@@ -159,7 +159,8 @@ IMPL_SHELL_COMMAND(DeleteFile,
     {
         for (auto it = args.begin() + 1; it < args.end(); ++it)
         {
-            fs->DeleteFile(*it, {});
+            auto path_components = std::string::split(*it, '/');
+            fs->DeleteFile(path_components.back(), kernel::vfs::Path{Vector<String>(path_components.begin(), path_components.end() - 1), false, false});
         }
         return CMD_SUCCESS;
     }
